@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# Redirect all requests to index.php if the requested file doesn't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+
+# Security headers
+<FilesMatch "\.(php|html|css|js)$">
+    Header set X-Content-Type-Options nosniff
+</FilesMatch>
+
+# Prevent access to sensitive files
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
