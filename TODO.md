@@ -1,13 +1,15 @@
-# TODO: Modify Layanan Dropdown and Remove Pembelian Obat Route
+# TODO: Implement Login, Register, and Forgot Password Functionality
 
 ## Tasks
-- [x] Modify header.php: Change the "Layanan" dropdown menu to contain only "Tanya Dokter" option
-- [x] Modify index.php: Remove the 'pembelian-obat' case from the routing switch statement
-- [x] Fix konsultasi-dokter description: Change from "Artikel dan panduan kesehatan hewan dari dokter berpengalaman" to "Konsultasi langsung dengan dokter hewan via video call"
-- [x] Remove "Delivery Obat" service from index.php layanan section
-- [x] Add service type selection to tanya-dokter.php: "Pilih jenis layanan yang dibutuhkan: konsultasi online, kunjungan rumah, atau darurat"
-- [x] Restore full services dropdown in header.php: Add back all services (Konsultasi Dokter, Tanya Dokter, Klinik Terdekat, Dokter Ternak)
-- [ ] Test the changes: Verify dropdown shows only one option and removed route no longer exists
+- [x] Create migration file for users table (supabase/migrations/002_users_auth.sql)
+- [x] Update includes/database.php to implement proper authentication methods using the users table
+- [x] Ensure pages/auth.php compatibility and add any missing error handling
+- [x] Create MySQL schema for phpMyAdmin (database/mysql_schema.sql)
+- [x] Update database.php for MySQL compatibility
+- [x] Create database setup documentation (database/README.md)
+- [ ] Test login, register, and forgot password functionality
+- [ ] Implement actual email sending for forgot password (placeholder for now)
+- [ ] Update password reset logic to verify tokens and allow password changes
 
 ## Status
-- Current: Implementation completed, ready for testing
+- Current: MySQL setup completed, ready for testing

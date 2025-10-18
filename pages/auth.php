@@ -1,6 +1,6 @@
 <?php
 // Authentication page with database integration
-require_once '../includes/database.php';
+require_once __DIR__ . '/../includes/database.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $db = new Database();
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user) {
             session_start();
             $_SESSION['user'] = $user;
-            header('Location: ?route=dashboard');
+            header('Location: ?route=');
             exit;
         } else {
             $message = 'Email atau kata sandi salah.';
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $result = $db->registerUser($name, $email, $password);
             if ($result['success']) {
-                $message = 'Pendaftaran berhasil. Silakan masuk.';
+                $message = $result['message'];
                 $messageType = 'success';
                 $action = 'login';
             } else {
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = $_POST['email'] ?? '';
         $result = $db->initiatePasswordReset($email);
         if ($result['success']) {
-            $message = 'Link reset kata sandi telah dikirim ke email Anda.';
+            $message = $result['message'];
             $messageType = 'success';
             $action = 'login';
         } else {
