@@ -3,9 +3,9 @@
 class Database {
     private $host = 'localhost';
     private $port = '3306';
-    private $dbname = 'vetcare_db';
+    private $dbname = 'klinikh';
     private $user = 'root';
-    private $password = ''; 
+    private $password = '';
     private $pdo;
 
     public function __construct() {
@@ -27,12 +27,12 @@ class Database {
 
     // User authentication methods
     public function authenticateUser($email, $password) {
-        $stmt = $this->pdo->prepare("SELECT id, email, full_name, password_hash FROM users WHERE email = ?");
+        $stmt = $this->pdo->prepare("SELECT id_pengguna, email, nama, pass, role FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password_hash'])) {
-            unset($user['password_hash']); // Remove password hash from return data
+        if ($user && $password === $user['pass']) { // Note: Using plain text password comparison as per existing schema
+            unset($user['pass']); // Remove password from return data
             return $user;
         }
         return false;
@@ -40,35 +40,32 @@ class Database {
 
     public function registerUser($name, $email, $password) {
         // Check if email already exists
-        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             return ['success' => false, 'message' => 'Email sudah terdaftar'];
         }
 
-        // Hash password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Insert user
-        $stmt = $this->pdo->prepare("INSERT INTO users (email, password_hash, full_name) VALUES (?, ?, ?)");
-        if ($stmt->execute([$email, $hashedPassword, $name])) {
+        // Insert user (storing plain text password as per existing schema)
+        $stmt = $this->pdo->prepare("INSERT INTO m_pengguna (nama, email, pass, role) VALUES (?, ?, ?, 'Member')");
+        if ($stmt->execute([$name, $email, $password])) {
             return ['success' => true, 'message' => 'Pendaftaran berhasil. Silakan masuk.'];
         }
         return ['success' => false, 'message' => 'Pendaftaran gagal'];
     }
 
     public function initiatePasswordReset($email) {
-        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user) {
-            $resetToken = bin2hex(random_bytes(32));
+            $resetToken = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT); // 6-digit token
             $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
             // Store reset token
-            $stmt = $this->pdo->prepare("UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?");
-            $stmt->execute([$resetToken, $expiry, $user['id']]);
+            $stmt = $this->pdo->prepare("UPDATE m_pengguna SET reset_token = ?, exp_token = ? WHERE id_pengguna = ?");
+            $stmt->execute([$resetToken, $expiry, $user['id_pengguna']]);
 
             // Send email (placeholder - implement actual email sending)
             $this->sendResetEmail($email, $resetToken);
@@ -79,7 +76,7 @@ class Database {
     }
 
     public function verifyResetToken($token) {
-        $stmt = $this->pdo->prepare("SELECT id, email FROM users WHERE reset_token = ? AND reset_expires > NOW()");
+        $stmt = $this->pdo->prepare("SELECT id_pengguna, email FROM m_pengguna WHERE reset_token = ? AND exp_token > NOW()");
         $stmt->execute([$token]);
         return $stmt->fetch();
     }
@@ -90,9 +87,8 @@ class Database {
             return ['success' => false, 'message' => 'Token reset tidak valid atau sudah kadaluarsa'];
         }
 
-        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?");
-        if ($stmt->execute([$hashedPassword, $user['id']])) {
+        $stmt = $this->pdo->prepare("UPDATE m_pengguna SET pass = ?, reset_token = NULL, exp_token = NULL WHERE id_pengguna = ?");
+        if ($stmt->execute([$newPassword, $user['id_pengguna']])) {
             return ['success' => true, 'message' => 'Kata sandi berhasil diubah'];
         }
         return ['success' => false, 'message' => 'Gagal mengubah kata sandi'];

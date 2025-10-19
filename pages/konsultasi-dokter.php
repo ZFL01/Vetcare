@@ -23,12 +23,14 @@ $articles = [
 ?>
 <div class="pt-32 pb-20">
     <div class="container mx-auto px-4">
-        <a href="?route=" class="inline-flex items-center mb-8 text-gray-600 hover:text-purple-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-            Kembali
-        </a>
+       <div class="mb-8">
+            <button onclick="navigateTo('?route=')" class="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Kembali ke Beranda
+            </button>
+        </div>
 
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-12">
