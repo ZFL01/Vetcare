@@ -112,74 +112,146 @@
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
-                <a href="?route=konsultasi-dokter" class="group">
-                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                            <span class="text-3xl">🩺</span>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+                <!-- Konsultasi Dokter -->
+                <a href="?route=konsultasi-dokter" class="group service-card animate-slide-up">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            24/7
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                            Konsultasi Dokter
-                        </h3>
-                        <p class="text-gray-600 leading-relaxed">
-                            Chat atau video call langsung dengan dokter hewan berpengalaman
-                        </p>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">🩺</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Konsultasi Dokter
+                            </h3>
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Konsultasi online dengan dokter hewan profesional kapan saja, di mana saja. Dapatkan jawaban cepat untuk pertanyaan kesehatan hewan Anda.
+                        </div>
                     </div>
                 </a>
 
-                <a href="?route=tanya-dokter" class="group">
-                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                            <span class="text-3xl">❓</span>
+                <!-- Tanya Dokter -->
+                <a href="?route=tanya-dokter" class="group service-card animate-slide-up" style="animation-delay: 0.1s">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            Gratis
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                            Tanya Dokter
-                        </h3>
-                        <p class="text-gray-600 leading-relaxed">
-                            Ajukan pertanyaan seputar kesehatan hewan kesayangan Anda
-                        </p>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">❓</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Tanya Dokter
+                            </h3>
+
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Ajukan pertanyaan kesehatan hewan kapan saja. Dijawab oleh dokter berpengalaman dalam 30 menit.
+                            </p>
+
+                        </div>
                     </div>
                 </a>
 
-                <a href="?route=klinik-terdekat" class="group">
-                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                            <span class="text-3xl">📍</span>
+                <!-- Klinik Terdekat -->
+                <a href="?route=klinik-terdekat" class="group service-card animate-slide-up" style="animation-delay: 0.2s">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            Populer
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                            Klinik Terdekat
-                        </h3>
-                        <p class="text-gray-600 leading-relaxed">
-                            Temukan klinik hewan terdekat dari lokasi Anda
-                        </p>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">📍</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Klinik Terdekat
+                            </h3>
+
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Temukan klinik hewan terdekat dengan navigasi real-time. Lihat ulasan, jam operasional, dan layanan.
+                            </p>
+
+                        </div>
                     </div>
                 </a>
 
-                <a href="?route=dokter-ternak" class="group">
-                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                            <span class="text-3xl">🐄</span>
+                <!-- Dokter Ternak -->
+                <a href="?route=dokter-ternak" class="group service-card animate-slide-up" style="animation-delay: 0.3s">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">🐄</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Dokter Ternak
+                            </h3>
+
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Layanan kesehatan khusus untuk ternak dan hewan produktif. Konsultasi nutrisi dan pencegahan penyakit.
+                            </p>
+
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                            Dokter Ternak
-                        </h3>
-                        <p class="text-gray-600 leading-relaxed">
-                            Layanan kesehatan untuk ternak dan hewan produktif
-                        </p>
                     </div>
                 </a>
 
-                <a href="?route=dokter-hewan-kecil" class="group">
-                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                            <span class="text-3xl">🐱</span>
+                <!-- Dokter Hewan Kecil -->
+                <a href="?route=dokter-hewan-kecil" class="group service-card animate-slide-up" style="animation-delay: 0.4s">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            Favorit
                         </div>
-                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
-                            Dokter Hewan Kecil
-                        </h3>
-                        <p class="text-gray-600 leading-relaxed">
-                            Layanan kesehatan untuk kucing, anjing, dan hewan peliharaan kecil
-                        </p>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">🐱</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Dokter Hewan Kecil
+                            </h3>
+
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Perawatan spesialis untuk kucing, anjing, dan hewan peliharaan kecil. Vaksinasi, grooming, dan emergency care.
+                            </p>
+
+                        </div>
                     </div>
                 </a>
             </div>

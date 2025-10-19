@@ -27,7 +27,7 @@ private $host = 'localhost';
 private $port = '3306';
 private $dbname = 'vetcare_db';
 private $user = 'root';
-private $password = ''; // Leave empty for XAMPP default
+private $password = ''; 
 ```
 
 ### For XAMPP Users:
