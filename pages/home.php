@@ -112,7 +112,7 @@
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
                 <a href="?route=konsultasi-dokter" class="group">
                     <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
                         <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
@@ -165,6 +165,20 @@
                         </h3>
                         <p class="text-gray-600 leading-relaxed">
                             Layanan kesehatan untuk ternak dan hewan produktif
+                        </p>
+                    </div>
+                </a>
+
+                <a href="?route=dokter-hewan-kecil" class="group">
+                    <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8 hover:border-purple-300 hover:shadow-card transition-all duration-300 h-full">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
+                            <span class="text-3xl">🐱</span>
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
+                            Dokter Hewan Kecil
+                        </h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Layanan kesehatan untuk kucing, anjing, dan hewan peliharaan kecil
                         </p>
                     </div>
                 </a>
@@ -381,7 +395,7 @@
                     <div class="text-center p-6 bg-purple-50 rounded-2xl">
                         <div class="text-4xl mb-3">📍</div>
                         <h3 class="font-display font-bold text-gray-900 mb-2">Lokasi</h3>
-                        <p class="text-gray-600">Jakarta, Indonesia</p>
+                        <p class="text-gray-600">Jember, Indonesia</p>
                     </div>
                 </div>
 

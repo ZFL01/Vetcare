@@ -1,9 +1,4 @@
 <?php
-// Start session at the very beginning to avoid header issues
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Authentication page with database integration
 require_once __DIR__ . '/../includes/database.php';
 
@@ -100,13 +95,13 @@ function showForgotPasswordForm($message = '', $messageType = '') {
     <?php
 }
 
+// Handle POST requests before any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         $user = $db->authenticateUser($email, $password);
         if ($user) {
-            session_start();
             $_SESSION['user'] = $user;
             header('Location: ?route=');
             exit;

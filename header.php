@@ -5,7 +5,7 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-card">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between h-20">
-            <div class="flex items-center gap-3 group cursor-pointer" onclick="navigateTo('/')">
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="navigateTo('?route=')">
                 <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-glow">
                     <span class="text-white text-2xl">🐾</span>
                 </div>
@@ -57,6 +57,13 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                             <div>
                                 <div class="font-medium">Dokter Ternak</div>
                                 <div class="text-xs text-gray-500">Hewan Produktif</div>
+                            </div>
+                        </a>
+                        <a href="?route=dokter-hewan-kecil" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
+                            <span class="text-lg">🐱</span>
+                            <div>
+                                <div class="font-medium">Dokter Hewan Kecil</div>
+                                <div class="text-xs text-gray-500">Kucing, Anjing & Hewan Peliharaan</div>
                             </div>
                         </a>
                     </div>
@@ -111,6 +118,7 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                         <a href="?route=tanya-dokter" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">❓ Tanya Dokter</a>
                         <a href="?route=klinik-terdekat" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">📍 Klinik Terdekat</a>
                         <a href="?route=dokter-ternak" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">🐄 Dokter Ternak</a>
+                        <a href="?route=dokter-hewan-kecil" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">🐱 Dokter Hewan Kecil</a>
                     </div>
                 </div>
 
@@ -155,7 +163,12 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 <script>
 // Header JavaScript functions
 function navigateTo(path) {
-    window.location.href = path;
+    // If path is just '?route=', redirect to home
+    if (path === '?route=') {
+        window.location.href = '?route=';
+    } else {
+        window.location.href = path;
+    }
 }
 
 function scrollToSection(sectionId) {
@@ -164,7 +177,7 @@ function scrollToSection(sectionId) {
     const currentRoute = urlParams.get('route') || '';
     if (currentRoute !== '' && currentRoute !== '/') {
         // If not on home page, redirect to home with scroll parameter
-        window.location.href = '/?scroll=' + sectionId;
+        window.location.href = '?route=&scroll=' + sectionId;
         return;
     }
     // If on home page, scroll to the section

@@ -1,3 +1,8 @@
+// Start session at the very beginning to avoid header issues
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 <?php
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
@@ -34,6 +39,11 @@ switch ($route) {
         $pageTitle = 'Dokter Ternak - VetCare';
         $pageDescription = 'Layanan kesehatan untuk ternak dan hewan produktif';
         $contentFile = 'pages/dokter-ternak.php';
+        break;
+    case 'dokter-hewan-kecil':
+        $pageTitle = 'Dokter Hewan Kecil - VetCare';
+        $pageDescription = 'Layanan kesehatan untuk kucing, anjing, dan hewan peliharaan kecil';
+        $contentFile = 'pages/dokter-hewan-kecil.php';
         break;
     case 'auth':
         $pageTitle = 'Masuk/Daftar - VetCare';
