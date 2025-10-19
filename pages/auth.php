@@ -1,4 +1,9 @@
 <?php
+// Start session at the very beginning to avoid header issues
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Authentication page with database integration
 require_once __DIR__ . '/../includes/database.php';
 
