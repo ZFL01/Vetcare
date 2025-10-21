@@ -9,3 +9,7 @@ yarn-error.log*
 # Environment
 .env
 .env.production
+
+.gitignore
+.htaccess
+# Dependency directories
