@@ -29,9 +29,9 @@ class Database
     }
 
     // User authentication methods
-    public function authenticateUser($email, $password)
+    public static function authenticateUser($email, $password)
     {
-        $stmt = $this->pdo->prepare("SELECT id, email, full_name, password_hash FROM users WHERE email = ?");
+        $stmt = self::$pdo->prepare("SELECT id, email, full_name, password_hash FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
@@ -47,10 +47,10 @@ class Database
         return false;
     }
 
-    public function registerUser($name, $email, $password)
+    public static function registerUser($name, $email, $password)
     {
         // Check if email already exists
-        $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
+        $stmt = self::$pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             return ['success' => false, 'message' => 'Email sudah terdaftar'];
@@ -60,16 +60,16 @@ class Database
         $plainPassword = $password;
 
         // Insert user ke tabel m_pengguna
-        $stmt = $this->pdo->prepare("INSERT INTO m_pengguna (email, pass, nama) VALUES (?, ?, ?)");
+        $stmt = self::$pdo->prepare("INSERT INTO m_pengguna (email, pass, nama) VALUES (?, ?, ?)");
         if ($stmt->execute([$email, $plainPassword, $name])) {
             return ['success' => true, 'message' => 'Pendaftaran berhasil. Silakan masuk.'];
         }
         return ['success' => false, 'message' => 'Pendaftaran gagal'];
     }
 
-    public function initiatePasswordReset($email)
+    public static function initiatePasswordReset($email)
     {
-        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt = self::$pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
@@ -78,9 +78,9 @@ class Database
             $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
             $userId = $user['id_pengguna'];
 
-            $stmt = $this->pdo->prepare("UPDATE m_pengguna SET reset_token = ?, exp_token = ? WHERE id_pengguna = ?");
+            $stmt = self::$pdo->prepare("UPDATE m_pengguna SET reset_token = ?, exp_token = ? WHERE id_pengguna = ?");
             if ($stmt->execute([$resetToken, $expiry, $userId])) {
-                $this->sendResetEmail($email, $resetToken);
+                self::sendResetEmail($email, $resetToken);
                 return ['success' => true, 'message' => 'Link reset kata sandi telah dikirim ke email Anda.'];
             }
             return ['success' => false, 'message' => 'Gagal menyimpan token reset.'];
@@ -88,9 +88,9 @@ class Database
         return ['success' => false, 'message' => 'Email tidak ditemukan'];
     }
 
-    public function verifyResetToken($token)
+    public static function verifyResetToken($token)
     {
-        $stmt = $this->pdo->prepare("SELECT id, email FROM users WHERE reset_token = ? AND reset_expires > NOW()");
+        $stmt = self::$pdo->prepare("SELECT id, email FROM users WHERE reset_token = ? AND reset_expires > NOW()");
         $stmt->execute([$token]);
         $user = $stmt->fetch();
 
@@ -100,9 +100,9 @@ class Database
         return false;
     }
 
-    public function resetPassword($token, $newPassword)
+    public static function resetPassword($token, $newPassword)
     {
-        $user = $this->verifyResetToken($token);
+        $user = self::verifyResetToken($token);
         if (!$user) {
             return ['success' => false, 'message' => 'Token reset tidak valid atau sudah kadaluarsa'];
         }
@@ -111,14 +111,14 @@ class Database
         $plainPassword = $newPassword;
         $userId = $user['id'];
 
-        $stmt = $this->pdo->prepare("UPDATE m_pengguna SET pass = ?, reset_token = NULL, exp_token = NOW() WHERE id_pengguna = ?");
+        $stmt = self::$pdo->prepare("UPDATE m_pengguna SET pass = ?, reset_token = NULL, exp_token = NOW() WHERE id_pengguna = ?");
         if ($stmt->execute([$plainPassword, $userId])) {
             return ['success' => true, 'message' => 'Kata sandi berhasil diubah'];
         }
         return ['success' => false, 'message' => 'Gagal mengubah kata sandi'];
     }
 
-    private function sendResetEmail($email, $token)
+    private static function sendResetEmail($email, $token)
     {
         // Implement email sending logic here
         error_log("Password reset token for $email: $token");
