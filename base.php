@@ -7,7 +7,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?php echo isset($pageTitle) ? $pageTitle : 'VetCare - Perawatan Hewan Terbaik'; ?></title>
-    <meta name="description" content="<?php echo isset($pageDescription) ? $pageDescription : 'Platform Telemedicine #1 untuk Hewan - Konsultasi online dengan dokter hewan terpercaya'; ?>" />
+        <meta name="description" content="<?php echo isset($pageDescription) ? $pageDescription : 'Platform Telemedicine #1 untuk Hewan - Konsultasi online dengan dokter hewan terpercaya'; ?>" />
     <meta name="author" content="VetCare" />
 
     <!-- Google Fonts -->

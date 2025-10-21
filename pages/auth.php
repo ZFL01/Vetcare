@@ -1,7 +1,7 @@
 <?php
 // PASTIKAN: file database.php berada di direktori 'includes'
 // PASTIKAN: kamu sudah menggunakan versi database.php yang aman (dengan password_hash())
-
+define('ROOT_PATH', dirname(__DIR__)); 
 // --- AKTIFKAN SESI ---
 // Selalu panggil session_start() sebelum output HTML dikirim
 if (session_status() == PHP_SESSION_NONE) {
