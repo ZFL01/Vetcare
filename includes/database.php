@@ -1,32 +1,36 @@
 <?php
 // Database connection configuration for MySQL
-class Database {
-    private $host = 'localhost';
-    private $port = '3306';
-    private $dbname = 'vetcare_db';
-    private $user = 'root';
-    private $password = ''; 
-    private $pdo;
+class Database
+{
+    private static $host = 'localhost';
+    private static $port = '3306';
+    private static $dbname = 'klinikh';
+    private static $user = 'root';
+    private static $password = '';
+    private static ?PDO $pdo = null;
 
-    public function __construct() {
-        try {
-            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->dbname};charset=utf8mb4";
-            $this->pdo = new PDO($dsn, $this->user, $this->password, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ]);
-        } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
+    private function __construct(){}
+
+    public static function getConnection()
+    {
+        if (self::$pdo === null) {
+            try {
+                $dsn = "mysql:host=" . self::$host . ";port=" . self::$port . ";dbname=" . self::$dbname . ";charset=utf8mb4";
+                self::$pdo = new PDO($dsn, self::$user, self::$password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
+            } catch (PDOException $e) {
+                die("Database connection failed: " . $e->getMessage());
+            }
         }
-    }
-
-    public function getConnection() {
-        return $this->pdo;
+        return self::$pdo;
     }
 
     // User authentication methods
-    public function authenticateUser($email, $password) {
+    public function authenticateUser($email, $password)
+    {
         $stmt = $this->pdo->prepare("SELECT id, email, full_name, password_hash FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
@@ -38,7 +42,8 @@ class Database {
         return false;
     }
 
-    public function registerUser($name, $email, $password) {
+    public function registerUser($name, $email, $password)
+    {
         // Check if email already exists
         $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
@@ -57,7 +62,8 @@ class Database {
         return ['success' => false, 'message' => 'Pendaftaran gagal'];
     }
 
-    public function initiatePasswordReset($email) {
+    public function initiatePasswordReset($email)
+    {
         $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
@@ -78,13 +84,15 @@ class Database {
         return ['success' => false, 'message' => 'Email tidak ditemukan'];
     }
 
-    public function verifyResetToken($token) {
+    public function verifyResetToken($token)
+    {
         $stmt = $this->pdo->prepare("SELECT id, email FROM users WHERE reset_token = ? AND reset_expires > NOW()");
         $stmt->execute([$token]);
         return $stmt->fetch();
     }
 
-    public function resetPassword($token, $newPassword) {
+    public function resetPassword($token, $newPassword)
+    {
         $user = $this->verifyResetToken($token);
         if (!$user) {
             return ['success' => false, 'message' => 'Token reset tidak valid atau sudah kadaluarsa'];
@@ -98,7 +106,8 @@ class Database {
         return ['success' => false, 'message' => 'Gagal mengubah kata sandi'];
     }
 
-    private function sendResetEmail($email, $token) {
+    private function sendResetEmail($email, $token)
+    {
         // Implement email sending logic here
         // For demo, just log the token
         error_log("Password reset token for $email: $token");
