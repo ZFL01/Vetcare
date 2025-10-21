@@ -8,10 +8,9 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/includes/database.php'; // Sesuaikan path ini jika perlu
+require_once 'includes/database.php'; // Sesuaikan path ini jika perlu
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
-$db = new Database();
 $message = '';
 $messageType = '';
 
@@ -123,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        $user = $db->authenticateUser($email, $password);
+        $user = Database::authenticateUser($email, $password);
         if ($user) {
             $_SESSION['user'] = $user;
 
