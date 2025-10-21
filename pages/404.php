@@ -16,7 +16,8 @@
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="navigateTo('/')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                <button onclick="navigateTo('?route')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                
                     <span class="mr-2">🏠</span>
                     Kembali ke Beranda
                 </button>

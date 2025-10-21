@@ -102,5 +102,74 @@ class Database {
         // Placeholder: In production, send actual email with reset link
         // Example: mail($email, 'Reset Password', "Click here to reset: http://yourdomain.com/reset-password?token=$token");
     }
+
+    // Doctor-specific methods
+    public function registerDokter($name, $email, $password, $ttl, $strv, $expStrv, $sip, $expSip, $pengalaman) {
+        // Check if email already exists
+        $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            return ['success' => false, 'message' => 'Email sudah terdaftar'];
+        }
+
+        // Insert user as Dokter
+        $stmt = $this->pdo->prepare("INSERT INTO m_pengguna (nama, email, pass, role) VALUES (?, ?, ?, 'Dokter')");
+        if ($stmt->execute([$name, $email, $password])) {
+            $userId = $this->pdo->lastInsertId();
+
+            // Insert doctor details
+            $stmt = $this->pdo->prepare("INSERT INTO m_dokter (id_dokter, nama_dokter, ttl, STRV, exp_strv, SIP, exp_SIP, pengalaman) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$userId, $name, $ttl, $strv, $expStrv, $sip, $expSip, $pengalaman])) {
+                return ['success' => true, 'message' => 'Pendaftaran dokter berhasil. Silakan masuk.'];
+            } else {
+                // Rollback user insertion if doctor details fail
+                $stmt = $this->pdo->prepare("DELETE FROM m_pengguna WHERE id_pengguna = ?");
+                $stmt->execute([$userId]);
+                return ['success' => false, 'message' => 'Pendaftaran gagal'];
+            }
+        }
+        return ['success' => false, 'message' => 'Pendaftaran gagal'];
+    }
+
+    // Simple in-memory storage for demo (not using database)
+    private static $doctors = [];
+
+    public function registerDokterSimple($name, $email, $password, $ttl, $strv, $expStrv, $sip, $expSip, $pengalaman) {
+        // Check if email already exists
+        foreach (self::$doctors as $doctor) {
+            if ($doctor['email'] === $email) {
+                return ['success' => false, 'message' => 'Email sudah terdaftar'];
+            }
+        }
+
+        // Create doctor data
+        $doctor = [
+            'id' => count(self::$doctors) + 1,
+            'name' => $name,
+            'email' => $email,
+            'password' => $password, // In production, hash this
+            'ttl' => $ttl,
+            'strv' => $strv,
+            'exp_strv' => $expStrv,
+            'sip' => $sip,
+            'exp_sip' => $expSip,
+            'pengalaman' => $pengalaman,
+            'role' => 'Dokter'
+        ];
+
+        self::$doctors[] = $doctor;
+        return ['success' => true, 'message' => 'Pendaftaran dokter berhasil. Silakan masuk.'];
+    }
+
+    public function authenticateDokterSimple($email, $password) {
+        foreach (self::$doctors as $doctor) {
+            if ($doctor['email'] === $email && $doctor['password'] === $password) {
+                $user = $doctor;
+                unset($user['password']); // Remove password from return data
+                return $user;
+            }
+        }
+        return false;
+    }
 }
 ?>
