@@ -49,8 +49,6 @@ class Database
 
     public function registerUser($name, $email, $password)
     {
-    public function registerUser($name, $email, $password)
-    {
         // Check if email already exists
         $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
@@ -104,8 +102,6 @@ class Database
 
     public function resetPassword($token, $newPassword)
     {
-    public function resetPassword($token, $newPassword)
-    {
         $user = $this->verifyResetToken($token);
         if (!$user) {
             return ['success' => false, 'message' => 'Token reset tidak valid atau sudah kadaluarsa'];
@@ -122,8 +118,6 @@ class Database
         return ['success' => false, 'message' => 'Gagal mengubah kata sandi'];
     }
 
-    private function sendResetEmail($email, $token)
-    {
     private function sendResetEmail($email, $token)
     {
         // Implement email sending logic here
