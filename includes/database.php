@@ -104,7 +104,7 @@ class Database {
     }
 
     // Doctor-specific methods
-    public function registerDokter($name, $email, $password, $ttl, $strv, $expStrv, $sip, $expSip, $pengalaman) {
+    public function registerDokter($name, $email, $password, $ttl, $strv, $sip, $pengalaman) {
         // Check if email already exists
         $stmt = $this->pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
         $stmt->execute([$email]);
@@ -118,8 +118,8 @@ class Database {
             $userId = $this->pdo->lastInsertId();
 
             // Insert doctor details
-            $stmt = $this->pdo->prepare("INSERT INTO m_dokter (id_dokter, nama_dokter, ttl, STRV, exp_strv, SIP, exp_SIP, pengalaman) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            if ($stmt->execute([$userId, $name, $ttl, $strv, $expStrv, $sip, $expSip, $pengalaman])) {
+            $stmt = $this->pdo->prepare("INSERT INTO m_dokter (id_dokter, nama_dokter, ttl, STRV, SIP, pengalaman) VALUES (?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$userId, $name, $ttl, $strv, $sip, $pengalaman])) {
                 return ['success' => true, 'message' => 'Pendaftaran dokter berhasil. Silakan masuk.'];
             } else {
                 // Rollback user insertion if doctor details fail

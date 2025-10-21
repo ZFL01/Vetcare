@@ -110,33 +110,17 @@ function showRegisterFormDokter($message = '', $messageType = '') {
                 <div>
                     <h4 class="text-lg font-bold text-purple-700 mb-4">Dokumen</h4>
                     <div class="grid lg:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <div>
-                                <label for="strv_file" class="block mb-2 font-semibold">Upload STRV</label>
-                                <input type="file" id="strv_file" name="strv_file" accept=".pdf,.jpg,.jpeg,.png" required
-                                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                    focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
-                            </div>
-                            <div>
-                                <label for="exp_strv" class="block mb-2 font-semibold">Kadaluarsa STRV</label>
-                                <input type="date" id="exp_strv" name="exp_strv" required
-                                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                            </div>
+                        <div>
+                            <label for="strv_file" class="block mb-2 font-semibold">Upload STRV</label>
+                            <input type="file" id="strv_file" name="strv_file" accept=".pdf,.jpg,.jpeg,.png" required
+                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
+                                focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
                         </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="sip_file" class="block mb-2 font-semibold">Upload SIP</label>
-                                <input type="file" id="sip_file" name="sip_file" accept=".pdf,.jpg,.jpeg,.png" required
-                                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                    focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
-                            </div>
-                            <div>
-                                <label for="exp_sip" class="block mb-2 font-semibold">Kadaluarsa SIP</label>
-                                <input type="date" id="exp_sip" name="exp_sip" required
-                                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                            </div>
+                        <div>
+                            <label for="sip_file" class="block mb-2 font-semibold">Upload SIP</label>
+                            <input type="file" id="sip_file" name="sip_file" accept=".pdf,.jpg,.jpeg,.png" required
+                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
+                                focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
                         </div>
                     </div>
                 </div>
@@ -263,8 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $passwordConfirm = $_POST['password_confirm'] ?? '';
         $ttl = $_POST['ttl'] ?? '';
-        $expStrv = $_POST['exp_strv'] ?? '';
-        $expSip = $_POST['exp_sip'] ?? '';
+        // Removed expStrv and expSip as per user request
         $pengalaman = (int)($_POST['pengalaman'] ?? 0);
 
         // Handle file uploads
@@ -318,10 +301,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($message)) {
                 // Try simple registration first (in-memory)
-                $result = $db->registerDokterSimple($name, $email, $password, $ttl, $strvPath, $expStrv, $sipPath, $expSip, $pengalaman);
+                $result = $db->registerDokterSimple($name, $email, $password, $ttl, $strvPath, null, $sipPath, null, $pengalaman);
                 if (!$result['success']) {
                     // Fallback to database registration
-                    $result = $db->registerDokter($name, $email, $password, $ttl, $strvPath, $expStrv, $sipPath, $expSip, $pengalaman);
+                    $result = $db->registerDokter($name, $email, $password, $ttl, $strvPath, $sipPath, $pengalaman);
                 }
                 $message = $result['message'];
                 $messageType = $result['success'] ? 'success' : 'error';
