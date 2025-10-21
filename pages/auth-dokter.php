@@ -130,14 +130,17 @@ function showRegisterFormDokter($message = '', $messageType = '') {
                     <h4 class="text-lg font-bold text-purple-700 mb-4">Kredensial</h4>
                     <div class="grid lg:grid-cols-2 gap-6">
                         <div>
-                            <label for="pengalaman" class="block mb-2 font-semibold">Pengalaman (tahun)</label>
-                            <input type="number" id="pengalaman" name="pengalaman" required min="0" max="50"
+                            <label for="spesialisasi" class="block mb-2 font-semibold">Spesialisasi</label>
+                            <select id="spesialisasi" name="spesialisasi" required
                                 class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
+                                focus:outline-none focus:ring-4 focus:ring-purple-500/70">
+                                <option value="Hewan Kecil">Hewan Kecil</option>
+                                <option value="Hewan Ternak/Besar">Hewan Ternak/Besar</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="password_confirm" class="block mb-2 font-semibold">Konfirmasi Kata Sandi</label>
-                            <input type="password" id="password_confirm" name="password_confirm" required
+                            <label for="pengalaman" class="block mb-2 font-semibold">Pengalaman (tahun)</label>
+                            <input type="number" id="pengalaman" name="pengalaman" required min="0" max="50"
                                 class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
                                 focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
                         </div>
@@ -245,8 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        $passwordConfirm = $_POST['password_confirm'] ?? '';
         $ttl = $_POST['ttl'] ?? '';
+        $spesialisasi = $_POST['spesialisasi'] ?? '';
         // Removed expStrv and expSip as per user request
         $pengalaman = (int)($_POST['pengalaman'] ?? 0);
 
@@ -265,9 +268,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($uploadErrors)) {
             $message = implode(' ', $uploadErrors);
-            $messageType = 'error';
-        } elseif ($password !== $passwordConfirm) {
-            $message = 'Konfirmasi kata sandi tidak cocok.';
             $messageType = 'error';
         } else {
             // Process file uploads and get file paths
@@ -300,12 +300,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (empty($message)) {
-                // Try simple registration first (in-memory)
-                $result = $db->registerDokterSimple($name, $email, $password, $ttl, $strvPath, null, $sipPath, null, $pengalaman);
-                if (!$result['success']) {
-                    // Fallback to database registration
-                    $result = $db->registerDokter($name, $email, $password, $ttl, $strvPath, $sipPath, $pengalaman);
-                }
                 $message = $result['message'];
                 $messageType = $result['success'] ? 'success' : 'error';
                 if ($result['success']) {
