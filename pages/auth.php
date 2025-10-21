@@ -1,14 +1,14 @@
 <?php
 // PASTIKAN: file database.php berada di direktori 'includes'
 // PASTIKAN: kamu sudah menggunakan versi database.php yang aman (dengan password_hash())
-
+define('ROOT_PATH', dirname(__DIR__)); 
 // --- AKTIFKAN SESI ---
 // Selalu panggil session_start() sebelum output HTML dikirim
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/includes/database.php'; // Sesuaikan path ini jika perlu
+require_once ROOT_PATH . '/includes/database.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $db = new Database();
