@@ -1,7 +1,7 @@
 <?php
 // PASTIKAN: file database.php berada di direktori 'includes'
 // PASTIKAN: kamu sudah menggunakan versi database.php yang aman (dengan password_hash())
-define('ROOT_PATH', dirname(_DIR_)); 
+
 // --- AKTIFKAN SESI ---
 // Selalu panggil session_start() sebelum output HTML dikirim
 if (session_status() == PHP_SESSION_NONE) {
@@ -13,7 +13,6 @@ require_once 'includes/database.php'; // Sesuaikan path ini jika perlu
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $message = '';
 $messageType = '';
-
 function showLoginForm($message = '', $messageType = '')
 {
     ?>
