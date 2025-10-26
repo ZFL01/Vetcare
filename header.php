@@ -149,11 +149,11 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                             <span class="mr-2">👤</span>
                             Masuk
                         </button>
-                        <button onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">✨</span>
                             Daftar Sekarang
                         </button>
-                    <?php endif; ?>
+                    <?php endif; ?> 
                 </div>
             </nav>
         </div>

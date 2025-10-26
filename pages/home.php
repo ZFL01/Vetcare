@@ -60,32 +60,46 @@
 
                         <!-- Doctor Card -->
                         <div class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
-                            <div id="doctor-profile-image" class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
-                                <div class="text-center space-y-4">
-                                    <div class="text-6xl">👨‍⚕️</div>
-                                    <p class="text-gray-400 text-sm px-4">Foto dokter akan ditampilkan di sini</p>
+                            <div id="doctor-profile-image" class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden relative">
+                                <div class="slideshow-container w-full h-full relative">
+                                    <div class="slide active text-center space-y-4 flex flex-col justify-center items-center">
+                                        <div class="text-6xl">👨‍⚕️</div>
+                                        <p class="text-gray-400 text-sm px-4">Foto dokter akan ditampilkan di sini</p>
+                                    </div>
+                                    <div class="slide text-center space-y-4 flex flex-col justify-center items-center">
+                                        <div class="text-6xl">👩‍⚕️</div>
+                                        <p class="text-gray-400 text-sm px-4">Dokter spesialis hewan kecil</p>
+                                    </div>
+                                    <div class="slide text-center space-y-4 flex flex-col justify-center items-center">
+                                        <div class="text-6xl">🧑‍⚕️</div>
+                                        <p class="text-gray-400 text-sm px-4">Dokter spesialis ternak</p>
+                                    </div>
+                                    <div class="slide text-center space-y-4 flex flex-col justify-center items-center">
+                                        <div class="text-6xl">👨‍🔬</div>
+                                        <p class="text-gray-400 text-sm px-4">Dokter spesialis bedah</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div id="doctor-profile-info" class="space-y-4">
+                            <div id="doctor-profile-info" class="space-y-4 fade-content">
                                 <div class="flex items-start justify-between">
                                     <div>
-                                        <h3 class="font-display text-2xl font-bold text-gray-900" id="doctor-name">Dr. Nama Dokter</h3>
-                                        <p class="text-purple-600 font-medium" id="doctor-specialty">Spesialisasi</p>
+                                        <h3 class="font-display text-2xl font-bold text-gray-900" id="doctor-name">Dr. Ahmad Santoso</h3>
+                                        <p class="text-purple-600 font-medium" id="doctor-specialty">Dokter Hewan Umum</p>
                                     </div>
                                     <div class="flex items-center gap-1">
                                         <span class="text-yellow-400 text-lg">⭐</span>
-                                        <span class="font-semibold" id="doctor-rating">5.0</span>
+                                        <span class="font-semibold" id="doctor-rating">4.9</span>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-wrap gap-2">
-                                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm" id="doctor-experience">10+ Tahun</span>
+                                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm" id="doctor-experience">12+ Tahun</span>
                                     <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm" id="doctor-status">🟢 Tersedia</span>
                                 </div>
 
                                 <p class="text-gray-600 text-sm" id="doctor-description">
-                                    Deskripsi singkat tentang dokter akan ditampilkan di sini.
+                                    Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan.
                                 </p>
 
                                 <button onclick="navigateTo('?route=konsultasi-dokter')" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-card">
@@ -515,3 +529,125 @@
         </div>
     </section>
 </main>
+
+<style>
+.slideshow-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.5s ease-in-out;
+}
+
+.slide.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.slide.prev {
+    transform: translateX(-100%);
+}
+
+.fade-content {
+    transition: opacity 0.5s ease-in-out;
+}
+
+.fade-content.fade-out {
+    opacity: 0;
+}
+
+.fade-content.fade-in {
+    opacity: 1;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.slide');
+    const doctorInfo = document.getElementById('doctor-profile-info');
+    let currentSlide = 0;
+
+    // Doctor data for each slide
+    const doctorData = [
+        {
+            name: "Dr. Ahmad Santoso",
+            specialty: "Dokter Hewan Umum",
+            rating: "4.9",
+            experience: "12+ Tahun",
+            status: "🟢 Tersedia",
+            description: "Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan."
+        },
+        {
+            name: "Dr. Sari Wijaya",
+            specialty: "Spesialis Hewan Kecil",
+            rating: "4.8",
+            experience: "10+ Tahun",
+            status: "🟢 Tersedia",
+            description: "Spesialis dalam perawatan kesehatan kucing, anjing, dan hewan peliharaan kecil lainnya."
+        },
+        {
+            name: "Dr. Budi Rahman",
+            specialty: "Spesialis Ternak",
+            rating: "4.9",
+            experience: "15+ Tahun",
+            status: "🟢 Tersedia",
+            description: "Ahli dalam kesehatan ternak dan hewan produktif dengan pengalaman luas di bidang nutrisi dan pencegahan penyakit."
+        },
+        {
+            name: "Dr. Maya Putri",
+            specialty: "Spesialis Bedah",
+            rating: "5.0",
+            experience: "8+ Tahun",
+            status: "🟢 Tersedia",
+            description: "Dokter bedah hewan dengan keahlian khusus dalam operasi ortopedi dan bedah darurat."
+        }
+    ];
+
+    function updateDoctorInfo(index) {
+        const data = doctorData[index];
+        doctorInfo.classList.add('fade-out');
+
+        setTimeout(() => {
+            document.getElementById('doctor-name').textContent = data.name;
+            document.getElementById('doctor-specialty').textContent = data.specialty;
+            document.getElementById('doctor-rating').textContent = data.rating;
+            document.getElementById('doctor-experience').textContent = data.experience;
+            document.getElementById('doctor-status').textContent = data.status;
+            document.getElementById('doctor-description').textContent = data.description;
+
+            doctorInfo.classList.remove('fade-out');
+            doctorInfo.classList.add('fade-in');
+        }, 250);
+    }
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active', 'prev');
+            if (i === index) {
+                slide.classList.add('active');
+            } else if (i === (index - 1 + slides.length) % slides.length) {
+                slide.classList.add('prev');
+            }
+        });
+        updateDoctorInfo(index);
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
+
+    // Start slideshow
+    showSlide(currentSlide);
+    setInterval(nextSlide, 2500); // Change slide every 5 seconds
+});
+</script>

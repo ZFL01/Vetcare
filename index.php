@@ -50,6 +50,11 @@ switch ($route) {
         $pageDescription = 'Masuk atau daftar akun VetCare';
         $contentFile = 'pages/auth.php';
         break;
+    case 'auth-dokter':
+        $pageTitle = 'Masuk/Daftar Dokter - VetCare';
+        $pageDescription = 'Masuk atau daftar akun dokter VetCare';
+        $contentFile = 'pages/auth-dokter.php';
+        break;
     case 'logout':
         session_start();
         session_destroy();
