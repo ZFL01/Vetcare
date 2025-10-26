@@ -1,13 +1,21 @@
 <?php
-// Authentication page with database integration
-require_once __DIR__ . '/../includes/database.php';
+// PASTIKAN: file database.php berada di direktori 'includes'
+// PASTIKAN: kamu sudah menggunakan versi database.php yang aman (dengan password_hash())
+
+// --- AKTIFKAN SESI ---
+// Selalu panggil session_start() sebelum output HTML dikirim
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once 'vendor/autoload.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
-$db = new Database();
 $message = '';
 $messageType = '';
 
-function showLoginForm($message = '', $messageType = '') {
+function showLoginForm($message = '', $messageType = '')
+{
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
         <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Masuk ke Akun Anda</h2>
@@ -45,7 +53,8 @@ function showLoginForm($message = '', $messageType = '') {
     <?php
 }
 
-function showRegisterForm($message = '', $messageType = '') {
+function showRegisterForm($message = '', $messageType = '')
+{
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
         <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Daftar Akun Baru</h2>
@@ -92,7 +101,8 @@ function showRegisterForm($message = '', $messageType = '') {
     <?php
 }
 
-function showForgotPasswordForm($message = '', $messageType = '') {
+function showForgotPasswordForm($message = '', $messageType = '')
+{
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
         <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Lupa Kata Sandi</h2>
