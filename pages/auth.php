@@ -8,7 +8,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once 'includes/database.php'; // Sesuaikan path ini jika perlu
+require_once 'vendor/autoload.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $message = '';
@@ -122,13 +122,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
-        $user = Database::authenticateUser($email, $password);
-        if ($user) {
-            $_SESSION['user'] = $user;
+        $objUser = DTO_pengguna::forLogin($email, $password);
+        $user = userService::login($objUser);
+        if ($user[0]) {
+            $_SESSION['user'] = $objUser;
 
             // Cek role untuk redirect yang benar (berdasarkan kolom 'role' di m_pengguna)
             // Asumsi: Jika user adalah Dokter, dia akan redirect ke area dokter
-            if (isset($user['role']) && $user['role'] === 'Dokter') {
+            if ($objUser->getRole() === 'Dokter') {
                 header('Location: ?route=dashboard_dokter');
             } else {
                 header('Location: ?route=dashboard_member'); // Default ke halaman member/utama
