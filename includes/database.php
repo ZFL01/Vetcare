@@ -29,7 +29,36 @@ class Database{
 }
 
 //initiate connection for CouchDB
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 class CouchDB{
+    private static $DB_URL = 'http://127.0.0.1:5984/chat_messages/';
+    private static $DB_AUTH = ['Admin', '12345'];
+    private static $clientInstance = null;
     
+    static function getConn(){
+        if(self::$clientInstance===null){
+            try{
+                self::$clientInstance = new Client([
+                    'base_url'=>self::$DB_URL,
+                    'auth'=>self::$DB_AUTH,
+                    //memastikan CouchDB merespon dengan JSON
+                    'headers'=>[
+                        'Accept'=> 'application/json',
+                        'Content-Type'=>'application/json'
+                    ],
+                    //opsional, untuk koneksi yang lambat
+                    'timeout'=>5.0
+                ]);
+            }catch(\Exception $e){
+                error_log("CouchDB Connection Error : ".$e->getMessage());
+                throw new \RuntimeException("Tidak dapat tersambung ke CouchDB");
+            }
+        }
+        return self::$clientInstance;
+    }
+    private function __construct(){}
+    private function __clone(){}
 }
+
 ?>
