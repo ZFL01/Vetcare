@@ -1,7 +1,6 @@
 <?php
 // Database connection configuration for MySQL
-class Database
-{
+class Database{
     private static $host = 'localhost';
     private static $port = '3306';
     private static $dbname = 'klinikh';
@@ -27,101 +26,10 @@ class Database
         }
         return self::$pdo;
     }
+}
 
-    // User authentication methods
-    public static function authenticateUser($email, $password)
-    {
-        $stmt = self::$pdo->prepare("SELECT id, email, full_name, password_hash FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
-
-        if ($user) {
-            // Mengubah nama kolom yang dikembalikan
-            $authenticatedUser = [
-                'id' => $user['id_pengguna'],
-                'email' => $user['email'],
-                'full_name' => $user['nama'],
-            ];
-            return $authenticatedUser;
-        }
-        return false;
-    }
-
-    public static function registerUser($name, $email, $password)
-    {
-        // Check if email already exists
-        $stmt = self::$pdo->prepare("SELECT id_pengguna FROM m_pengguna WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            return ['success' => false, 'message' => 'Email sudah terdaftar'];
-        }
-
-        // Simpan password sebagai PLAIN TEXT (TIDAK AMAN!)
-        $plainPassword = $password;
-
-        // Insert user ke tabel m_pengguna
-        $stmt = self::$pdo->prepare("INSERT INTO m_pengguna (email, pass, nama) VALUES (?, ?, ?)");
-        if ($stmt->execute([$email, $plainPassword, $name])) {
-            return ['success' => true, 'message' => 'Pendaftaran berhasil. Silakan masuk.'];
-        }
-        return ['success' => false, 'message' => 'Pendaftaran gagal'];
-    }
-
-    public static function initiatePasswordReset($email)
-    {
-        $stmt = self::$pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
-
-        if ($user) {
-            $resetToken = bin2hex(random_bytes(32));
-            $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
-            $userId = $user['id_pengguna'];
-
-            $stmt = self::$pdo->prepare("UPDATE m_pengguna SET reset_token = ?, exp_token = ? WHERE id_pengguna = ?");
-            if ($stmt->execute([$resetToken, $expiry, $userId])) {
-                self::sendResetEmail($email, $resetToken);
-                return ['success' => true, 'message' => 'Link reset kata sandi telah dikirim ke email Anda.'];
-            }
-            return ['success' => false, 'message' => 'Gagal menyimpan token reset.'];
-        }
-        return ['success' => false, 'message' => 'Email tidak ditemukan'];
-    }
-
-    public static function verifyResetToken($token)
-    {
-        $stmt = self::$pdo->prepare("SELECT id, email FROM users WHERE reset_token = ? AND reset_expires > NOW()");
-        $stmt->execute([$token]);
-        $user = $stmt->fetch();
-
-        if ($user) {
-            return ['id' => $user['id_pengguna'], 'email' => $user['email']];
-        }
-        return false;
-    }
-
-    public static function resetPassword($token, $newPassword)
-    {
-        $user = self::verifyResetToken($token);
-        if (!$user) {
-            return ['success' => false, 'message' => 'Token reset tidak valid atau sudah kadaluarsa'];
-        }
-
-        // Simpan password sebagai PLAIN TEXT (TIDAK AMAN!)
-        $plainPassword = $newPassword;
-        $userId = $user['id'];
-
-        $stmt = self::$pdo->prepare("UPDATE m_pengguna SET pass = ?, reset_token = NULL, exp_token = NOW() WHERE id_pengguna = ?");
-        if ($stmt->execute([$plainPassword, $userId])) {
-            return ['success' => true, 'message' => 'Kata sandi berhasil diubah'];
-        }
-        return ['success' => false, 'message' => 'Gagal mengubah kata sandi'];
-    }
-
-    private static function sendResetEmail($email, $token)
-    {
-        // Implement email sending logic here
-        error_log("Password reset token for $email: $token");
-    }
+//initiate connection for CouchDB
+class CouchDB{
+    
 }
 ?>
