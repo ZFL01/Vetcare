@@ -8,7 +8,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once 'includes/database.php'; // Sesuaikan path ini jika perlu
+require_once 'vendor/autoload.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $message = '';
@@ -17,7 +17,7 @@ function showLoginForm($message = '', $messageType = '', $role = 'member') {
     $roleTitle = ucfirst($role);
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
-        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Masuk sebagai <?php echo $roleTitle; ?></h2>
+        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Masuk ke Akun Anda</h2>
         <?php if ($message): ?>
             <div class="mb-4 text-center text-<?php echo $messageType === 'error' ? 'red-600' : 'green-600'; ?>">
                 <?php echo htmlspecialchars($message); ?>
@@ -56,7 +56,7 @@ function showRegisterForm($message = '', $messageType = '', $role = 'member') {
     $roleTitle = ucfirst($role);
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
-        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Daftar sebagai <?php echo $roleTitle; ?></h2>
+        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Daftar Akun Baru</h2>
         <?php if ($message): ?>
             <div class="mb-4 text-center text-<?php echo $messageType === 'error' ? 'red-600' : 'green-600'; ?>">
                 <?php echo htmlspecialchars($message); ?>
@@ -84,11 +84,11 @@ function showRegisterForm($message = '', $messageType = '', $role = 'member') {
             <div>
                 <label for="password_confirm" class="block mb-2 font-semibold">Konfirmasi Kata Sandi</label>
                 <input type="password" id="password_confirm" name="password_confirm" required
-                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
+                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70 
                     focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
             </div>
             <button type="submit"
-                class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl
+                class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl 
                 hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
                 Daftar
             </button>
@@ -129,90 +129,24 @@ function showForgotPasswordForm($message = '', $messageType = '') {
     <?php
 }
 
-// Handle POST requests before any HTML output
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($action === 'login') {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $user = Database::authenticateUser($email, $password);
-        if ($user) {
-            $_SESSION['user'] = $user;
-
-            // Cek role untuk redirect yang benar (berdasarkan kolom 'role' di m_pengguna)
-            // Asumsi: Jika user adalah Dokter, dia akan redirect ke area dokter
-            if (isset($user['role']) && $user['role'] === 'Dokter') {
-                header('Location: ?route=dashboard_dokter');
-            } else {
-                header('Location: ?route=dashboard_member'); // Default ke halaman member/utama
-            }
-            exit;
-        } else {
-            $message = 'Email atau kata sandi salah.';
-            $messageType = 'error';
-        }
-    } elseif ($action === 'register') {
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $password_confirm = $_POST['password_confirm'] ?? '';
-        if ($password !== $password_confirm) {
-            $message = 'Konfirmasi kata sandi tidak cocok.';
-            $messageType = 'error';
-        } else {
-            $result = $db->registerUser($name, $email, $password);
-            if ($result['success']) {
-                $message = $result['message'];
-                $messageType = 'success';
-                $action = 'login';
-            } else {
-                $message = $result['message'];
-                $messageType = 'error';
-            }
-        }
-    } elseif ($action === 'forgot') {
-        $email = $_POST['email'] ?? '';
-        $result = $db->initiatePasswordReset($email);
-        if ($result['success']) {
-            $message = $result['message'];
-            $messageType = 'success';
-            $action = 'login';
-        } else {
-            $message = $result['message'];
-            $messageType = 'error';
-        }
-    }
-}
+// Get messages from session if redirected
+$message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
+$messageType = isset($_SESSION['messageType']) ? $_SESSION['messageType'] : '';
+unset($_SESSION['message'], $_SESSION['messageType']);
 ?>
-<!DOCTYPE html>
-<html lang="id">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KlinikH - Otentikasi</title>
-    <!-- Memuat Tailwind CSS (Pastikan ini ada di lingkungan kamu) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Gaya tambahan atau font kustom */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+<!-- Wrapper -->
+<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <?php
+    if ($action === 'register') {
+        showRegisterForm($message, $messageType);
+    } elseif ($action === 'forgot') {
+        showForgotPasswordForm($message, $messageType);
+    } else {
+        showLoginForm($message, $messageType);
+    }
+    ?>
+</div>
 
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-</head>
-
-<body class="bg-gray-100">
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-        <?php
-        if ($action === 'register') {
-            showRegisterForm($message, $messageType);
-        } elseif ($action === 'forgot') {
-            showForgotPasswordForm($message, $messageType);
-        } else {
-            showLoginForm($message, $messageType);
-        }
-        ?>
-    </div>
-</body>
-</html>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>

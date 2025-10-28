@@ -34,6 +34,11 @@ switch ($route) {
         // agar bagian View di bawah tidak memuat auth.php lagi.
         $contentFile = ''; 
         break;
+    case 'auth-dokter':
+        $pageTitle = 'Masuk/Daftar Dokter - VetCare';
+        $pageDescription = 'Masuk atau daftar akun dokter VetCare';
+        $contentFile = 'pages/auth-dokter.php';
+        break;
     case 'logout':
         session_destroy();
         header('Location: ?route='); // Redirect akan bekerja
