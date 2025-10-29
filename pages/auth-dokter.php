@@ -1,9 +1,8 @@
-Y<?php
+<?php
 // Authentication page for doctors with database integration
-require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
-$db = new Database();
 $message = '';
 $messageType = '';
 
@@ -219,30 +218,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
+        $validEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
 
-        // Try simple authentication first (in-memory)
-        $user = $db->authenticateDokterSimple($email, $password);
-        if (!$user) {
-            // Fallback to database authentication
-            $user = $db->authenticateUser($email, $password);
-            if ($user && $user['role'] === 'Dokter') {
-                // Load additional doctor data from database
-                $stmt = $db->getConnection()->prepare("SELECT * FROM m_dokter WHERE id_dokter = ?");
-                $stmt->execute([$user['id_pengguna']]);
-                $doctorData = $stmt->fetch();
-                if ($doctorData) {
-                    $user = array_merge($user, $doctorData);
-                }
+        if($validEmail ===false ||empty($password))return false;
+
+        $objUser = DTO_pengguna::forLogin($validEmail, $password);
+        $user = userService::login($objUser);
+        if (!$user[0]) {
+            if($user[1]==='err'){
+                echo "Galat saat mengambil data pengguna"; //error pasti kerna database
+                return;
+            }else{
+                echo $user[1]; //ambil data ini buat ditampilin di frontend user,
+                // ini pesan error yang beda-beda tergantung errornya.
+                $message = $user[1];
+                $messageType ='error';
+                return;
             }
         }
-
-        if ($user && $user['role'] === 'Dokter') {
-            $_SESSION['user'] = $user;
-            header('Location: ?route=dashboard');
-            exit;
-        } else {
-            $message = 'Email atau kata sandi salah, atau Anda bukan dokter terdaftar.';
-            $messageType = 'error';
+            //objUser ini otomatis terisi data pengguna
+        if ($objUser->getRole() === 'Dokter') {
+                // Load additional doctor data from database
+                $_SESSION['user']=$objUser;
+                header('Location: ?route=dashboard-dokter');
+                exit;
         }
     } elseif ($action === 'register') {
         $name = $_POST['name'] ?? '';

@@ -1,9 +1,8 @@
+<?php
 // Start session at the very beginning to avoid header issues
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-<?php
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
 

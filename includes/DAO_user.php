@@ -38,9 +38,10 @@ class DAO_pengguna{
         $conn = Database::getConnection();
 
         $ada= self::getUserEmail($data->getEmail());
-        if($ada){return [false, "Email sudah terdaftar"];}
+        if($ada[0]){
+            return [false, "Email sudah terdaftar"];}
 
-        $sql = "insert into m_pengguna values (null, ?,?,?)";
+        $sql = "insert into m_pengguna (email, pass, role) values (?,?,?)";
         $params = [$data->getEmail(), $hashpass, $data->getRole()];
 
         try{
