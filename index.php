@@ -1,14 +1,8 @@
 <?php
-// START: PENTING UNTUK MENGAKTIFKAN SESI DI AWAL
+// Start session at the very beginning to avoid header issues
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-// PENTING: MULAI OUTPUT BUFFERING DI AWAL
-// Ini akan menahan SEMUA output HTML (dari base.php, header.php, dll.)
-// sampai kita memutuskan apakah akan redirect atau merender halaman.
-ob_start();
-
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
 
