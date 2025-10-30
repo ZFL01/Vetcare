@@ -1,17 +1,17 @@
 <?php
 include_once 'database.php';
 class DTO_artikel{
-    private string $isi;
-    private string $referensi;
+    private int $idArtikel;
     private string $author;
     private string $published;
     private int $views;
     private string $updated;
-    function __construct( //get All articles
-        private int $idArtikel,
-        private string $judul,
-        private string $preview,
-        private string $tag
+    private ?string $tag=null;
+    function __construct( //create
+        private ?string $judul=null,
+        private ?string $preview=null,
+        private ?string $isi=null,
+        private ?string $ref=null,
     ){}
     function forThisArticle($isi, $ref, $authName,
     $published, $updated){
@@ -19,17 +19,19 @@ class DTO_artikel{
         $this->author=$authName; $this->published=$published;
         $this->updated=$updated;
     }
-    function createArticle($judul, $preview, $isi, $referensi){
-        $this->judul=$judul; $this->preview=$preview;
-        $this->isi=$isi; $this->referensi=$referensi;
+    static function forGetAll($idArtikel,$judul, $preview, $tag){ //getAllData
+        $obj = new self($judul, $preview,null, null);
+        $obj->tag=$tag; $obj->idArtikel=$idArtikel;
+        return $obj;
     }
     function set_views(int $views){$this->views=$views;}
+    function set_idArtikel(int $id){$this->idArtikel=$id;}
 
     function get_idArticle(){return $this->idArtikel;}
     function get_judul(){return $this->judul;}
     function get_preview(){return $this->preview;}
     function get_isi(){return $this->isi;}
-    function get_reference(){return $this->referensi;}
+    function get_reference(){return $this->ref;}
     function get_author(){return $this->author;}
     function get_created(){return $this->published;}
     function get_views(){return $this->views;}
@@ -62,7 +64,7 @@ class DAO_Artikel{
 
             $DTO_artikel = [];
             foreach($data as $dat){
-                $obj = new DTO_artikel(
+                $obj = DTO_artikel::forGetAll(
                     $dat['id_artikel'], $dat['judul'],
                     $dat['preview'], $dat['tag']
                 );

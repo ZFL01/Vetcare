@@ -43,7 +43,7 @@ class DTO_dokter{
 
     function upsertDokter(
         $id, $nama, $ttl, $strv=null, $exp_strv=null,
-        $sip=null, $exp_sip=null, $foto=null, $pengalaman){
+        $sip=null, $exp_sip=null, $foto=null, $pengalaman=null){
         $this->id_dokter=$id; $this->nama=$nama; $this->ttl=$ttl;
         $this->strv=$strv; $this->exp_strv=$exp_strv; $this->sip=$sip;
         $this->exp_sip=$exp_sip; $this->foto=$foto; $this->pengalaman=$pengalaman;
