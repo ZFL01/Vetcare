@@ -20,6 +20,47 @@ DROP DATABASE IF EXISTS `klinikh`;
 CREATE DATABASE IF NOT EXISTS `klinikh` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `klinikh`;
 
+DROP TABLE IF EXISTS `m_pengguna`;
+CREATE TABLE IF NOT EXISTS `m_pengguna` (
+  `id_pengguna` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `pass` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('Admin','Dokter','Member') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `no_wa` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created` timestamp NULL DEFAULT (now()),
+  `reset_token` char(6) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `exp_token` timestamp NULL DEFAULT (now()),
+  PRIMARY KEY (`id_pengguna`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+DROP TABLE IF EXISTS `m_kategori`;
+CREATE TABLE IF NOT EXISTS `m_kategori` (
+  `id_kategori` tinyint unsigned NOT NULL AUTO_INCREMENT,
+  `nama_kateg` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id_kategori`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+DROP TABLE IF EXISTS `m_dokter`;
+CREATE TABLE IF NOT EXISTS `m_dokter` (
+  `id_dokter` int NOT NULL,
+  `nama_dokter` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `ttl` date NOT NULL DEFAULT (curdate()),
+  `strv` char(21) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `exp_strv` date NOT NULL DEFAULT (curdate()),
+  `sip` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `exp_sip` date NOT NULL DEFAULT (curdate()),
+  `foto` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pengalaman` year NOT NULL,
+  `rate` decimal(3,2) NOT NULL DEFAULT '1.00',
+  `status` enum('aktif','nonaktif') COLLATE utf8mb4_general_ci DEFAULT 'aktif',
+  PRIMARY KEY (`id_dokter`),
+  UNIQUE KEY `STRV` (`strv`) USING BTREE,
+  UNIQUE KEY `SIP` (`sip`) USING BTREE,
+  KEY `FK_idDokter` (`id_dokter`),
+  CONSTRAINT `FK_idDokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- membuang struktur untuk table klinikh.detail_dokter
 DROP TABLE IF EXISTS `detail_dokter`;
 CREATE TABLE IF NOT EXISTS `detail_dokter` (
@@ -32,6 +73,20 @@ CREATE TABLE IF NOT EXISTS `detail_dokter` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Pengeluaran data tidak dipilih.
+DROP TABLE IF EXISTS `tr_tanya`;
+CREATE TABLE IF NOT EXISTS `tr_tanya` (
+  `id_tanya` int NOT NULL AUTO_INCREMENT,
+  `id_penanya` int DEFAULT NULL,
+  `penanya` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `judul` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `pertanyaan` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `dibuat` timestamp NOT NULL DEFAULT (now()),
+  `status` enum('terjawab','menunggu') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'menunggu',
+  `privasi` enum('PUBLIK','PRIVASI') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PUBLIK',
+  PRIMARY KEY (`id_tanya`),
+  KEY `FK_penanya` (`id_penanya`),
+  CONSTRAINT `FK_penanya` FOREIGN KEY (`id_penanya`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- membuang struktur untuk table klinikh.detail_tanya
 DROP TABLE IF EXISTS `detail_tanya`;
@@ -98,25 +153,6 @@ CREATE TABLE IF NOT EXISTS `m_artikel` (
 -- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_dokter
-DROP TABLE IF EXISTS `m_dokter`;
-CREATE TABLE IF NOT EXISTS `m_dokter` (
-  `id_dokter` int NOT NULL,
-  `nama_dokter` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
-  `ttl` date NOT NULL DEFAULT (curdate()),
-  `strv` char(21) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
-  `exp_strv` date NOT NULL DEFAULT (curdate()),
-  `sip` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
-  `exp_sip` date NOT NULL DEFAULT (curdate()),
-  `foto` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pengalaman` year NOT NULL,
-  `rate` decimal(3,2) NOT NULL DEFAULT '1.00',
-  `status` enum('aktif','nonaktif') COLLATE utf8mb4_general_ci DEFAULT 'aktif',
-  PRIMARY KEY (`id_dokter`),
-  UNIQUE KEY `STRV` (`strv`) USING BTREE,
-  UNIQUE KEY `SIP` (`sip`) USING BTREE,
-  KEY `FK_idDokter` (`id_dokter`),
-  CONSTRAINT `FK_idDokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Pengeluaran data tidak dipilih.
 
@@ -134,12 +170,6 @@ CREATE TABLE IF NOT EXISTS `m_hpraktik` (
 -- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_kategori
-DROP TABLE IF EXISTS `m_kategori`;
-CREATE TABLE IF NOT EXISTS `m_kategori` (
-  `id_kategori` tinyint unsigned NOT NULL AUTO_INCREMENT,
-  `nama_kateg` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id_kategori`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Pengeluaran data tidak dipilih.
 
@@ -158,36 +188,10 @@ CREATE TABLE IF NOT EXISTS `m_lokasipraktik` (
 -- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_pengguna
-DROP TABLE IF EXISTS `m_pengguna`;
-CREATE TABLE IF NOT EXISTS `m_pengguna` (
-  `id_pengguna` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `pass` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `role` enum('Admin','Dokter','Member') COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `no_wa` char(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `created` timestamp NULL DEFAULT (now()),
-  `reset_token` char(6) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `exp_token` timestamp NULL DEFAULT (now()),
-  PRIMARY KEY (`id_pengguna`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.tr_tanya
-DROP TABLE IF EXISTS `tr_tanya`;
-CREATE TABLE IF NOT EXISTS `tr_tanya` (
-  `id_tanya` int NOT NULL AUTO_INCREMENT,
-  `id_penanya` int DEFAULT NULL,
-  `penanya` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `judul` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `pertanyaan` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `dibuat` timestamp NOT NULL DEFAULT (now()),
-  `status` enum('terjawab','menunggu') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'menunggu',
-  `privasi` enum('PUBLIK','PRIVASI') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PUBLIK',
-  PRIMARY KEY (`id_tanya`),
-  KEY `FK_penanya` (`id_penanya`),
-  CONSTRAINT `FK_penanya` FOREIGN KEY (`id_penanya`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Pengeluaran data tidak dipilih.
 

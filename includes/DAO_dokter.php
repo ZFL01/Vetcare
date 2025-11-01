@@ -14,23 +14,23 @@ class DTO_jadwal{
 }
 
 class DTO_dokter{
-    private ?string $ttl = null;
-    private ?string $strv = null;
-    private ?string $exp_strv = null;
-    private ?string $sip = null;
-    private ?string $exp_sip = null;
-    private ?string $namaKlinik = null;
-    private ?string $alamat = null;
-    private ?array $koor = null;
+    private ?string $ttl = null; //admin dan dokter
+    private ?string $strv = null; //dokter dan user
+    private ?string $exp_strv = null; //admin dan dokter
+    private ?string $sip = null; //dokter
+    private ?string $exp_sip = null; //admin dan dokter
+    private ?string $namaKlinik = null; //user dan dokter
+    private ?string $alamat = null; //user, dokter, admin
+    private ?array $koor = null; //user dan dokter
 
     function __construct(
-        private ?int $id_dokter = null,
-        private ?string $nama = null,
-        private ?string $foto = null,
-        private ?int $pengalaman = null,
-        private ?float $rate = null,
-        private ?array $kategori = null,
-        private ?array $jadwal = null
+        private ?int $id_dokter = null, //admin
+        private ?string $nama = null, //dokter, user, admin
+        private ?string $foto = null, //user, dokter
+        private ?int $pengalaman = null, //user, dokter
+        private ?float $rate = null, //dokter, user
+        private ?array $kategori = null, //dokter, user, admin
+        private ?array $jadwal = null //user, dokter
     ) {}
 
     function setInfoDokter(array $dat){
@@ -43,7 +43,7 @@ class DTO_dokter{
 
     function upsertDokter(
         $id, $nama, $ttl, $strv=null, $exp_strv=null,
-        $sip=null, $exp_sip=null, $foto=null, $pengalaman){
+        $sip=null, $exp_sip=null, $foto=null, $pengalaman=null){
         $this->id_dokter=$id; $this->nama=$nama; $this->ttl=$ttl;
         $this->strv=$strv; $this->exp_strv=$exp_strv; $this->sip=$sip;
         $this->exp_sip=$exp_sip; $this->foto=$foto; $this->pengalaman=$pengalaman;
