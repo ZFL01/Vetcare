@@ -108,7 +108,32 @@ class DAO_Artikel{
             $stmt = $conn->prepare($sql);
             return $stmt->execute($params);
         }catch(PDOException $e){
-            error_log("[DAO_Article::makeArticle]".$e->getMessage());
+            error_log("[DAO_Article::makeArticle]: ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function updateArticle(DTO_artikel $artikel, int $idTag){
+        $conn=Database::getConnection();
+        $sql = 'update m_artikel set judul=?, preview=?, isi=?, referensi=?, tag=? where id_artikel=?';
+        $params=[$artikel->get_judul(), $artikel->get_preview(), $artikel->get_isi(), $artikel->get_reference(),
+        $idTag, $artikel->get_idArticle()];
+        try{
+            $stmt=$conn->prepare($sql);
+            return $stmt->execute($params);
+        }catch(PDOException $e){
+            error_log("[DAO_Artikel::updateArticle]: ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function delArticle(DTO_artikel $artikel){
+        $conn=Database::getConnection();
+        $sql='delete from m_artikel where id_artikel=?';
+        try{
+            return $conn->prepare($sql)->execute([$artikel->get_idArticle()]);
+        }catch(PDOException $e){
+            error_log("[DAO_Artikel::delArticle]: ".$e->getMessage());
             return false;
         }
     }

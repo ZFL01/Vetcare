@@ -15,13 +15,13 @@ class DTO_jadwal{
 
 class DTO_dokter{
     private ?string $ttl = null; //admin dan dokter
-    private ?string $strv = null; //dokter dan user
+    private ?string $strv = null; //dokter dan user {single}
     private ?string $exp_strv = null; //admin dan dokter
     private ?string $sip = null; //dokter
     private ?string $exp_sip = null; //admin dan dokter
-    private ?string $namaKlinik = null; //user dan dokter
-    private ?string $alamat = null; //user, dokter, admin
-    private ?array $koor = null; //user dan dokter
+    private ?string $namaKlinik = null; //user dan dokter {single}
+    private ?string $alamat = null; //user, dokter, admin {single}
+    private ?array $koor = null; //user dan dokter {single}
 
     function __construct(
         private ?int $id_dokter = null, //admin
@@ -73,6 +73,65 @@ class DTO_dokter{
     function getKoor(){return $this->koor;}
 }
 
+class DAO_kategori{
+    static function getAllKategori(){
+        $conn=Database::getConnection();
+        $sql="select * from m_kategori";
+        $kateg=[];
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute();
+            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return [];}
+
+            foreach($hasil as $row){
+                $kateg[]= new DTO_kateg($row['id_kategori'], $row['nama_kateg']);
+            }
+        return $kateg;
+        }catch(PDOException $e){
+            error_log("[DAO_dokter::getAllKategori] : ".$e->getMessage());
+            return [];
+        }
+    }
+
+    static function newKategori(DTO_kateg $dat){
+        $conn=Database::getConnection();
+        $sql='insert into m_kategori (nama_kateg) values (?)';
+        try{
+            $stmt = $conn->prepare($sql);
+            return $stmt->execute([$dat->getNamaKateg()]);
+        }catch(PDOException $e){
+            error_log("[DAO_dokter::newKategori] : ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function updateKateg(DTO_kateg $dat){
+        $conn=Database::getConnection();
+        $sql='update m_kategori set nama_kateg=? where id_kategori=?';
+        try{
+            $stmt = $conn->prepare($sql);
+            return $stmt->execute([$dat->getNamaKateg(), $dat->getIdK()]);
+        }catch(PDOException $e){
+            error_log("[DAO_dokter::updateKateg] : ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function delKateg(DTO_kateg $dat){
+        $conn=Database::getConnection();
+        $sql='delete from m_kategori where id_kategori=?';
+        try{
+            $stmt = $conn->prepare($sql);
+            return $stmt->execute([$dat->getIdK()]);
+        }catch(PDOException $e){
+            error_log("[DAO_dokter::delKateg] : ".$e->getMessage());
+            return false;
+        }
+    }
+    
+}
+
 class DAO_dokter{
     private static function mapArray(array $dat, ?array $kateg = null, ?array $jadwal =null):DTO_dokter{
         $obj = new DTO_dokter(
@@ -90,8 +149,6 @@ class DAO_dokter{
         $obj->setAlamat($dat['alamat'] ?? null);
         return $obj;
     }
-
-
 
     static function getAllDokter(){
         $conn = Database::getConnection();
@@ -156,24 +213,69 @@ class DAO_dokter{
         return [];}
     }
 
-    static function getInfoDokter(int $idDokter):?DTO_dokter{
+    static function tabelAdmin(){
+        $conn = Database::getConnection();
+        try{
+            $queryDokter = "select d.id_dokter, d.nama_dokter, d.ttl, d.exp_strv,
+            d.exp_sip, l.alamat from m_dokter as d inner join m_lokasipraktik as l
+            on d.id_dokter=l.dokter";
+            
+            $stmt = $conn->prepare($queryDokter);
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if(empty($results)){return [];}
+
+            $groupId = [];
+            $listIdValid = [];
+            foreach ($results as $row){
+                $id = $row['id_dokter'];
+                $groupId[$id] = $row;
+                $groupId[$id]['kateg'] = [];
+                $listIdValid[] = $id;
+            }
+
+            $idValid = implode(',', $listIdValid);
+
+            $queryKategori = "select dd.id_dokter, k.nama_kateg from m_kategori as k
+            inner join detail_dokter as dd on k.id_kategori=dd.id_kategori where dd.id_dokter in (". $idValid . ")";
+            
+            $stmt = $conn->query($queryKategori);
+            $hasilKateg = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach($hasilKateg as $row){
+                $id = $row['id_dokter'];
+                if(isset($groupId[$id])){
+                    $groupId[$id]['kateg'][] = $row['nama_kateg'];
+                }
+            }
+
+            $DTO_dokter = [];
+            foreach ($groupId as $id => $data){
+                $DTO_dokter[] = self::mapArray($data, $data['kateg']);
+            }
+            return $DTO_dokter;
+
+        }catch(PDOException $e){error_log("DAO_dokter::getAllDokter :" . $e->getMessage());
+        return [];}
+    }
+
+    static function getInfoDokter(DTO_dokter $dat){
         $conn = Database::getConnection();
         try{
             $query = "select d.strv, loc.alamat, loc.lat, loc.long, loc.nama_klinik
             from m_dokter as d inner join m_lokasipraktik as loc
             on d.id_dokter = loc.dokter where d.id_dokter = ?";
 
-            $stmt = $conn->prepare($query); $stmt->execute([$idDokter]);
+            $stmt = $conn->prepare($query); $stmt->execute([$dat->getId()]);
             $detail = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if(!$detail){return null;}
-            $obj = new DTO_dokter();
-            $obj->setInfoDokter($detail);
-            return $obj;
-
+            $dat->setInfoDokter($detail);
+            return true;
         }catch(PDOException $e){
             error_log("DAO_dokter::getInfoDokter :". $e->getMessage());
-            return null;
+            return false;
         }
     }
 
@@ -200,7 +302,6 @@ class DAO_dokter{
         $conn = Database::getConnection();
         $sql = "insert into detail_dokter (?,?)";
         $sqlDel = "delete from detail_dokter where id_dokter =?";
-        $status = null;
         try{
             $conn->beginTransaction();
             if($update){
@@ -210,9 +311,7 @@ class DAO_dokter{
             foreach($datKateg as $pk){
                 $params = [$idDokter, $pk->getIDK()];
                 $stmt = $conn->prepare($sql);
-                $status = $stmt->execute($params);
-
-                if(!$status){$conn->rollBack(); return false;}
+                $stmt->execute($params);
             }
             $conn->commit();
             return true;
@@ -258,6 +357,10 @@ class DAO_dokter{
         if($update){$sql = "update m_lokasipraktik set nama_klinik=?,
             alamat=?, lat=?, long=? where dokter= " . $data->getId();}
         try{
+            if($data->getNamaKlinik()===null&&$data->getAlamat()===null){
+                $stmt=$conn->prepare("delete from m_lokasipraktik where dokter=?");
+                return $stmt->execute([$data->getId()]);
+            }
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$data->getNamaKlinik(), $data->getAlamat(), $lat, $long]);
         }catch(PDOException $e){
@@ -301,8 +404,7 @@ class DAO_dokter{
             $conn->beginTransaction();
             foreach($sql as $x => $n){
                 $stmt = $conn->prepare($n);
-                if(!$stmt->execute([$idDokter])){$conn->rollBack();
-                    error_log("Gagal menghapus data tabel : ".$x);return false;}
+                $stmt->execute([$idDokter]);
             }
             return $conn->commit();
         }catch(PDOException $e){
