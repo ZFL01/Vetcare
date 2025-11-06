@@ -44,10 +44,10 @@ class userService{
         $update = DAO_pengguna::updateResetToken($email, $token,$expTime);
 
         if(!$update[0]){return $update;}
-        return self::sendEmailverify($email, $token);
+        return self::sendEmailverify($email);
     }
 
-    private static function sendEmailverify(string $recipientEmail, string $token){
+    private static function sendEmailverify(string $recipientEmail){
         $mail = new PHPMailer(true);
         try{
             $mail->isSMTP();
@@ -61,7 +61,7 @@ class userService{
             $mail->setFrom('svenhikari@gmail.com', 'reset');
             $mail->addAddress($recipientEmail);
             $mail->Subject = 'OTP';
-            $mail->Body = "Kode OTP mu {$token}";
+            $mail->Body = "Kode OTP mu 777";
 
             if($mail->send()){
                 return [true];

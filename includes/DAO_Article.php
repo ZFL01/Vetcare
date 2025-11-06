@@ -80,13 +80,13 @@ class DAO_Artikel{
         }
     }
 
-    static function getArtikel(DTO_artikel $dat){
+    static function getArtikel(DTO_artikel $dat, int $idDokter){
         $conn = Database::getConnection();
         $sql = "select isi, referensi, author, published, updated 
-        from m_artikel where id_artikel=?";
+        from m_artikel where id_artikel=? and author_id=?";
         try{
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$dat->get_idArticle()]);
+            $stmt->execute([$dat->get_idArticle(), $idDokter]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $dat->forThisArticle($data['isi'], $data['referensi'], $data['author'],

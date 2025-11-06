@@ -6,14 +6,7 @@ class DTO_kateg{
     function getIdK(){return $this->id;}
     function getNamaKateg(){return $this->namaKateg;}
 }
-class DTO_jadwal{
-    function __construct(private ?string $hari=null, private ?string $buka=null, private ?string $tutup=null){}
-    function getHari(){return $this->hari;}
-    function getBuka(){return $this->buka;}
-    function getTutup(){return $this->tutup;}
-}
-
-class DTO_dokter{
+class DTO_dokter implements JsonSerializable{
     private ?string $ttl = null; //admin dan dokter
     private ?string $strv = null; //dokter dan user {single}
     private ?string $exp_strv = null; //admin dan dokter
@@ -22,9 +15,10 @@ class DTO_dokter{
     private ?string $namaKlinik = null; //user dan dokter {single}
     private ?string $alamat = null; //user, dokter, admin {single}
     private ?array $koor = null; //user dan dokter {single}
+    private ?string $status=null;//dokter
 
     function __construct(
-        private ?int $id_dokter = null, //admin
+        private ?int $id_dokter = null, //validasi
         private ?string $nama = null, //dokter, user, admin
         private ?string $foto = null, //user, dokter
         private ?int $pengalaman = null, //user, dokter
@@ -33,8 +27,10 @@ class DTO_dokter{
         private ?array $jadwal = null //user, dokter
     ) {}
 
-    function setInfoDokter(array $dat){
-        $this->strv = $dat['strv'] ?? null;
+    function setInfoDokter(array $dat){ //pasien side : ajax
+        if (isset($dat['strv'])) { 
+        $this->strv = $dat['strv']; 
+        }
         $this->namaKlinik = $dat['nama_klinik'];
         $this->alamat=$dat['alamat'];
         $this->koor = isset($dat['lat'], $dat['long']) 
@@ -53,6 +49,7 @@ class DTO_dokter{
         $this->sip=$sip;$this->exp_sip=$expSIP;
         $this->strv=$strv;$this->exp_strv=$expSTRV;
     }
+    function setStatus($status){$this->status=$status;}
     function setTTL($ttl=null){$this->ttl=$ttl;}
     function setAlamat($alamat=null){$this->alamat=$alamat;}
 
@@ -71,6 +68,18 @@ class DTO_dokter{
     function getNamaKlinik(){return $this->namaKlinik;}
     function getAlamat(){return $this->alamat;}
     function getKoor(){return $this->koor;}
+    function getStatus(){return $this->status;}
+
+    function jsonSerialize(){
+        return [
+            'id'=>$this->id_dokter, 'nama'=>$this->nama,
+            'foto'=>$this->foto, 'pengalaman'=>$this->pengalaman,
+            'rate'=>$this->rate, 'kategori'=>$this->kategori,
+            'jadwal'=>$this->jadwal, 'strv'=>$this->strv,
+            'klinik'=>$this->namaKlinik, 'alamat'=>$this->alamat,
+            'koor'=>$this->koor
+        ];
+    }
 }
 
 class DAO_kategori{
@@ -260,7 +269,59 @@ class DAO_dokter{
         return [];}
     }
 
-    static function getInfoDokter(DTO_dokter $dat){
+    static function getProfilDokter(DTO_pengguna $data){//dokter profil
+        $conn=Database::getConnection();
+        try{
+            $sql="select * from m_dokter where id_dokter=?";
+            $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
+            $profil=$stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$profil){return false;}
+
+            $sql="select k.id_kategori as idK, k.nama_kategori as namaK from m_kategori join detail_dokter as dd
+            on dd.id_kategori=k.id_kategori where dd.id_dokter=?";
+            $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
+            $kateg=$stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'],
+            $profil['foto'], $profil['pengalaman'], $profil['rate'], $kateg);
+            $dokter->setDoc($profil['sip'], $profil['exp_sip'], $profil['strv'],$profil['exp_strv']);
+            $dokter->setTTL($profil['ttl']);
+            $dokter->setStatus($profil['status']);
+            return $dokter;
+        }catch(PDOException $e){
+            error_log('[DAO_Dokter::getProfilDokter]: '.$e->getMessage());
+            return false;
+        }
+    }
+
+    static function getAlamat(DTO_dokter $dat){
+        $conn=Database::getConnection();
+        try{
+            $sql="select * from m_lokasipraktik where dokter=?";
+            $stmt=$conn->prepare($sql);$stmt->execute([$dat->getId()]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            $dat->setInfoDokter($hasil);
+            return true;
+        }catch(PDOException $e){
+            error_log('[DAO_dokter::getAlamat]: '.$e->getMessage());
+            return false;
+        }
+    }
+
+    static function getJadwal(DTO_dokter $dat){
+        $conn=Database::getConnection();
+        try{
+            $sql="select * from m_hpraktik where id_dokter=?";
+            $stmt=$conn->prepare($sql);$stmt->execute([$dat->getId()]);
+            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $hasil;
+        }catch(PDOException $e){
+            error_log('[DAO_dokter::getJadwal]: '.$e->getMessage());
+            return [false];
+        }
+    }
+
+    static function getInfoDokter(DTO_dokter $dat){//single user
         $conn = Database::getConnection();
         try{
             $query = "select d.strv, loc.alamat, loc.lat, loc.long, loc.nama_klinik
