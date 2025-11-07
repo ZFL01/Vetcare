@@ -413,6 +413,50 @@ class DAO_dokter{
             return false;
         }
     }
+
+    static function loginDokter($email, $password){
+        $conn = Database::getConnection();
+        try{
+            $query = "SELECT p.id_pengguna, p.password, p.role, d.id_dokter, d.nama_dokter, d.foto, d.pengalaman, d.rate, d.ttl, d.strv, d.exp_strv, d.sip, d.exp_sip
+                      FROM m_pengguna p
+                      JOIN m_dokter d ON p.id_pengguna = d.id_dokter
+                      WHERE p.email = ? AND p.role = 'Dokter'";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$email]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result && password_verify($password, $result['password'])) {
+                // Load additional data like kategori and jadwal if needed
+                $kateg = [];
+                $jadwal = [];
+
+                // Get kategori
+                $queryKateg = "SELECT k.nama_kateg FROM m_kategori k INNER JOIN detail_dokter dd ON k.id_kategori = dd.id_kategori WHERE dd.id_dokter = ?";
+                $stmtKateg = $conn->prepare($queryKateg);
+                $stmtKateg->execute([$result['id_dokter']]);
+                $kategResults = $stmtKateg->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($kategResults as $k) {
+                    $kateg[] = $k['nama_kateg'];
+                }
+
+                // Get jadwal
+                $queryJadwal = "SELECT hari, buka, tutup FROM m_hpraktik WHERE id_dokter = ?";
+                $stmtJadwal = $conn->prepare($queryJadwal);
+                $stmtJadwal->execute([$result['id_dokter']]);
+                $jadwalResults = $stmtJadwal->fetchAll(PDO::FETCH_ASSOC);
+                $jadwalGrouped = [];
+                foreach ($jadwalResults as $j) {
+                    $jadwalGrouped[$j['hari']][] = ['buka' => $j['buka'], 'tutup' => $j['tutup']];
+                }
+
+                return self::mapArray($result, $kateg, $jadwalGrouped);
+            }
+            return null;
+        }catch(PDOException $e){
+            error_log("DAO_dokter::loginDokter: " . $e->getMessage());
+            return null;
+        }
+    }
 }
 
 ?>

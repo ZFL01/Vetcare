@@ -22,12 +22,12 @@ function showLoginFormDokter($message = '', $messageType = '') {
                     class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
                     focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
             </div>
-                    <div>
-                        <label for="password" class="block mb-2 font-semibold">Kata Sandi</label>
-                        <input type="password" id="password" name="password" required
-                            class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                            focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                    </div>
+            <div>
+                <label for="password" class="block mb-2 font-semibold">Kata Sandi</label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
+                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
+            </div>
             <div class="text-right">
                 <a href="?route=auth-dokter&action=forgot" class="text-purple-600 hover:underline">Lupa Kata Sandi?</a>
             </div>
@@ -250,57 +250,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $validEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
 
-        if($validEmail ===false ||empty($password))return false;
-
-        $objUser = DTO_pengguna::forLogin($validEmail, $password);
-        $user = userService::login($objUser);
-        if (!$user[0]) {
-            if($user[1]==='err'){
-                echo "Galat saat mengambil data pengguna"; //error pasti kerna database
-                return;
-            }else{
-                echo $user[1]; //ambil data ini buat ditampilin di frontend user,
-                // ini pesan error yang beda-beda tergantung errornya.
-                $message = $user[1];
-                $messageType ='error';
-                return;
+        if ($validEmail === false || empty($password)) {
+            $message = "Email atau kata sandi tidak valid.";
+            $messageType = 'error';
+        } else {
+            $objUser = DAO_dokter::loginDokter($validEmail, $password);
+            if (!$objUser) {
+                $message = "Email atau kata sandi salah.";
+                $messageType = 'error';
+            } else {
+                if ($objUser->getRole() === 'Dokter') {
+                    $_SESSION['user'] = $objUser;
+                    header('Location: ?route=dashboard-dokter');
+                    exit;
+                }
             }
-        }
-            //objUser ini otomatis terisi data pengguna
-        if ($objUser->getRole() === 'Dokter') {
-                // Load additional doctor data from database
-                $_SESSION['user']=$objUser;
-                header('Location: ?route=dashboard-dokter');
-                exit;
-        }
-=======
-        if (!$user[0]) {
-            if($user[1]==='err'){
-                echo "Galat saat mengambil data pengguna"; //error pasti kerna database
-                return;
-            }else{
-                echo $user[1]; //ambil data ini buat ditampilin di frontend user,
-                // ini pesan error yang beda-beda tergantung errornya.
-                $message = $user[1];
-                $messageType ='error';
-                return;
-            }
-        }
-            //objUser ini otomatis terisi data pengguna
-        if ($objUser->getRole() === 'Dokter') {
-                // Load additional doctor data from database
-                $_SESSION['user']=$objUser;
-                header('Location: ?route=dashboard-dokter');
-                exit;
-        }
-=======
-            //objUser ini otomatis terisi data pengguna
-        if ($objUser->getRole() === 'Dokter') {
-                // Load additional doctor data from database
-                $_SESSION['user']=$objUser;
-                header('Location: ?route=dashboard-dokter');
-                exit;
->>>>>>> 4e4b8df452647885108e22ee62fdbb31d56807c6
         }
     } elseif ($action === 'register') {
         $name = $_POST['name'] ?? '';
