@@ -48,6 +48,11 @@ switch ($route) {
         $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
         $contentFile = 'pages/dashboard_dokter.php';
         break;
+    case 'pilih-kategori':
+        $pageTitle = 'Pilih Kategori Hewan - VetCare';
+        $pageDescription = 'Pilih kategori hewan yang ingin Anda konsultasikan';
+        $contentFile = 'pages/pilih-kategori.php';
+        break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
     case '/':
@@ -96,7 +101,10 @@ if (!headers_sent()) {
     // 2. Output struktur tampilan
     ?>
     <div class="min-h-screen bg-gray-50">
-        <?php include 'header.php'; // Muat header navigasi ?>
+        <?php 
+            // Always include the global header/navigation for consistent site layout
+            include 'header.php'; // Muat header navigasi
+        ?>
         <main>
             <!-- Tampilkan konten $pageContent yang sudah diproses -->
             <?php echo $pageContent; ?>

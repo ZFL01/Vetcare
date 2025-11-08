@@ -294,3 +294,34 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<script>
+// Ensure the page content sits below the fixed header by applying
+// an equivalent padding-top to <body> equal to the header height.
+// This keeps layout correct across screen sizes and when header height
+// changes (mobile vs desktop).
+function adjustBodyPaddingForHeader() {
+    try {
+        var hdr = document.querySelector('header');
+        if (!hdr) return;
+        var height = hdr.offsetHeight || 0;
+        document.body.style.paddingTop = height + 'px';
+    } catch (e) {
+        // fail silently
+        console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+    }
+}
+
+// Debounce helper for resize
+var _resizeTimer;
+window.addEventListener('DOMContentLoaded', function() {
+    adjustBodyPaddingForHeader();
+});
+window.addEventListener('load', function() {
+    adjustBodyPaddingForHeader();
+});
+window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(adjustBodyPaddingForHeader, 120);
+});
+</script>

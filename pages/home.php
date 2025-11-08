@@ -2,7 +2,8 @@
 <main>
     <!-- Hero Section with Doctor Profile -->
     <section class="relative pt-32 pb-20 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-hero opacity-10"></div>
+        <!-- gradient background - set pointer-events-none so it doesn't block buttons -->
+        <div class="absolute inset-0 bg-gradient-hero opacity-10 pointer-events-none"></div>
 
         <div class="container mx-auto px-4">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
@@ -24,8 +25,8 @@
                         Dapatkan perawatan terbaik untuk hewan kesayangan Anda. Konsultasi online 24/7 dengan dokter hewan profesional dan berpengalaman.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button onclick="navigateTo('?route=konsultasi-dokter')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
+                    <div class="flex flex-col sm:flex-row gap-4 relative z-30">
+                        <button onclick="navigateTo('?route=pilih-kategori')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
                             <span class="mr-2">🩺</span>
                             Mulai Konsultasi
                         </button>
