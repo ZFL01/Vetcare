@@ -73,6 +73,12 @@ function showRegisterFormDokter($message = '', $messageType = '') {
                             class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
                             focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
                     </div>
+                    <div>
+                        <label for="confirm_password" class="block mb-2 font-semibold">Konfirmasi Kata Sandi</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                            class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
+                            focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
+                    </div>
                 </div>
                 <div class="text-center">
                     <button type="button" id="nextBtn"
@@ -129,13 +135,37 @@ function showRegisterFormDokter($message = '', $messageType = '') {
                     <h4 class="text-lg font-bold text-purple-700 mb-4">Kredensial</h4>
                     <div class="grid lg:grid-cols-2 gap-6">
                         <div>
-                            <label for="spesialisasi" class="block mb-2 font-semibold">Spesialisasi</label>
-                            <select id="spesialisasi" name="spesialisasi" required
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70">
-                                <option value="Hewan Kecil">Hewan Kecil</option>
-                                <option value="Hewan Ternak/Besar">Hewan Ternak/Besar</option>
-                            </select>
+                            <label class="block mb-2 font-semibold">Spesialisasi (Pilih satu atau lebih)</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Reptil" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Reptil</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Unggas" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Unggas</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Kucing" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kucing</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Anjing" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Anjing</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Ternak" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Ternak</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Kuda" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kuda</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="spesialisasi[]" value="Kelinci" class="peer hidden">
+                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kelinci</span>
+                                </label>
+                            </div>
                         </div>
                         <div>
                             <label for="pengalaman" class="block mb-2 font-semibold">Pengalaman (tahun)</label>
@@ -220,37 +250,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $validEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
 
-        if($validEmail ===false ||empty($password))return false;
-
-        $objUser = DTO_pengguna::forLogin($validEmail, $password);
-        $user = userService::login($objUser);
-        if (!$user[0]) {
-            if($user[1]==='err'){
-                echo "Galat saat mengambil data pengguna"; //error pasti kerna database
-                return;
-            }else{
-                echo $user[1]; //ambil data ini buat ditampilin di frontend user,
-                // ini pesan error yang beda-beda tergantung errornya.
-                $message = $user[1];
-                $messageType ='error';
-                return;
+        if ($validEmail === false || empty($password)) {
+            $message = "Email atau kata sandi tidak valid.";
+            $messageType = 'error';
+        } else {
+            $objUser = DAO_dokter::loginDokter($validEmail, $password);
+            if (!$objUser) {
+                $message = "Email atau kata sandi salah.";
+                $messageType = 'error';
+            } else {
+                if ($objUser->getRole() === 'Dokter') {
+                    $_SESSION['user'] = $objUser;
+                    header('Location: ?route=dashboard-dokter');
+                    exit;
+                }
             }
-        }
-            //objUser ini otomatis terisi data pengguna
-        if ($objUser->getRole() === 'Dokter') {
-                // Load additional doctor data from database
-                $_SESSION['user']=$objUser;
-                header('Location: ?route=dashboard-dokter');
-                exit;
         }
     } elseif ($action === 'register') {
         $name = $_POST['name'] ?? '';
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
         $ttl = $_POST['ttl'] ?? '';
-        $spesialisasi = $_POST['spesialisasi'] ?? '';
+        $spesialisasiArray = $_POST['spesialisasi'] ?? [];
+        $spesialisasi = implode(', ', $spesialisasiArray);
         // Removed expStrv and expSip as per user request
         $pengalaman = (int)($_POST['pengalaman'] ?? 0);
+
+        // Validate password confirmation
+        if ($password !== $confirmPassword) {
+            $message = 'Kata sandi dan konfirmasi kata sandi tidak cocok.';
+            $messageType = 'error';
+        } else {
 
         // Handle file uploads
         $strvFile = $_FILES['strv_file'] ?? null;
@@ -299,6 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (empty($message)) {
+                $result = $db->registerDokter($name, $email, $password, $ttl, $spesialisasi, $pengalaman, $strvPath, $sipPath);
                 $message = $result['message'];
                 $messageType = $result['success'] ? 'success' : 'error';
                 if ($result['success']) {
@@ -306,7 +338,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-    } elseif ($action === 'forgot') {
+    }
+} elseif ($action === 'forgot') {
         $email = $_POST['email'] ?? '';
         $result = $db->initiatePasswordReset($email);
         $message = $result['message'];
