@@ -1,6 +1,8 @@
 <?php
 session_start();
 $pageTitle = "Login Dokter - VetCare";
+require_once __DIR__ . '/../src/config/config.php';
+require_once __DIR__ . '/../pages/auth-dokter.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/userService.php';
 require_once __DIR__ . '/../src/config/config.php';

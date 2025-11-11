@@ -1,370 +1,475 @@
 <?php
-// Authentication page for doctors with database integration
-require_once __DIR__ . '/../vendor/autoload.php';
+/**
+ * File: pages/auth-dokter.php
+ * Halaman login dan registrasi dokter
+ */
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'login';
-$message = '';
-$messageType = '';
 
-function showLoginFormDokter($message = '', $messageType = '') {
-    ?>
-    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
-        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Masuk sebagai Dokter</h2>
-        <?php if ($message): ?>
-            <div class="mb-4 text-center text-<?php echo $messageType === 'error' ? 'red-600' : 'green-600'; ?>">
-                <?php echo htmlspecialchars($message); ?>
-            </div>
-        <?php endif; ?>
-        <form method="POST" action="?route=auth-dokter&action=login" class="space-y-6">
-            <div>
-                <label for="email" class="block mb-2 font-semibold">Email</label>
-                <input type="email" id="email" name="email" required
-                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-            </div>
-            <div>
-                <label for="password" class="block mb-2 font-semibold">Kata Sandi</label>
-                <input type="password" id="password" name="password" required
-                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-            </div>
-            <div class="text-right">
-                <a href="?route=auth-dokter&action=forgot" class="text-purple-600 hover:underline">Lupa Kata Sandi?</a>
-            </div>
-            <button type="submit"
-                class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl
-                hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
-                Masuk
-            </button>
-        </form>
-        <p class="text-center mt-6">
-            Belum punya akun? <a href="?route=auth-dokter&action=register" class="text-purple-600 font-semibold hover:underline">Daftar sebagai Dokter</a>
-        </p>
-        <p class="text-center mt-4">
-            <a href="?route" class="text-gray-600 hover:underline">← Kembali ke Home</a>
-        </p>
-    </div>
-    <?php
-}
 
-function showRegisterFormDokter($message = '', $messageType = '') {
-    ?>
-    <div class="container mx-auto px-4 py-8">
-        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Daftar sebagai Dokter</h2>
-        <?php if ($message): ?>
-            <div class="mb-4 text-center text-<?php echo $messageType === 'error' ? 'red-600' : 'green-600'; ?>">
-                <?php echo htmlspecialchars($message); ?>
-            </div>
-        <?php endif; ?>
-        <form method="POST" action="?route=auth-dokter&action=register" enctype="multipart/form-data" class="space-y-8">
-            <!-- Step 1: Email and Password -->
-            <div id="step1" class="space-y-6">
-                <h3 class="text-xl font-bold text-purple-700 mb-4 text-center">Langkah 1: Email dan Kata Sandi</h3>
-                <div class="max-w-md mx-auto space-y-6">
-                    <div>
-                        <label for="email" class="block mb-2 font-semibold">Email</label>
-                        <input type="email" id="email" name="email" required
-                            class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                            focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                    </div>
-                    <div>
-                        <label for="password" class="block mb-2 font-semibold">Kata Sandi</label>
-                        <input type="password" id="password" name="password" required
-                            class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                            focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                    </div>
-                    <div>
-                        <label for="confirm_password" class="block mb-2 font-semibold">Konfirmasi Kata Sandi</label>
-                        <input type="password" id="confirm_password" name="confirm_password" required
-                            class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                            focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                    </div>
-                </div>
-                <div class="text-center">
-                    <button type="button" id="nextBtn"
-                        class="bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 px-6 rounded-xl
-                        hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
-                        Selanjutnya
-                    </button>
-                </div>
-            </div>
+$pageTitle = "Login Dokter - VetCare";
+require_once __DIR__ . '/../src/config/config.php';
+require_once __DIR__ . '/../services/DAO_dokter.php';
+require_once __DIR__ . '/../services/functions.php';
 
-            <!-- Step 2: Full Formulir -->
-            <div id="step2" class="space-y-8 hidden">
-                <h3 class="text-xl font-bold text-purple-700 mb-4">Langkah 2: Formulir Lengkap</h3>
-                <!-- Informasi Pribadi -->
-                <div>
-                    <h4 class="text-lg font-bold text-purple-700 mb-4">Informasi Pribadi</h4>
-                    <div class="grid lg:grid-cols-2 gap-6">
-                        <div>
-                            <label for="name" class="block mb-2 font-semibold">Nama Lengkap</label>
-                            <input type="text" id="name" name="name" required
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                        </div>
-                        <div>
-                            <label for="ttl" class="block mb-2 font-semibold">Tanggal Lahir</label>
-                            <input type="date" id="ttl" name="ttl" required
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                        </div>
-                    </div>
-                </div>
+// Redirect if already logged in
+requireGuest();
 
-                <!-- Dokumen -->
-                <div>
-                    <h4 class="text-lg font-bold text-purple-700 mb-4">Dokumen</h4>
-                    <div class="grid lg:grid-cols-2 gap-6">
-                        <div>
-                            <label for="strv_file" class="block mb-2 font-semibold">Upload STRV</label>
-                            <input type="file" id="strv_file" name="strv_file" accept=".pdf,.jpg,.jpeg,.png" required
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
-                        </div>
-                        <div>
-                            <label for="sip_file" class="block mb-2 font-semibold">Upload SIP</label>
-                            <input type="file" id="sip_file" name="sip_file" accept=".pdf,.jpg,.jpeg,.png" required
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
-                        </div>
-                    </div>
-                </div>
+// Handle login
+if (isset($_POST['login'])) {
+    $email = filter_var(clean($_POST['email']), FILTER_VALIDATE_EMAIL);
+    $password = $_POST['password'];
 
-                <!-- Kredensial -->
-                <div>
-                    <h4 class="text-lg font-bold text-purple-700 mb-4">Kredensial</h4>
-                    <div class="grid lg:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block mb-2 font-semibold">Spesialisasi (Pilih satu atau lebih)</label>
-                            <div class="flex flex-wrap gap-2">
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Reptil" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Reptil</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Unggas" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Unggas</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Kucing" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kucing</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Anjing" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Anjing</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Ternak" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Ternak</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Kuda" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kuda</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="spesialisasi[]" value="Kelinci" class="peer hidden">
-                                    <span class="px-4 py-2 bg-gray-200 peer-checked:bg-purple-600 peer-checked:text-white rounded transition-colors">Kelinci</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="pengalaman" class="block mb-2 font-semibold">Pengalaman (tahun)</label>
-                            <input type="number" id="pengalaman" name="pengalaman" required min="0" max="50"
-                                class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                                focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-between">
-                    <button type="button" id="backBtn"
-                        class="bg-gray-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-gray-600 transition-none shadow-md">
-                        Kembali
-                    </button>
-                    <button type="submit"
-                        class="bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 px-6 rounded-xl
-                        hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
-                        Daftar sebagai Dokter
-                    </button>
-                </div>
-            </div>
-        </form>
-        <p class="text-center mt-6">
-            Sudah punya akun? <a href="?route=auth-dokter&action=login" class="text-purple-600 font-semibold hover:underline">Masuk di sini</a>
-        </p>
-        <p class="text-center mt-4">
-            <a href="?route" class="text-gray-600 hover:underline">← Kembali ke Home</a>
-        </p>
-    </div>
+    if (empty($email) || empty($password)) {
+        setFlash('error', 'Email dan password harus diisi!');
+    } else {
+        $objUser=new DTO_pengguna(email:$email, pass:$password);
+        $dokter=userService::login($objUser);
 
-    <?php
-    echo '<script>
-        document.getElementById(\'nextBtn\').addEventListener(\'click\', function() {
-            document.getElementById(\'step1\').classList.add(\'hidden\');
-            document.getElementById(\'step2\').classList.remove(\'hidden\');
-        });
-        document.getElementById(\'backBtn\').addEventListener(\'click\', function() {
-            document.getElementById(\'step2\').classList.add(\'hidden\');
-            document.getElementById(\'step1\').classList.remove(\'hidden\');
-        });
-    </script>';
-    ?>
-    <?php
-}
+        if ($dokter[0]) {
+            // Set session
+            $objDokter= DAO_dokter::getProfilDokter($objUser);
+            $_SESSION['dokter'] = $objDokter;
 
-function showForgotPasswordFormDokter($message = '', $messageType = '') {
-    ?>
-    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
-        <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Lupa Kata Sandi Dokter</h2>
-        <?php if ($message): ?>
-            <div class="mb-4 text-center text-<?php echo $messageType === 'error' ? 'red-600' : 'green-600'; ?>">
-                <?php echo htmlspecialchars($message); ?>
-            </div>
-        <?php endif; ?>
-        <form method="POST" action="?route=auth-dokter&action=forgot" class="space-y-6">
-            <div>
-                <label for="email" class="block mb-2 font-semibold">Masukkan Email Anda</label>
-                <input type="email" id="email" name="email" required
-                    class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70
-                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-            </div>
-            <button type="submit"
-                class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl
-                hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
-                Kirim Link Reset
-            </button>
-        </form>
-        <p class="text-center mt-6">
-            Kembali ke <a href="?route=auth-dokter&action=login" class="text-purple-600 font-semibold hover:underline">Masuk</a>
-        </p>
-        <p class="text-center mt-4">
-            <a href="?route" class="text-gray-600 hover:underline">← Kembali ke Home</a>
-        </p>
-    </div>
-    <?php
-}
-
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($action === 'login') {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $validEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
-
-        if ($validEmail === false || empty($password)) {
-            $message = "Email atau kata sandi tidak valid.";
-            $messageType = 'error';
+            setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $dokter->getNama());
+            header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+            exit();
         } else {
-            $objUser = DAO_dokter::loginDokter($validEmail, $password);
-            if (!$objUser) {
-                $message = "Email atau kata sandi salah.";
-                $messageType = 'error';
+            if($dokter[1]==='err'){setFlash('error', 'database');}else{
+            setFlash('error', $dokter[1]);}
+        }
+    }
+}
+
+// Handle registration
+if (isset($_POST['register1'])) {
+    $email = filter_var(clean($_POST['email']), FILTER_VALIDATE_EMAIL);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    if ($password !== $confirm_password) {
+        setFlash('error', 'Konfirmasi password tidak cocok!');
+    } elseif (strlen($password) < 6) {
+        setFlash('error', 'Password minimal 6 karakter!');
+    }else{
+        $objUser = new DTO_pengguna(email:$email, pass:$password);
+        $hasil = userService::register($objUser);
+        if(!$hasil[0]){
+            if($hasil[1]==='err'){
+                setFlash('error', 'gagal memuat database');
+            }else{
+            setFlash('error', $hasil[1]);
+            }
+        }else{
+
+        if(isset($_POST['register2'])){
+        $spesialisasi = clean($_POST['spesialisasi']);
+        $nama=clean($_POST['nama']);
+        $pengalaman = (int)clean($_POST['pengalaman']);
+    // Validation
+        if (empty($spesialisasi)) {
+         setFlash('error', 'spesialisasi harus diisi!');
+        } else {
+       $objDokter = new DTO_dokter(nama:$nama, pengalaman:$pengalaman, kategori:$spesialisasi);
+       //diarahkan data nya ke admin, via email
+
+        // $data = [
+        //     'pengalaman' => $pengalaman,
+        // ];
+
+        // Handle SIP file upload (commented for testing)
+        /*
+        if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] == 0) {
+            $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR);
+            if ($upload_result['success']) {
+                $data['file_sip'] = $upload_result['filename'];
             } else {
-                if ($objUser->getRole() === 'Dokter') {
-                    $_SESSION['user'] = $objUser;
-                    header('Location: ?route=dashboard-dokter');
-                    exit;
-                }
+                setFlash('error', 'Gagal upload file SIP: ' . $upload_result['message']);
+                header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
+                exit();
             }
         }
-    } elseif ($action === 'register') {
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-        $ttl = $_POST['ttl'] ?? '';
-        $spesialisasiArray = $_POST['spesialisasi'] ?? [];
-        $spesialisasi = implode(', ', $spesialisasiArray);
-        // Removed expStrv and expSip as per user request
-        $pengalaman = (int)($_POST['pengalaman'] ?? 0);
+        */
 
-        // Validate password confirmation
-        if ($password !== $confirmPassword) {
-            $message = 'Kata sandi dan konfirmasi kata sandi tidak cocok.';
-            $messageType = 'error';
-        } else {
-
-        // Handle file uploads
-        $strvFile = $_FILES['strv_file'] ?? null;
-        $sipFile = $_FILES['sip_file'] ?? null;
-
-        // Validate file uploads
-        $uploadErrors = [];
-        if (!$strvFile || $strvFile['error'] !== UPLOAD_ERR_OK) {
-            $uploadErrors[] = 'File STRV wajib diupload.';
+        // Handle STRV file upload (commented for testing)
+        /*
+        if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] == 0) {
+            $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR);
+            if ($upload_result['success']) {
+                $data['file_strv'] = $upload_result['filename'];
+            } else {
+                setFlash('error', 'Gagal upload file STRV: ' . $upload_result['message']);
+                header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
+                exit();
+            }
         }
-        if (!$sipFile || $sipFile['error'] !== UPLOAD_ERR_OK) {
-            $uploadErrors[] = 'File SIP wajib diupload.';
-        }
-
-        if (!empty($uploadErrors)) {
-            $message = implode(' ', $uploadErrors);
-            $messageType = 'error';
-        } else {
-            // Process file uploads and get file paths
-            $uploadDir = __DIR__ . '/../uploads/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $strvPath = '';
-            $sipPath = '';
-
-            // Upload STRV file
-            if ($strvFile) {
-                $strvExt = pathinfo($strvFile['name'], PATHINFO_EXTENSION);
-                $strvPath = $uploadDir . 'strv_' . time() . '_' . uniqid() . '.' . $strvExt;
-                if (!move_uploaded_file($strvFile['tmp_name'], $strvPath)) {
-                    $message = 'Gagal mengupload file STRV.';
-                    $messageType = 'error';
-                }
-            }
-
-            // Upload SIP file
-            if ($sipFile && empty($message)) {
-                $sipExt = pathinfo($sipFile['name'], PATHINFO_EXTENSION);
-                $sipPath = $uploadDir . 'sip_' . time() . '_' . uniqid() . '.' . $sipExt;
-                if (!move_uploaded_file($sipFile['tmp_name'], $sipPath)) {
-                    $message = 'Gagal mengupload file SIP.';
-                    $messageType = 'error';
-                }
-            }
-
-            if (empty($message)) {
-                $result = $db->registerDokter($name, $email, $password, $ttl, $spesialisasi, $pengalaman, $strvPath, $sipPath);
-                $message = $result['message'];
-                $messageType = $result['success'] ? 'success' : 'error';
-                if ($result['success']) {
-                    $action = 'login'; // Redirect to login after successful registration
-                }
-            }
+        */
+}
         }
     }
-} elseif ($action === 'forgot') {
-        $email = $_POST['email'] ?? '';
-        $result = $db->initiatePasswordReset($email);
-        $message = $result['message'];
-        $messageType = $result['success'] ? 'success' : 'error';
+}
+}
+            // Get kategori ID from name
+            $conn = Database::getConnection();
+            $stmt = $conn->prepare("SELECT id_kategori FROM m_kategori WHERE nama_kateg = ?");
+            $stmt->execute([$data['spesialisasi']]);
+            $kategResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            $kategori = [new DTO_kateg($kategResult['id_kategori'] ?? null, $data['spesialisasi'])];
+
+            if (DAO_dokter::insertDokter($dtoDokter, $kategori)) {
+                // Auto-login after registration
+                $_SESSION['dokter_id'] = $id_dokter;
+                $_SESSION['dokter_nama'] = $data['nama_lengkap'];
+                $_SESSION['dokter_email'] = $email;
+                $_SESSION['dokter_foto'] = null; // No foto yet
+                $_SESSION['dokter_spesialisasi'] = [$data['spesialisasi']];
+
+                setFlash('success', 'Registrasi berhasil! Selamat datang, Dr. ' . $data['nama_lengkap']);
+                header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+                exit();
+            } else {
+                // If doctor insert fails, remove the user entry
+                $stmt = $conn->prepare("DELETE FROM m_pengguna WHERE id_pengguna = ?");
+                $stmt->execute([$id_dokter]);
+                setFlash('error', 'Registrasi gagal! Silakan coba lagi.');
+            }
+        }
     }
 }
 
-// Get messages from session if redirected
-$message = isset($_SESSION['message']) ? $_SESSION['message'] : $message;
-$messageType = isset($_SESSION['messageType']) ? $_SESSION['messageType'] : $messageType;
-unset($_SESSION['message'], $_SESSION['messageType']);
+// Get flash message
+$flash = getFlash();
 ?>
 
-<!-- Wrapper -->
-<div class="min-h-screen bg-gray-50 px-4 py-8 flex justify-center items-center">
-    <?php
-    if ($action === 'register') {
-        showRegisterFormDokter($message, $messageType);
-    } elseif ($action === 'forgot') {
-        showForgotPasswordFormDokter($message, $messageType);
-    } else {
-        showLoginFormDokter($message, $messageType);
-    }
-    ?>
-</div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $pageTitle; ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<!-- Tailwind CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            min-height: 600px;
+        }
+
+        .auth-left {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .auth-left h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .auth-left p {
+            font-size: 18px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .auth-right {
+            flex: 1;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .auth-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #363;
+            border: 1px solid #cfc;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .auth-left {
+                padding: 30px 20px;
+            }
+
+            .auth-left h1 {
+                font-size: 28px;
+            }
+
+            .auth-right {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-left">
+            <h1>🏥 VetCare</h1>
+            <p>Platform kesehatan hewan terpercaya untuk dokter hewan profesional. Bergabunglah dengan komunitas kami dan berikan pelayanan terbaik untuk hewan peliharaan.</p>
+        </div>
+
+        <div class="auth-right">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showForm('login')">Masuk</button>
+                <button class="auth-tab" onclick="showForm('register')">Daftar</button>
+            </div>
+
+            <?php if ($flash): ?>
+                <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>">
+                    <?php echo $flash['message']; ?>
+                </div>
+            <?php endif; ?>
+
+
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="login-form" method="POST">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="Masukkan email Anda" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Masukkan password" required>
+                </div>
+
+                <button type="submit" name="login" class="btn-primary">Masuk</button>
+
+                <div class="auth-links">
+                    <a href="<?php echo BASE_URL; ?>pages/lupa-password.php" class="text-primary hover:text-primary-dark transition-colors">Lupa Password?</a>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+             <form class="auth-form" id="register-form" method="POST" enctype="multipart">
+                         <label>Email *</label>
+                    <input type="email" name="email" placeholder="Masukkan email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" placeholder="Minimal 6 karakter" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Konfirmasi Password *</label>
+                    <input type="password" name="confirm_password" placeholder="Ulangi password" required>
+                </div>
+                <button type="submit" name="register1" class="btn-primary">Buat akun</button>
+            </form>
+            
+            <!--register kedua -->
+            <form class="auth-form" id="register-form" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+
+                    <div class="form-group">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="nama" placeholder="Masukkan Lengkap Beserta Gelar">
+                    </div>
+
+                <div class="form-group">
+                    <label>Spesialisasi *</label>
+                    <select name="spesialisasi" required>
+                        <option value="">Pilih Spesialisasi</option>
+                        <option value="Dokter Hewan Umum">Dokter Hewan Umum</option>
+                        <option value="Spesialis Kucing">Spesialis Kucing</option>
+                        <option value="Spesialis Anjing">Spesialis Anjing</option>
+                        <option value="Spesialis Exotic">Spesialis Exotic</option>
+                        <option value="Spesialis Bedah">Spesialis Bedah</option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label>Pengalaman (tahun)</label>
+                    <input type="number" name="pengalaman" placeholder="Masukkan pengalaman" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Upload File SIP (Opsional)</label>
+                    <input type="file" name="file_sip" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload File STRV (Opsional)</label>
+                    <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                
+
+                <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
+
+                <div class="auth-links">
+                    <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showForm(formType) {
+            // Hide all forms
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+
+            // Remove active class from tabs
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected form
+            document.getElementById(formType + '-form').classList.add('active');
+
+            // Add active class to selected tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
