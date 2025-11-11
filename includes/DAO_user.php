@@ -8,17 +8,6 @@ class DTO_pengguna{
         private ?string $role=null,
         private ?string $resetToken=null,
         ){}
-
-    static function forRegist($email, $pass, $role){
-        return new self(null, $email, $pass, $role);
-    }
-    static function forLogin($email, $pass){
-        return new self(null, $email, $pass);
-    }
-    static function forReset($email){
-        return new self(null, $email, null,
-    null);
-    }
     function setReturn(array $data){
         $this->idUser=$data['id_pengguna']; $this->pass=null;
         $this->role=$data['role'];

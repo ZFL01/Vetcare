@@ -70,7 +70,7 @@ class DTO_dokter implements JsonSerializable{
     function getKoor(){return $this->koor;}
     function getStatus(){return $this->status;}
 
-    function jsonSerialize(){
+    function jsonSerialize():mixed{
         return [
             'id'=>$this->id_dokter, 'nama'=>$this->nama,
             'foto'=>$this->foto, 'pengalaman'=>$this->pengalaman,

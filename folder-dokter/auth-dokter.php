@@ -1,44 +1,35 @@
 <?php
-/**
- * File: pages/auth-dokter.php
- * Halaman login dan registrasi dokter
- */
-
+session_start();
 $pageTitle = "Login Dokter - VetCare";
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/userService.php';
-
-// Redirect if already logged in
-requireGuest();
+require_once __DIR__ . '/../src/config/config.php';
 
 // Handle login
 if (isset($_POST['login'])) {
-    $email = clean($_POST['email']);
+    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
 
-    if (empty($email) || empty($password)) {
+    if ($email || empty($email) || empty($password)) {
         setFlash('error', 'Email dan password harus diisi!');
     } else {
-        $database = new Database();
-        $db = $database->getConnection();
-        $daoDokter = new DAO_Dokter($db);
+        $objUser = new DTO_pengguna(email: $email, pass: $password);
+        $pesan = userService::login($objUser);
 
-        $dokter = $daoDokter->login($email, $password);
+        // if ($pesan[0]) {
+        //     $objDokter = 
+        // }else{
 
-        if ($dokter) {
+        // }
             // Set session
-            $_SESSION['dokter_id'] = $dokter['id_dokter'];
-            $_SESSION['dokter_nama'] = $dokter['nama_lengkap'];
-            $_SESSION['dokter_email'] = $dokter['email'];
-            $_SESSION['dokter_foto'] = $dokter['foto_profil'];
-            $_SESSION['dokter_spesialisasi'] = $dokter['spesialisasi'];
+        //     $_SESSION['dokter'] = $objUser;
 
-            setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $dokter['nama_lengkap']);
-            header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
-            exit();
-        } else {
-            setFlash('error', 'Email atau password salah!');
-        }
+        //     setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objUser->);
+        //     header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+        //     exit();
+        // } else {
+        //     setFlash('error', 'Email atau password salah!');
+        // }
     }
 }
 
@@ -50,7 +41,7 @@ if (isset($_POST['register'])) {
     $confirm_password = $_POST['confirm_password'];
     $spesialisasi = clean($_POST['spesialisasi']);
     $nomor_telepon = clean($_POST['nomor_telepon']);
-    $pengalaman = (int)clean($_POST['pengalaman']);
+    $pengalaman = (int) clean($_POST['pengalaman']);
 
     // Validation
     if (empty($nama) || empty($email) || empty($password) || empty($spesialisasi)) {
@@ -113,11 +104,13 @@ $flash = getFlash();
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
     <style>
         * {
@@ -139,7 +132,7 @@ $flash = getFlash();
         .auth-container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
             max-width: 900px;
@@ -316,11 +309,13 @@ $flash = getFlash();
         }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-left">
             <h1>🏥 VetCare</h1>
-            <p>Platform kesehatan hewan terpercaya untuk dokter hewan profesional. Bergabunglah dengan komunitas kami dan berikan pelayanan terbaik untuk hewan peliharaan.</p>
+            <p>Platform kesehatan hewan terpercaya untuk dokter hewan profesional. Bergabunglah dengan komunitas kami
+                dan berikan pelayanan terbaik untuk hewan peliharaan.</p>
         </div>
 
         <div class="auth-right">
@@ -355,15 +350,27 @@ $flash = getFlash();
             </form>
 
             <!-- Register Form -->
-            <form class="auth-form" id="register-form" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Nama Lengkap *</label>
-                    <input type="text" name="nama" placeholder="Masukkan nama lengkap" required>
-                </div>
-
+            <form class="auth-form" id="register-form" method="POST">
                 <div class="form-group">
                     <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Konfirmasi Password *</label>
+                    <input type="password" name="confirm_password" placeholder="Ulangi password" required>
+                </div>
+
+                <button type="submit" name="register" class="btn-primary">Daftar Sekarang</button>
+                <div class="auth-links">
+                    <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
+                </div>
+            </form>
+
+            <form class="auth-form-biodata" id="biodata-form" method="POST">
+                <div class="form-group">
+                    <label>Nama Lengkap *</label>
+                    <input type="text" name="nama" placeholder="Masukkan nama lengkap" required>
                 </div>
 
                 <div class="form-group">
@@ -376,11 +383,6 @@ $flash = getFlash();
                         <option value="exotic">Spesialis Hewan Exotic</option>
                         <option value="bedah">Spesialis Bedah</option>
                     </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Nomor Telepon</label>
-                    <input type="tel" name="nomor_telepon" placeholder="Masukkan nomor telepon">
                 </div>
 
                 <div class="form-group">
@@ -405,17 +407,7 @@ $flash = getFlash();
                     <input type="password" name="password" placeholder="Minimal 6 karakter" required>
                 </div>
 
-                <div class="form-group">
-                    <label>Konfirmasi Password *</label>
-                    <input type="password" name="confirm_password" placeholder="Ulangi password" required>
-                </div>
 
-                <button type="submit" name="register" class="btn-primary">Daftar Sekarang</button>
-
-                <div class="auth-links">
-                    <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -439,4 +431,5 @@ $flash = getFlash();
         }
     </script>
 </body>
+
 </html>
