@@ -159,7 +159,7 @@ class DAO_dokter{
         return $obj;
     }
 
-    static function getAllDokter(){
+    static function getAllDokter(DTO_kateg $kateg){
         $conn = Database::getConnection();
         try{
             $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate

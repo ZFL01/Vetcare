@@ -1,0 +1,7 @@
+idChat disimpan di CouchDB untuk mengidentifikasi ini chatnya antara user siapa dengan dokter siapa.
+idChat diambil dari id_dokter dan id_pengguna ditambah timestamp
+idChat yang sudah dibuat, dimasukkan ke CouchDB sekaligus SQL.
+
+Setiap ada interaksi chat, database yang mengalami insert hanya CouchDB. Sedangkan SQL hanya menyimpan sesi apa saja yang pernah dibuat.
+
+Di akhir interaksi chat, pengguna disuruh ngasih like atau dislike. Like dan dislike yang diklik oleh pengguna akan mengupdate tabel SQL bagian chat, mengubah status 'liked'

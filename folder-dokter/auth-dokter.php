@@ -5,8 +5,8 @@
  */
 
 $pageTitle = "Login Dokter - VetCare";
-require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../includes/userService.php';
 
 // Redirect if already logged in
 requireGuest();
