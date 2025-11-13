@@ -17,23 +17,26 @@ if (isset($_POST['login'])) {
     } else {
         $objUser = new DTO_pengguna(email: $email, pass: $password);
         $pesan = userService::login($objUser);
-
-        // if ($pesan[0]) {
-        //     $objDokter = 
-        // }else{
-
-        // }
-            // Set session
-        //     $_SESSION['dokter'] = $objUser;
-
-        //     setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objUser->);
-        //     header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
-        //     exit();
-        // } else {
-        //     setFlash('error', 'Email atau password salah!');
-        // }
+        
+        if ($pesan[0]) {
+            $objDokter = DAO_dokter::getProfilDokter($objUser, true);
+            if($objDokter){
+                $_SESSION['user']=$objDokter;
+                setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
+                header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+                exit();
+            }else{
+                setFlash('error', 'Gagal memuat profil dokter');
+            }
+        }else{
+            if($pesan[1]==='err'){
+                setFlash('error', 'Gagal memuat data!');
+            }else{
+                setFlash('error', $pesan[1]);
+            }
+        }
+        } 
     }
-}
 
 // Handle registration
 if (isset($_POST['register'])) {
@@ -403,13 +406,8 @@ $flash = getFlash();
                     <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                     <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
                 </div>
-
-                <div class="form-group">
-                    <label>Password *</label>
-                    <input type="password" name="password" placeholder="Minimal 6 karakter" required>
-                </div>
-
-
+                
+                <button type="submit" name="register" class="btn-primary">Daftar Sekarang</button>
         </div>
     </div>
 

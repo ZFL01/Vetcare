@@ -204,4 +204,60 @@ function deleteImage($filename, $directory) {
     }
     return false;
 }
+
+function uploadDocument($file, $target_dir) {
+    $result = ['success' => false, 'filename' => '', 'error' => ''];
+
+    // Check if file is uploaded
+    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        $result['error'] = 'File upload error';
+        return $result;
+    }
+
+    // Check file size (max 5MB)
+    if ($file['size'] > 5000000) {
+        $result['error'] = 'File terlalu besar. Maksimal 5MB';
+        return $result;
+    }
+
+    // Check file type (allow PDF, DOC, DOCX, JPG, PNG)
+    $allowed_types = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mime, $allowed_types)) {
+        $result['error'] = 'Tipe file tidak didukung. Gunakan PDF, DOC, DOCX, JPG, atau PNG';
+        return $result;
+    }
+
+    // Generate unique filename
+    $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $new_filename = uniqid('doc_', true) . '.' . $file_extension;
+    $target_path = $target_dir . $new_filename;
+
+    // Create directory if not exists
+    if (!is_dir($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
+
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $target_path)) {
+        $result['success'] = true;
+        $result['filename'] = $new_filename;
+    } else {
+        $result['error'] = 'Gagal mengupload file';
+    }
+
+    return $result;
+}
+
 ?>

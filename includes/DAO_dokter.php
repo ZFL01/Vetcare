@@ -269,13 +269,17 @@ class DAO_dokter{
         return [];}
     }
 
-    static function getProfilDokter(DTO_pengguna $data){//dokter profil
+    static function getProfilDokter(DTO_pengguna $data, bool $initiate){//dokter profil
         $conn=Database::getConnection();
         try{
             $sql="select * from m_dokter where id_dokter=?";
             $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
             $profil=$stmt->fetch(PDO::FETCH_ASSOC);
             if(!$profil){return false;}
+            
+            $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate:$profil['rate']);
+            if($initiate){return $dokter;}
+            
 
             $sql="select k.id_kategori as idK, k.nama_kategori as namaK from m_kategori join detail_dokter as dd
             on dd.id_kategori=k.id_kategori where dd.id_dokter=?";

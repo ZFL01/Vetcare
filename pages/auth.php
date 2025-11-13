@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $content = showLoginForm('Email tidak valid atau kata sandi kosong');
         } else {
 
-            $objUser = DTO_pengguna::forLogin($validEmail, $pass);
+            $objUser = new DTO_pengguna(email:$validEmail, pass:$pass);
             $user = userService::login($objUser);
             if (!$user[0]) {
                 if ($user[1] === 'err') {
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($pass !== $konfirPass) {
             $content = showRegisterForm('Password dan konfirmasi password tidak sama!', 'error');
         } else {
-            $objUser = DTO_pengguna::forRegist($validEmail, $pass, "Member");
+            $objUser = new DTO_pengguna(email:$validEmail, pass:$pass, role:"Member");
             $user = userService::register($objUser);
             if (!$user[0]) { //jika false, pesan error semua
                 if ($user[1] === 'err') {

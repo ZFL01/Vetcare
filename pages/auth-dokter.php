@@ -8,11 +8,28 @@
 
 $pageTitle = "Login Dokter - VetCare";
 require_once __DIR__ . '/../src/config/config.php';
-require_once __DIR__ . '/../services/DAO_dokter.php';
-require_once __DIR__ . '/../services/functions.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../includes/DAO_user.php';
 
 // Redirect if already logged in
 requireGuest();
+
+$show_login_form = true;
+$show_register1_form = false;
+$show_register2_form = false;
+
+if (isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === true) {
+    $show_login_form = false;
+    $show_register2_form = true;
+    
+} elseif (isset($_POST['register1']) && $_SESSION['show_form_2']===false) {
+    $show_login_form = false;
+    $show_register1_form = true;
+    
+} elseif (isset($_GET['tab']) && $_GET['tab'] === 'register') {
+    $show_login_form = false;
+    $show_register1_form = true;
+}
 
 // Handle login
 if (isset($_POST['login'])) {
@@ -23,22 +40,22 @@ if (isset($_POST['login'])) {
         setFlash('error', 'Email dan password harus diisi!');
     } else {
         $objUser=new DTO_pengguna(email:$email, pass:$password);
-        $dokter=userService::login($objUser);
+        $pesan=userService::login($objUser);
 
-        if ($dokter[0]) {
-            // Set session
-            $objDokter= DAO_dokter::getProfilDokter($objUser);
-            $_SESSION['dokter'] = $objDokter;
-
-            setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $dokter->getNama());
-            header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
-            exit();
+        if ($pesan[0]) {
+            $objDokter= DAO_dokter::getProfilDokter($objUser, true);
+            if($objDokter){
+                $_SESSION['dokter'] = $objDokter;
+                setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $dokter->getNama());
+                header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+                exit();
+            }else{
+                setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
+            }
         } else {
-            if($dokter[1]==='err'){setFlash('error', 'database');}else{
-            setFlash('error', $dokter[1]);}
+            setFlash('error', $pesan[1]);}
         }
     }
-}
 
 // Handle registration
 if (isset($_POST['register1'])) {
@@ -51,30 +68,34 @@ if (isset($_POST['register1'])) {
     } elseif (strlen($password) < 6) {
         setFlash('error', 'Password minimal 6 karakter!');
     }else{
-        $objUser = new DTO_pengguna(email:$email, pass:$password);
+        $objUser = new DTO_pengguna(email:$email, pass:$password, role:'Dokter');
         $hasil = userService::register($objUser);
         if(!$hasil[0]){
-            if($hasil[1]==='err'){
-                setFlash('error', 'gagal memuat database');
-            }else{
             setFlash('error', $hasil[1]);
-            }
         }else{
+            $_SESSION['temp_idUser']=$hasil[1];
+            $_SESSION['show_form_2']=true;
+            header('Location: '.$_SERVER['PHP_SELF']);
+            exit;
+        }
+    }
+}
 
-        if(isset($_POST['register2'])){
-        $spesialisasi = clean($_POST['spesialisasi']);
-        $nama=clean($_POST['nama']);
-        $pengalaman = (int)clean($_POST['pengalaman']);
-    // Validation
-        if (empty($spesialisasi)) {
-         setFlash('error', 'spesialisasi harus diisi!');
-        } else {
-       $objDokter = new DTO_dokter(nama:$nama, pengalaman:$pengalaman, kategori:$spesialisasi);
-       //diarahkan data nya ke admin, via email
+// if(isset($_POST['register2'])){
+    
+//         $spesialisasi = clean($_POST['spesialisasi']);
+//         $nama=clean($_POST['nama']);
+//         $pengalaman = (int)clean($_POST['pengalaman']);
+//         if($_SESSION['temp_idUser']){
+//             if (empty($spesialisasi)||empty($nama)||empty($pengalaman)) {
+//                 setFlash('error', 'semua form harus diisi!');
+//             } else {
+//                 $objDokter = new DTO_dokter($_SESSION['temp_idUser'],$nama, pengalaman:$pengalaman, kategori:$spesialisasi);
+//         //diarahkan data nya ke admin, via email
 
-        // $data = [
-        //     'pengalaman' => $pengalaman,
-        // ];
+//             $data = [
+//                 'pengalaman' => $pengalaman,
+//             ];
 
         // Handle SIP file upload (commented for testing)
         /*
@@ -103,38 +124,36 @@ if (isset($_POST['register1'])) {
             }
         }
         */
-}
-        }
-    }
-}
-}
+// }
+//     }
+
+
             // Get kategori ID from name
-            $conn = Database::getConnection();
-            $stmt = $conn->prepare("SELECT id_kategori FROM m_kategori WHERE nama_kateg = ?");
-            $stmt->execute([$data['spesialisasi']]);
-            $kategResult = $stmt->fetch(PDO::FETCH_ASSOC);
-            $kategori = [new DTO_kateg($kategResult['id_kategori'] ?? null, $data['spesialisasi'])];
+            // $conn = Database::getConnection();
+            // $stmt = $conn->prepare("SELECT id_kategori FROM m_kategori WHERE nama_kateg = ?");
+            // $stmt->execute([$data['spesialisasi']]);
+            // $kategResult = $stmt->fetch(PDO::FETCH_ASSOC);
+            // $kategori = [new DTO_kateg($kategResult['id_kategori'] ?? null, $data['spesialisasi'])];
 
-            if (DAO_dokter::insertDokter($dtoDokter, $kategori)) {
-                // Auto-login after registration
-                $_SESSION['dokter_id'] = $id_dokter;
-                $_SESSION['dokter_nama'] = $data['nama_lengkap'];
-                $_SESSION['dokter_email'] = $email;
-                $_SESSION['dokter_foto'] = null; // No foto yet
-                $_SESSION['dokter_spesialisasi'] = [$data['spesialisasi']];
+            // if (DAO_dokter::insertDokter($dtoDokter, $kategori)) {
+            //     // Auto-login after registration
+            //     $_SESSION['dokter_id'] = $id_dokter;
+            //     $_SESSION['dokter_nama'] = $data['nama_lengkap'];
+            //     $_SESSION['dokter_email'] = $email;
+            //     $_SESSION['dokter_foto'] = null; // No foto yet
+            //     $_SESSION['dokter_spesialisasi'] = [$data['spesialisasi']];
 
-                setFlash('success', 'Registrasi berhasil! Selamat datang, Dr. ' . $data['nama_lengkap']);
-                header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
-                exit();
-            } else {
-                // If doctor insert fails, remove the user entry
-                $stmt = $conn->prepare("DELETE FROM m_pengguna WHERE id_pengguna = ?");
-                $stmt->execute([$id_dokter]);
-                setFlash('error', 'Registrasi gagal! Silakan coba lagi.');
-            }
-        }
-    }
-}
+            //     setFlash('success', 'Registrasi berhasil! Selamat datang, Dr. ' . $data['nama_lengkap']);
+            //     header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+            //     exit();
+            // } else {
+            //     // If doctor insert fails, remove the user entry
+            //     $stmt = $conn->prepare("DELETE FROM m_pengguna WHERE id_pengguna = ?");
+            //     $stmt->execute([$id_dokter]);
+            //     setFlash('error', 'Registrasi gagal! Silakan coba lagi.');
+            // }
+        
+    
 
 // Get flash message
 $flash = getFlash();
@@ -354,8 +373,8 @@ $flash = getFlash();
 
         <div class="auth-right">
             <div class="auth-tabs">
-                <button class="auth-tab active" onclick="showForm('login')">Masuk</button>
-                <button class="auth-tab" onclick="showForm('register')">Daftar</button>
+                <button class="auth-tab active" onclick="showForm('login')" <?php echo $show_register2_form ? 'disabled' : ''; ?>>Masuk</button>
+                <button class="auth-tab" onclick="showForm('register1')" <?php echo $show_register2_form ? 'disabled' : ''; ?>>Daftar</button>
             </div>
 
             <?php if ($flash): ?>
@@ -386,7 +405,7 @@ $flash = getFlash();
             </form>
 
             <!-- Register Form -->
-             <form class="auth-form" id="register-form" method="POST" enctype="multipart">
+             <form class="auth-form" id="register1-form" method="POST" enctype="multipart">
                          <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
                 </div>
@@ -403,7 +422,7 @@ $flash = getFlash();
             </form>
             
             <!--register kedua -->
-            <form class="auth-form" id="register-form" method="POST" enctype="multipart/form-data">
+            <form class="auth-form" id="register2-form" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
 
                     <div class="form-group">
@@ -430,24 +449,23 @@ $flash = getFlash();
                 </div>
 
                 <div class="form-group">
-                    <label>Upload File SIP (Opsional)</label>
+                    <label>Upload File SIP</label>
                     <input type="file" name="file_sip" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                     <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
                 </div>
 
                 <div class="form-group">
-                    <label>Upload File STRV (Opsional)</label>
+                    <label>Upload File STRV</label>
                     <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                     <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
                 </div>
 
-                
-
                 <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
-
+                <?php if (!$show_register2_form): ?>
                 <div class="auth-links">
                     <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
                 </div>
+                <?php endif; ?>
             </form>
         </div>
     </div>
@@ -464,12 +482,38 @@ $flash = getFlash();
                 tab.classList.remove('active');
             });
 
-            // Show selected form
-            document.getElementById(formType + '-form').classList.add('active');
+            let targetForm;
+            let targetTab;
+            if(formType==='login'){
+                targetForm='login-form';
+                targetTab = document.querySelectorAll('.auth-tab')[0];
+            }else if(formType==='register1'){
+                targetForm='register1-form';
+                targetTab=document.querySelectorAll('.auth-tab')[1];
+            }
 
-            // Add active class to selected tab
-            event.target.classList.add('active');
+            if(targetForm){
+                document.getElementById(targetForm).classList.add('active');
+            }
+            if(targetTab){
+                targetTab.classList.add('active');
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const activeForm = document.querySelector('.auth-form.active');
+        
+            if (activeForm) {
+                const formId = activeForm.id;
+                // Atur tab aktif berdasarkan form aktif
+                if (formId === 'login-form') {
+                    document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                } else if (formId === 'register1-form' || formId === 'register2-form') {
+                    // Jika form 1 atau form 2 yang aktif, tombol 'Daftar' harus aktif
+                    document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                }
+            }
+        });
     </script>
 </body>
 </html>

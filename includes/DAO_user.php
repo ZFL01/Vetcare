@@ -28,7 +28,7 @@ class DAO_pengguna{
 
         $ada= self::getUserEmail($data->getEmail());
         if($ada[0]){
-            return [false, "Email sudah terdaftar"];}
+            return [false, "Email sudah terdaftar! Silahkan gunakan email yang lain"];}
 
         $sql = "insert into m_pengguna (email, pass, role) values (?,?,?)";
         $params = [$data->getEmail(), $hashpass, $data->getRole()];
@@ -36,10 +36,10 @@ class DAO_pengguna{
         try{
             $stmt = $conn->prepare($sql);
             $hasil = $stmt->execute($params);
-            return [$hasil];
+            return [$hasil, (int) $conn->lastInsertId()];
         }catch(PDOException $e){
             error_log("DAO_user::insertUser :".$e->getMessage());
-            return [false, "err"];
+            return [false, "Gagal dalam menginput data! Silahkan hubungi Admin"];
         }
     }
 

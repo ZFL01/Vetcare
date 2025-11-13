@@ -6,9 +6,9 @@
  */
 
 $pageTitle = "Profil Dokter - VetCare";
-require_once __DIR__ . '/../header-dokter.php';
+require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
-require_once __DIR__ . '/../includes/DAO_artikel.php';
+require_once __DIR__ . '/../includes/DAO_Article.php';
 
 // Require login
 requireLogin();
