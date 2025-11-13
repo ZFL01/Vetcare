@@ -48,11 +48,18 @@ switch ($route) {
         $pageTitle = 'Masuk/Daftar - VetCare';
         $pageDescription = 'Masuk atau daftar akun VetCare';
         $contentFile = 'pages/auth.php';
+        $noHeaderFooter = true;
         break;
     case 'auth-dokter':
         $pageTitle = 'Masuk/Daftar Dokter - VetCare';
         $pageDescription = 'Masuk atau daftar akun dokter VetCare';
         $contentFile = 'pages/auth-dokter.php';
+        
+        break;
+    case 'dashboard-dokter':
+        $pageTitle = 'Dashboard Dokter - VetCare';
+        $pageDescription = 'Dashboard utama dokter VetCare';
+        $contentFile = 'pages/dashboard-dokter.php';
         break;
     case 'logout':
         session_start();
@@ -70,17 +77,26 @@ switch ($route) {
 include 'base.php';
 
 // Output content
-?>
-<div class="min-h-screen bg-gray-50">
-    <?php include 'header.php'; ?>
-    <main>
-        <?php
-        if (file_exists($contentFile)) {
-            include $contentFile;
-        } else {
-            echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
-        }
-        ?>
-    </main>
-    <?php include 'footer.php'; ?>
-</div>
+if (isset($noHeaderFooter) && $noHeaderFooter) {
+    if (file_exists($contentFile)) {
+        include $contentFile;
+    } else {
+        echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+    }
+} else {
+    ?>
+    <div class="min-h-screen bg-gray-50">
+        <?php include 'header.php'; ?>
+        <main>
+            <?php
+            if (file_exists($contentFile)) {
+                include $contentFile;
+            } else {
+                echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+            }
+            ?>
+        </main>
+        <?php include 'footer.php'; ?>
+    </div>
+    <?php
+}

@@ -24,7 +24,8 @@ class DTO_pengguna{
 
 class DAO_pengguna{
     static function insertUser(DTO_pengguna $data, string $hashpass){
-        $conn = Database::getConnection();
+        $database = new Database();
+        $conn = $database->getConnection();
 
         $ada= self::getUserEmail($data->getEmail());
         if($ada[0]){
@@ -44,7 +45,8 @@ class DAO_pengguna{
     }
 
     static function getUserEmail($email){
-        $conn = Database::getConnection();
+        $database = new Database();
+        $conn = $database->getConnection();
         $sql = "select id_pengguna, email, pass, role from m_pengguna where email = ?";
         
         try{
@@ -62,7 +64,8 @@ class DAO_pengguna{
     }
 
     static function updateResetToken(string $email, string $token, string $expTime){
-        $conn = Database::getConnection();
+        $database = new Database();
+        $conn = $database->getConnection();
         $sql = "update m_pengguna set reset_token = ?, exp_token = ? where email=?";
 
         try{
@@ -79,7 +82,8 @@ class DAO_pengguna{
     }
 
     static function verifToken(DTO_pengguna $dat){
-        $conn = Database::getConnection();
+        $database = new Database();
+        $conn = $database->getConnection();
         $sql="select id_pengguna, role, reset_token from m_pengguna
         where email =? and reset_token =? and exp_token >= now()";
 
@@ -96,7 +100,8 @@ class DAO_pengguna{
     }
 
     static function resetPass(string $email, string $hashedpass){
-        $conn = Database::getConnection();
+        $database = new Database();
+        $conn = $database->getConnection();
         $sql = "update m_pengguna set pass=?, reset_token=null where email=?";
         
         try{

@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
 date_default_timezone_set('Asia/Jakarta');
 
 // Base URL
-define('BASE_URL', 'http://localhost/Dokter/');
+define('BASE_URL', 'http://localhost/Vetcare-1/');
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/images/');
@@ -77,7 +77,7 @@ function requireLogin() {
  */
 function requireGuest() {
     if (isLoggedIn()) {
-        header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+        header('Location: ' . BASE_URL . '?route=dashboard-dokter');
         exit();
     }
 }

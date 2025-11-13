@@ -346,11 +346,10 @@ class DAO_dokter{
 
     static function insertDokter(DTO_dokter $data, array $datKateg){
         $conn = Database::getConnection();
-        $query ="insert into m_dokter values (?,?,?,?,?,?,?,?,?)";
+        $query ="insert into m_dokter (id_dokter, nama_dokter, strv, sip, foto, pengalaman) values (?,?,?,?,?,?)";
 
-        $params = [$data->getId(), $data->getNama(), $data->getTTL(), $data->getSTRV(), $data->getExp_STRV(),
-        $data->getSIP(), $data->getExp_SIP(), $data->getFoto(), $data->getPengalaman()];
-        
+        $params = [$data->getId(), $data->getNama(), $data->getSTRV(), $data->getSIP(), $data->getFoto(), $data->getPengalaman()];
+
         try{
             $stmt = $conn->prepare($query);
             $mDokter = $stmt->execute($params);

@@ -62,7 +62,11 @@
     tinymce.init({
         selector: '#konten_editor', 
         // Menggunakan lisensi GPL (Gratis/Open Source) untuk menghindari peringatan.
-        license_key: 'gpl', 
+        license_key: 'gpl',
+        menubar: false,
+        branding: false, 
+        statusbar: false,
+
         // Plugins yang minimalis, tetapi menyertakan 'image'
         plugins: 'advlist autolink lists link image code help',
         toolbar: 'undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | image code help',

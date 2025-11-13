@@ -46,16 +46,17 @@ if (isset($_POST['login'])) {
             $objDokter= DAO_dokter::getProfilDokter($objUser, true);
             if($objDokter){
                 $_SESSION['dokter'] = $objDokter;
-                setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $dokter->getNama());
-                header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
+                setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
+                header('Location: ' . BASE_URL . '?route=dashboard-dokter');
                 exit();
-            }else{
+            } else {
                 setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
             }
         } else {
-            setFlash('error', $pesan[1]);}
+            setFlash('error', $pesan[1]);
         }
     }
+}
 
 // Handle registration
 if (isset($_POST['register1'])) {
@@ -80,80 +81,6 @@ if (isset($_POST['register1'])) {
         }
     }
 }
-
-// if(isset($_POST['register2'])){
-    
-//         $spesialisasi = clean($_POST['spesialisasi']);
-//         $nama=clean($_POST['nama']);
-//         $pengalaman = (int)clean($_POST['pengalaman']);
-//         if($_SESSION['temp_idUser']){
-//             if (empty($spesialisasi)||empty($nama)||empty($pengalaman)) {
-//                 setFlash('error', 'semua form harus diisi!');
-//             } else {
-//                 $objDokter = new DTO_dokter($_SESSION['temp_idUser'],$nama, pengalaman:$pengalaman, kategori:$spesialisasi);
-//         //diarahkan data nya ke admin, via email
-
-//             $data = [
-//                 'pengalaman' => $pengalaman,
-//             ];
-
-        // Handle SIP file upload (commented for testing)
-        /*
-        if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] == 0) {
-            $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR);
-            if ($upload_result['success']) {
-                $data['file_sip'] = $upload_result['filename'];
-            } else {
-                setFlash('error', 'Gagal upload file SIP: ' . $upload_result['message']);
-                header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
-                exit();
-            }
-        }
-        */
-
-        // Handle STRV file upload (commented for testing)
-        /*
-        if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] == 0) {
-            $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR);
-            if ($upload_result['success']) {
-                $data['file_strv'] = $upload_result['filename'];
-            } else {
-                setFlash('error', 'Gagal upload file STRV: ' . $upload_result['message']);
-                header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
-                exit();
-            }
-        }
-        */
-// }
-//     }
-
-
-            // Get kategori ID from name
-            // $conn = Database::getConnection();
-            // $stmt = $conn->prepare("SELECT id_kategori FROM m_kategori WHERE nama_kateg = ?");
-            // $stmt->execute([$data['spesialisasi']]);
-            // $kategResult = $stmt->fetch(PDO::FETCH_ASSOC);
-            // $kategori = [new DTO_kateg($kategResult['id_kategori'] ?? null, $data['spesialisasi'])];
-
-            // if (DAO_dokter::insertDokter($dtoDokter, $kategori)) {
-            //     // Auto-login after registration
-            //     $_SESSION['dokter_id'] = $id_dokter;
-            //     $_SESSION['dokter_nama'] = $data['nama_lengkap'];
-            //     $_SESSION['dokter_email'] = $email;
-            //     $_SESSION['dokter_foto'] = null; // No foto yet
-            //     $_SESSION['dokter_spesialisasi'] = [$data['spesialisasi']];
-
-            //     setFlash('success', 'Registrasi berhasil! Selamat datang, Dr. ' . $data['nama_lengkap']);
-            //     header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
-            //     exit();
-            // } else {
-            //     // If doctor insert fails, remove the user entry
-            //     $stmt = $conn->prepare("DELETE FROM m_pengguna WHERE id_pengguna = ?");
-            //     $stmt->execute([$id_dokter]);
-            //     setFlash('error', 'Registrasi gagal! Silakan coba lagi.');
-            // }
-        
-    
 
 // Get flash message
 $flash = getFlash();
@@ -405,8 +332,9 @@ $flash = getFlash();
             </form>
 
             <!-- Register Form -->
-             <form class="auth-form" id="register1-form" method="POST" enctype="multipart">
-                         <label>Email *</label>
+             <form class="auth-form" id="register1-form" method="POST">
+                <div class="form-group">
+                    <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
                 </div>
                 <div class="form-group">
