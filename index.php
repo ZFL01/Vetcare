@@ -58,6 +58,11 @@ switch ($route) {
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
         $contentFile = 'pages/pilih-dokter.php';
         break;
+    case 'admin-manage-dokter':
+        $pageTitle = 'Manajemen Dokter - VetCare Admin';
+        $pageDescription = 'Admin panel untuk verifikasi dan approval dokter';
+        $contentFile = 'pages/admin-manage-dokter.php';
+        break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
     case '/':

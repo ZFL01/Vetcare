@@ -1,6 +1,7 @@
 <?php
 // Authentication page for doctors with database integration
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ .'../services/DAO_dokter.php';
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $message = '';
