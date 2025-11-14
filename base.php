@@ -1,4 +1,7 @@
 <?php
+// Start output buffering to prevent header errors
+ob_start();
+
 // Base template with HTML head and common elements
 ?>
 <!DOCTYPE html>
