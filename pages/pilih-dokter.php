@@ -5,7 +5,7 @@ require_once __DIR__ . '/../header.php';
 $kategori = isset($_GET['kategori']) ? htmlspecialchars($_GET['kategori']) : '';
 
 // Get all available categories for filter dropdown
-require_once __DIR__ . '/../services/DAO_dokter.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
 $all_kategori = DAO_kategori::getAllKategori();
 ?>
 

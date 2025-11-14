@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-require_once __DIR__ . '/../services/database.php';
-require_once __DIR__ . '/../services/DAO_dokter.php';
+require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
 
 // Check if user is admin
 if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {
