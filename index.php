@@ -54,7 +54,7 @@ switch ($route) {
         $pageTitle = 'Masuk/Daftar Dokter - VetCare';
         $pageDescription = 'Masuk atau daftar akun dokter VetCare';
         $contentFile = 'pages/auth-dokter.php';
-        
+        $noHeaderFooter = true;
         break;
     case 'dashboard-dokter':
         $pageTitle = 'Dashboard Dokter - VetCare';

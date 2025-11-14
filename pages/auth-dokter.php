@@ -10,9 +10,11 @@ $pageTitle = "Login Dokter - VetCare";
 require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
+require_once __DIR__ . '/../includes/userService.php';
 
-// Redirect if already logged in
+
 requireGuest();
+
 
 $show_login_form = true;
 $show_register1_form = false;
@@ -22,7 +24,7 @@ if (isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === true) {
     $show_login_form = false;
     $show_register2_form = true;
     
-} elseif (isset($_POST['register1']) && $_SESSION['show_form_2']===false) {
+} elseif (isset($_POST['register1']) && isset($_SESSION['show_form_2']) && $_SESSION['show_form_2']===false) {
     $show_login_form = false;
     $show_register1_form = true;
     
@@ -301,7 +303,7 @@ $flash = getFlash();
         <div class="auth-right">
             <div class="auth-tabs">
                 <button class="auth-tab active" onclick="showForm('login')" <?php echo $show_register2_form ? 'disabled' : ''; ?>>Masuk</button>
-                <button class="auth-tab" onclick="showForm('register1')" <?php echo $show_register2_form ? 'disabled' : ''; ?>>Daftar</button>
+                <button class="auth-tab" onclick="showForm('register1')" <?php echo $show_register2_form ? '' : ''; ?>>Daftar</button>
             </div>
 
             <?php if ($flash): ?>
@@ -332,7 +334,7 @@ $flash = getFlash();
             </form>
 
             <!-- Register Form -->
-             <form class="auth-form" id="register1-form" method="POST">
+             <form class="auth-form " id="register1-form" method="POST">
                 <div class="form-group">
                     <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
@@ -417,6 +419,9 @@ $flash = getFlash();
                 targetTab = document.querySelectorAll('.auth-tab')[0];
             }else if(formType==='register1'){
                 targetForm='register1-form';
+                targetTab=document.querySelectorAll('.auth-tab')[1];
+            }else if(formType==='register2'){
+                targetForm='register2-form';
                 targetTab=document.querySelectorAll('.auth-tab')[1];
             }
 

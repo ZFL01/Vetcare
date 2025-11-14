@@ -1,7 +1,7 @@
 <?php
 include_once 'database.php';
 class DTO_pengguna{
-    protected function __construct(
+    function __construct(
         private ?int $idUser =null,
         private ?string $email=null,
         private ?string $pass = null,
@@ -24,12 +24,11 @@ class DTO_pengguna{
 
 class DAO_pengguna{
     static function insertUser(DTO_pengguna $data, string $hashpass){
-        $database = new Database();
-        $conn = $database->getConnection();
+        $conn = Database::getConnection();
 
         $ada= self::getUserEmail($data->getEmail());
         if($ada[0]){
-            return [false, "Email sudah terdaftar! Silahkan gunakan email yang lain"];}
+            return [false, "Email sudah terdaftar"];}
 
         $sql = "insert into m_pengguna (email, pass, role) values (?,?,?)";
         $params = [$data->getEmail(), $hashpass, $data->getRole()];
@@ -37,16 +36,15 @@ class DAO_pengguna{
         try{
             $stmt = $conn->prepare($sql);
             $hasil = $stmt->execute($params);
-            return [$hasil, (int) $conn->lastInsertId()];
+            return [$hasil];
         }catch(PDOException $e){
             error_log("DAO_user::insertUser :".$e->getMessage());
-            return [false, "Gagal dalam menginput data! Silahkan hubungi Admin"];
+            return [false, "err"];
         }
     }
 
     static function getUserEmail($email){
-        $database = new Database();
-        $conn = $database->getConnection();
+        $conn = Database::getConnection();
         $sql = "select id_pengguna, email, pass, role from m_pengguna where email = ?";
         
         try{
@@ -64,8 +62,7 @@ class DAO_pengguna{
     }
 
     static function updateResetToken(string $email, string $token, string $expTime){
-        $database = new Database();
-        $conn = $database->getConnection();
+        $conn = Database::getConnection();
         $sql = "update m_pengguna set reset_token = ?, exp_token = ? where email=?";
 
         try{
@@ -82,8 +79,7 @@ class DAO_pengguna{
     }
 
     static function verifToken(DTO_pengguna $dat){
-        $database = new Database();
-        $conn = $database->getConnection();
+        $conn = Database::getConnection();
         $sql="select id_pengguna, role, reset_token from m_pengguna
         where email =? and reset_token =? and exp_token >= now()";
 
@@ -100,8 +96,7 @@ class DAO_pengguna{
     }
 
     static function resetPass(string $email, string $hashedpass){
-        $database = new Database();
-        $conn = $database->getConnection();
+        $conn = Database::getConnection();
         $sql = "update m_pengguna set pass=?, reset_token=null where email=?";
         
         try{
