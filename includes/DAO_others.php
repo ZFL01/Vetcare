@@ -150,4 +150,32 @@ class DAO_Tanya{
     }
 }
 
+class DAO_chat{
+    static function getRating(int $idDokter){
+        $conn=Database::getConnection();
+        $sql="select count(*) as total, sum(`liked?`) as suka from log_rating
+        where id_dokter=?";
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute([$idDokter]);
+            $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $hasil;
+        }catch(PDOException $e){
+            error_log("[DAO_chat::getLogChat]: ".$e->getMessage());
+            return [];
+        }
+    }
+    static function insertLogMessage($idChat, DTO_pengguna $user, DTO_dokter $dokter, bool $liked=true){
+        $conn=Database::getConnection();
+        $sql="insert into log_rating (idChat, id_pengguna, id_dokter, `liked?`) values (?,?,?,?)";
+        try{
+            $stmt=$conn->prepare($sql);
+            return $stmt->execute([$idChat, $user->getIdUser(), $dokter->getId(), $liked]);
+        }catch(PDOException $e){
+            error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
+            return false;
+        }
+    }
+}
+
 ?>

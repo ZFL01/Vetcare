@@ -7,7 +7,7 @@ class DTO_pengguna{
         private ?string $pass = null,
         private ?string $role=null,
         private ?string $resetToken=null,
-        ){}
+        ){$this->pass=$pass;}
     function setReturn(array $data){
         $this->idUser=$data['id_pengguna']; $this->pass=null;
         $this->role=$data['role'];
@@ -23,6 +23,7 @@ class DTO_pengguna{
 }
 
 class DAO_pengguna{
+    static $pesan="Hubungi admin untuk masalah ini.";
     static function insertUser(DTO_pengguna $data, string $hashpass){
         $conn = Database::getConnection();
 
@@ -39,7 +40,7 @@ class DAO_pengguna{
             return [$hasil, (int) $conn->lastInsertId()];
         }catch(PDOException $e){
             error_log("DAO_user::insertUser :".$e->getMessage());
-            return [false, "err"];
+            return [false, "Gagal menyimpan pengguna! ".self::$pesan];
         }
     }
 
@@ -53,11 +54,11 @@ class DAO_pengguna{
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if($hasil){return [true, $hasil];}else{
-                return [false, "Email not found!"];
+                return [false, "Tidak ada data pengguna yang cocok!"];
             }
         }catch(PDOException $e){
             error_log("DAO_user::getUserEmail : ".$e->getMessage());
-            return [false, "err"];
+            return [false, "Gagal mengambil email! ".self::$pesan];
         }
     }
 
@@ -74,7 +75,7 @@ class DAO_pengguna{
             } return[false, "Gagal menyimpan token, coba kirim ulang!"];
         }catch(PDOException $e){
             error_log("DAO_user::updateResetToken : ".$e->getMessage());
-            return [false, "err"];
+            return [false, "Gagal menyimpan token! ".self::$pesan];
         }
     }
 
@@ -91,7 +92,7 @@ class DAO_pengguna{
             else{return [false, "Token salah"];}
         }catch(PDOException $e){
             error_log("DAO_user::verifyToken" . $e->getMessage());
-            return [false, 'err'];
+            return [false, 'Gagal memverifikasi token! '.self::$pesan];
         }
     }
 
@@ -107,7 +108,7 @@ class DAO_pengguna{
             }return [false, "Gagal menyimpan password!"];
         }catch(PDOException $e){
             error_log("DAO_user::resetPass : ".$e->getMessage());
-            return [false, 'err'];
+            return [false, 'Gagal menyimpan password! '.self::$pesan];
         }
     }
 
@@ -123,7 +124,7 @@ class DAO_pengguna{
             return [false, "Gagal menghapus pengguna!"];
         } catch (PDOException $e) {
             error_log("DAO_user::deleteUser : " . $e->getMessage());
-            return [false, 'err'];
+            return [false, 'Gagal menghapus akun pengguna! ' . self::$pesan];
         }
     } 
 }

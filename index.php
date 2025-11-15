@@ -10,6 +10,7 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 // Define page variables
 $pageTitle = '';
 $pageDescription = '';
+$ajaxLoad = false;
 
 // Route handling
 switch ($route) {
@@ -56,6 +57,7 @@ switch ($route) {
         $pageDescription = 'Masuk atau daftar akun dokter VetCare';
         $contentFile = 'pages/auth-dokter.php';
         $noHeaderFooter = true;
+        $ajaxLoad = true;
         break;
     case 'dashboard-dokter':
         $pageTitle = 'Dashboard Dokter - VetCare';
@@ -77,6 +79,9 @@ switch ($route) {
 // Output content
 if (isset($noHeaderFooter) && $noHeaderFooter) {
     if (file_exists($contentFile)) {
+        if(!$ajaxLoad){
+            include 'base.php';
+        }
         include $contentFile;
     } else {
         echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';

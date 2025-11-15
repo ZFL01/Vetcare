@@ -275,7 +275,7 @@ class DAO_dokter{
             $sql="select * from m_dokter where id_dokter=?";
             $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
             $profil=$stmt->fetch(PDO::FETCH_ASSOC);
-            if(!$profil){return false;}
+            if($profil==null){return null;}
             
             $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate:$profil['rate']);
             if($initiate){return $dokter;}

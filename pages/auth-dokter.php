@@ -5,10 +5,10 @@ require_once __DIR__ . '/../includes/userService.php';
 
 if (isset($_GET['action']) && $_GET['action'] === 'cancel_registration') {
     $id4Del = $_SESSION['temp_idUser'] ?? null;
-    
+
     if ($id4Del) {
         $delete_result = userService::deleteUser($id4Del);
-        error_log('del '.$delete_result[0]);
+        error_log('del ' . $delete_result[0]);
 
         if ($delete_result[0]) {
             unset($_SESSION['temp_idUser']);
@@ -31,7 +31,6 @@ require_once __DIR__ . '/../src/config/config.php';
 
 requireGuest();
 
-// error_log("get sesi : ".$_SESSION['temp_idUser'] ?? 'null');
 $show_login_form = true;
 $show_register1_form = false;
 $show_register2_form = false;
@@ -41,13 +40,20 @@ if (isset($_POST['register1']) && isset($_SESSION['show_form_2']) && $_SESSION['
     $show_register1_form = true;
 
 } elseif (isset($_GET['tab']) && $_GET['tab'] === 'register' && isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === true) {
-    error_log('jalankah? 2');
     $show_login_form = false;
     $show_register1_form = false;
     $show_register2_form = true;
 }
 
 $tabRegis = $show_register1_form || $show_register2_form;
+
+function CeknGo(int $idUser)
+{
+    $_SESSION['temp_idUser'] = $idUser;
+    $_SESSION['show_form_2'] = true;
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth-dokter&tab=register');
+    exit();
+}
 
 // Handle login
 if (isset($_POST['login'])) {
@@ -60,18 +66,25 @@ if (isset($_POST['login'])) {
         $objUser = new DTO_pengguna(email: $email, pass: $password);
         $pesan = userService::login($objUser);
 
-        if ($pesan[0]) {
+        if ($pesan[0] && $objUser->getRole() === 'Dokter') {
             $objDokter = DAO_dokter::getProfilDokter($objUser, true);
             if ($objDokter) {
                 $_SESSION['dokter'] = $objDokter;
                 setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
                 header('Location: ' . BASE_URL . '?route=dashboard-dokter');
                 exit();
+            } else if ($objDokter === null) {
+                setFlash('error', 'Terdeteksi belum selesai daftar. Silahkan selesaikan registrasi Anda!');
+                CeknGo($objUser->getIdUser());
             } else {
                 setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
             }
         } else {
-            setFlash('error', $pesan[1]);
+            if ($objUser->getRole() !== 'Dokter') {
+                setFlash('error', 'Akses ditolak. Hanya dokter yang dapat masuk melalui halaman ini.');
+            } else {
+                setFlash('error', $pesan[1]);
+            }
         }
     }
 }
@@ -81,25 +94,32 @@ if (isset($_POST['register1'])) {
     $email = filter_var(clean($_POST['email']), FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
+    $objUser = new DTO_pengguna(email: $email, pass: $password, role: 'Dokter');
 
     if ($password !== $confirm_password) {
         setFlash('error', 'Konfirmasi password tidak cocok!');
     } else {
-        $objUser = new DTO_pengguna(email: $email, pass: $password, role: 'Dokter');
-        $hasil = userService::register($objUser);
-        if (!$hasil[0]) {
-            setFlash('error', $hasil[1]);
+        $cek = userService::login($objUser);
+        $cek2 = DAO_dokter::getProfilDokter($objUser, true);
+        if ($cek[0] && $objUser->getRole() === 'Dokter' && $cek2 ==null) {
+            setFlash('success', 'Email sudah terdaftar. Silahkan lanjutkan tahap registrasi berikutnya.');
+            CeknGo($objUser->getIdUser());
+            exit();
         } else {
-            $_SESSION['temp_idUser'] = $hasil[1];
-            $_SESSION['show_form_2'] = true;
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth-dokter&tab=register');
-            exit;
+            $objUser->setNewPass($password); //udah dihapus oleh method login
+            $hasil = userService::register($objUser);
+            if (!$hasil[0]) {
+                setFlash('error', $hasil[1]);
+            } else {
+                CeknGo($hasil[1]);
+            }
         }
     }
 }
 
 //taruh di sini logika post register2
-if (isset($_POST['register2']) && isset($_SESSION['temp_idUser'])) {}
+if (isset($_POST['register2']) && isset($_SESSION['temp_idUser'])) {
+}
 
 // Get flash message
 $flash = getFlash();
@@ -107,6 +127,7 @@ $flash = getFlash();
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -357,7 +378,8 @@ $flash = getFlash();
             </form>
 
             <!-- Register Form -->
-            <form class="auth-form <?php echo $show_register1_form ? 'active' : ''; ?>" id="register1-form" method="POST">
+            <form class="auth-form <?php echo $show_register1_form ? 'active' : ''; ?>" id="register1-form"
+                method="POST">
                 <div class="form-group">
                     <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
@@ -375,7 +397,8 @@ $flash = getFlash();
             </form>
 
             <!--register kedua -->
-            <form class="auth-form <?php echo $show_register2_form ? 'active' : ''; ?>" id="register2-form" method="POST" enctype="multipart/form-data">
+            <form class="auth-form <?php echo $show_register2_form ? 'active' : ''; ?>" id="register2-form"
+                method="POST" enctype="multipart/form-data">
                 <div class="form-group">
 
                     <div class="form-group">
@@ -424,7 +447,7 @@ $flash = getFlash();
     </div>
 
     <script>
-        const API_URL = '<?php echo $_SERVER['PHP_SELF']; ?>'+'?route=auth-dokter&action=cancel_registration';
+        const API_URL = '<?php echo $_SERVER['PHP_SELF']; ?>' + '?route=auth-dokter&action=cancel_registration';
         const tabs = document.querySelectorAll('.auth-tab');
 
         function showForm(formType) {
@@ -450,24 +473,24 @@ $flash = getFlash();
 
         function confirmAndCancel() {
             const confirmation = confirm("Apakah Anda yakin ingin membatalkan pendaftaran? Data yang telah dimasukkan akan dihapus.");
-        if (confirmation) {
-            fetch(API_URL)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert("Pendaftaran berhasil dibatalkan. Mengalihkan ke halaman Masuk.");
-                        showForm('login'); 
-                        window.location.reload(); 
-                    } else {
-                        alert("Gagal membatalkan pendaftaran. Coba lagi atau muat ulang halaman. Pesan: " + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error("Kesalahan koneksi:", error);
-                    alert("Terjadi kesalahan jaringan. Silakan coba lagi.");
-                });
+            if (confirmation) {
+                fetch(API_URL)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert("Pendaftaran berhasil dibatalkan. Mengalihkan ke halaman Masuk.");
+                            showForm('login');
+                            window.location.reload();
+                        } else {
+                            alert("Gagal membatalkan pendaftaran. Coba lagi atau muat ulang halaman. Pesan: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Kesalahan koneksi:", error);
+                        alert("Terjadi kesalahan jaringan. Silakan coba lagi.");
+                    });
+            }
         }
-    }
     </script>
 </body>
 
