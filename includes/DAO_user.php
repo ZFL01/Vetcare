@@ -36,14 +36,14 @@ class DAO_pengguna{
         try{
             $stmt = $conn->prepare($sql);
             $hasil = $stmt->execute($params);
-            return [$hasil];
+            return [$hasil, (int) $conn->lastInsertId()];
         }catch(PDOException $e){
             error_log("DAO_user::insertUser :".$e->getMessage());
             return [false, "err"];
         }
     }
 
-    static function getUserEmail($email){
+    static function getUserEmail($email): array{
         $conn = Database::getConnection();
         $sql = "select id_pengguna, email, pass, role from m_pengguna where email = ?";
         
@@ -111,6 +111,20 @@ class DAO_pengguna{
         }
     }
 
+    static function deleteUser(int $idUser){
+        $conn = Database::getConnection();
+        $sql = "delete from m_pengguna where id_pengguna = ?";
+        try {
+            $stmt = $conn->prepare($sql);
+            $hasil = $stmt->execute([$idUser]);
+            if ($hasil && $stmt->rowCount() > 0) {
+                return [true];
+            }
+            return [false, "Gagal menghapus pengguna!"];
+        } catch (PDOException $e) {
+            error_log("DAO_user::deleteUser : " . $e->getMessage());
+            return [false, 'err'];
+        }
+    } 
 }
-
 ?>

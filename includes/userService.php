@@ -19,6 +19,11 @@ class userService{
         return DAO_pengguna::insertUser($dat, $hashPass);
     }
 
+    static function deleteUser(int $dat){
+        error_log("hapus : ".$dat);
+        return DAO_pengguna::deleteUser($dat);
+    }
+
     static function login(DTO_pengguna $dat){
         $hasil = DAO_pengguna::getUserEmail($dat->getEmail());
 

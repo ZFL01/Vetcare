@@ -5,10 +5,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 
 // Define page variables
-$pageTitle = 'VetCare - Perawatan Hewan Terbaik';
-$pageDescription = 'Platform Telemedicine #1 untuk Hewan - Konsultasi online dengan dokter hewan terpercaya';
+$pageTitle = '';
+$pageDescription = '';
 
 // Route handling
 switch ($route) {
@@ -73,9 +74,6 @@ switch ($route) {
         break;
 }
 
-// Include base template
-include 'base.php';
-
 // Output content
 if (isset($noHeaderFooter) && $noHeaderFooter) {
     if (file_exists($contentFile)) {
@@ -84,6 +82,8 @@ if (isset($noHeaderFooter) && $noHeaderFooter) {
         echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
     }
 } else {
+// Include base template
+include 'base.php';
     ?>
     <div class="min-h-screen bg-gray-50">
         <?php include 'header.php'; ?>
