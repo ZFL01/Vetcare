@@ -35,7 +35,7 @@ class DTO_jadwal
     }
 }
 
-class DTO_dokter implements JsonSerialiable
+class DTO_dokter implements JsonSerializable
 {
     private ?string $ttl = null; //admin dan dokter
     private ?string $strv = null; //dokter dan user {single}
