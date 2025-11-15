@@ -1,36 +1,58 @@
 <?php
-/**
- * File: pages/auth-dokter.php
- * Halaman login dan registrasi dokter
- */
-
-
-
-$pageTitle = "Login Dokter - VetCare";
-require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/userService.php';
 
+if (isset($_GET['action']) && $_GET['action'] === 'cancel_registration') {
+    $id4Del = $_SESSION['temp_idUser'] ?? null;
+
+    if ($id4Del) {
+        $delete_result = userService::deleteUser($id4Del);
+        error_log('del ' . $delete_result[0]);
+
+        if ($delete_result[0]) {
+            unset($_SESSION['temp_idUser']);
+            unset($_SESSION['show_form_2']);
+            $response = ['status' => 'success', 'message' => 'Akun pengguna berhasil dihapus.'];
+        } else {
+            $response = ['status' => 'error', 'message' => 'Gagal menghapus akun di database: ' . $delete_result[1]];
+        }
+    } else {
+        unset($_SESSION['show_form_2']);
+        $response = ['status' => 'success', 'message' => 'Sesi pendaftaran sudah bersih.'];
+    }
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
+}
+
+$pageTitle = "Login Dokter - VetCare";
+require_once __DIR__ . '/../src/config/config.php';
 
 requireGuest();
-
 
 $show_login_form = true;
 $show_register1_form = false;
 $show_register2_form = false;
 
-if (isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === true) {
+if (isset($_POST['register1']) && isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === false) {
     $show_login_form = false;
+    $show_register1_form = true;
+
+} elseif (isset($_GET['tab']) && $_GET['tab'] === 'register' && isset($_SESSION['show_form_2']) && $_SESSION['show_form_2'] === true) {
+    $show_login_form = false;
+    $show_register1_form = false;
     $show_register2_form = true;
-    
-} elseif (isset($_POST['register1']) && isset($_SESSION['show_form_2']) && $_SESSION['show_form_2']===false) {
-    $show_login_form = false;
-    $show_register1_form = true;
-    
-} elseif (isset($_GET['tab']) && $_GET['tab'] === 'register') {
-    $show_login_form = false;
-    $show_register1_form = true;
+}
+
+$tabRegis = $show_register1_form || $show_register2_form;
+
+function CeknGo(int $idUser)
+{
+    $_SESSION['temp_idUser'] = $idUser;
+    $_SESSION['show_form_2'] = true;
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth-dokter&tab=register');
+    exit();
 }
 
 // Handle login
@@ -41,21 +63,28 @@ if (isset($_POST['login'])) {
     if (empty($email) || empty($password)) {
         setFlash('error', 'Email dan password harus diisi!');
     } else {
-        $objUser=new DTO_pengguna(email:$email, pass:$password);
-        $pesan=userService::login($objUser);
+        $objUser = new DTO_pengguna(email: $email, pass: $password);
+        $pesan = userService::login($objUser);
 
-        if ($pesan[0]) {
-            $objDokter= DAO_dokter::getProfilDokter($objUser, true);
-            if($objDokter){
+        if ($pesan[0] && $objUser->getRole() === 'Dokter') {
+            $objDokter = DAO_dokter::getProfilDokter($objUser, true);
+            if ($objDokter) {
                 $_SESSION['dokter'] = $objDokter;
                 setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
                 header('Location: ' . BASE_URL . '?route=dashboard-dokter');
                 exit();
+            } else if ($objDokter === null) {
+                setFlash('error', 'Terdeteksi belum selesai daftar. Silahkan selesaikan registrasi Anda!');
+                CeknGo($objUser->getIdUser());
             } else {
                 setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
             }
         } else {
-            setFlash('error', $pesan[1]);
+            if ($objUser->getRole() !== 'Dokter') {
+                setFlash('error', 'Akses ditolak. Hanya dokter yang dapat masuk melalui halaman ini.');
+            } else {
+                setFlash('error', $pesan[1]);
+            }
         }
     }
 }
@@ -65,23 +94,31 @@ if (isset($_POST['register1'])) {
     $email = filter_var(clean($_POST['email']), FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
+    $objUser = new DTO_pengguna(email: $email, pass: $password, role: 'Dokter');
 
     if ($password !== $confirm_password) {
         setFlash('error', 'Konfirmasi password tidak cocok!');
-    } elseif (strlen($password) < 6) {
-        setFlash('error', 'Password minimal 6 karakter!');
-    }else{
-        $objUser = new DTO_pengguna(email:$email, pass:$password, role:'Dokter');
-        $hasil = userService::register($objUser);
-        if(!$hasil[0]){
-            setFlash('error', $hasil[1]);
-        }else{
-            $_SESSION['temp_idUser']=$hasil[1];
-            $_SESSION['show_form_2']=true;
-            header('Location: '.$_SERVER['PHP_SELF']);
-            exit;
+    } else {
+        $cek = userService::login($objUser);
+        $cek2 = DAO_dokter::getProfilDokter($objUser, true);
+        if ($cek[0] && $objUser->getRole() === 'Dokter' && $cek2 ==null) {
+            setFlash('success', 'Email sudah terdaftar. Silahkan lanjutkan tahap registrasi berikutnya.');
+            CeknGo($objUser->getIdUser());
+            exit();
+        } else {
+            $objUser->setNewPass($password); //udah dihapus oleh method login
+            $hasil = userService::register($objUser);
+            if (!$hasil[0]) {
+                setFlash('error', $hasil[1]);
+            } else {
+                CeknGo($hasil[1]);
+            }
         }
     }
+}
+
+//taruh di sini logika post register2
+if (isset($_POST['register2']) && isset($_SESSION['temp_idUser'])) {
 }
 
 // Get flash message
@@ -90,11 +127,13 @@ $flash = getFlash();
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
     <style>
         * {
@@ -116,7 +155,7 @@ $flash = getFlash();
         .auth-container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
             max-width: 900px;
@@ -293,17 +332,21 @@ $flash = getFlash();
         }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-left">
             <h1>🏥 VetCare</h1>
-            <p>Platform kesehatan hewan terpercaya untuk dokter hewan profesional. Bergabunglah dengan komunitas kami dan berikan pelayanan terbaik untuk hewan peliharaan.</p>
+            <p>Platform kesehatan hewan terpercaya untuk dokter hewan profesional. Bergabunglah dengan komunitas kami
+                dan berikan pelayanan terbaik untuk hewan peliharaan.</p>
         </div>
 
         <div class="auth-right">
             <div class="auth-tabs">
-                <button class="auth-tab active" onclick="showForm('login')" <?php echo $show_register2_form ? 'disabled' : ''; ?>>Masuk</button>
-                <button class="auth-tab" onclick="showForm('register1')" <?php echo $show_register2_form ? '' : ''; ?>>Daftar</button>
+                <button class="auth-tab <?php echo $show_login_form ? 'active' : ''; ?>"
+                    onclick="<?php echo $show_register2_form ? 'confirmAndCancel()' : 'showForm(\'login\')'; ?>">Masuk</button>
+                <button class="auth-tab <?php echo $tabRegis ? 'active' : ''; ?>" onclick="
+                    showForm('register')">Daftar</button>
             </div>
 
             <?php if ($flash): ?>
@@ -313,7 +356,7 @@ $flash = getFlash();
             <?php endif; ?>
 
             <!-- Login Form -->
-            <form class="auth-form active" id="login-form" method="POST">
+            <form class="auth-form <?php echo $show_login_form ? 'active' : ''; ?>" id="login-form" method="POST">
                 <div class="form-group">
                     <label>Email</label>
                     <input type="email" name="email" placeholder="Masukkan email Anda" required>
@@ -327,19 +370,21 @@ $flash = getFlash();
                 <button type="submit" name="login" class="btn-primary">Masuk</button>
 
                 <div class="auth-links">
-                    <a href="<?php echo BASE_URL; ?>pages/lupa-password.php">Lupa Password?</a>
+                    <a href="<?php echo BASE_URL; ?>pages/lupa-password.php"
+                        class="text-primary hover:text-primary-dark transition-colors">Lupa Password?</a>
                 </div>
             </form>
 
-            <!-- Register Form 1 -->
-            <form class="auth-form" id="register1-form" method="POST">
+            <!-- Register Form -->
+            <form class="auth-form <?php echo $show_register1_form ? 'active' : ''; ?>" id="register1-form"
+                method="POST">
                 <div class="form-group">
                     <label>Email *</label>
                     <input type="email" name="email" placeholder="Masukkan email" required>
                 </div>
                 <div class="form-group">
                     <label>Password *</label>
-                    <input type="password" name="password" placeholder="Minimal 6 karakter" required>
+                    <input type="password" name="password" placeholder="Panjang minimal 8 karakter" required>
                 </div>
 
                 <div class="form-group">
@@ -348,67 +393,61 @@ $flash = getFlash();
                 </div>
                 <button type="submit" name="register1" class="btn-primary">Lanjut ke Data Dokter</button>
             </form>
-            
-            <!-- Register Form 2 -->
-            <form class="auth-form" id="register2-form" method="POST" enctype="multipart/form-data">
+
+            <!--register kedua -->
+            <form class="auth-form <?php echo $show_register2_form ? 'active' : ''; ?>" id="register2-form"
+                method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>Nama Lengkap *</label>
                     <input type="text" name="nama" placeholder="Masukkan nama lengkap beserta gelar" required>
                 </div>
 
-                <div class="form-group">
-                    <label>Tanggal Lahir *</label>
-                    <input type="date" name="ttl" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Pengalaman (tahun)</label>
-                    <input type="number" name="pengalaman" placeholder="Masukkan pengalaman" min="0" value="0">
-                </div>
-
-                <div class="form-group">
-                    <label>Nomor STRV *</label>
-                    <input type="text" name="strv" placeholder="Masukkan nomor STRV" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Berlaku Hingga STRV *</label>
-                    <input type="date" name="exp_strv" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Nomor SIP *</label>
-                    <input type="text" name="sip" placeholder="Masukkan nomor SIP" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Berlaku Hingga SIP *</label>
-                    <input type="date" name="exp_sip" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Foto Profil</label>
-                    <input type="file" name="foto" accept=".jpg,.jpeg,.png,.gif">
-                    <small>JPG, PNG, GIF (Max 5MB)</small>
-                </div>
-
-                <div class="form-group">
-                    <label>Kategori Spesialisasi *</label>
-                    <div style="margin-top: 10px;">
-                        <label><input type="checkbox" name="kategori[]" value="1"> Dokter Hewan Kecil</label><br>
-                        <label><input type="checkbox" name="kategori[]" value="2"> Dokter Hewan Ternak</label>
+                    <div class="form-group">
+                        <label>Spesialisasi *</label>
+                        <select name="spesialisasi" required>
+                            <option value="">Pilih Spesialisasi</option>
+                            <option value="Dokter Hewan Umum">Dokter Hewan Umum</option>
+                            <option value="Spesialis Kucing">Spesialis Kucing</option>
+                            <option value="Spesialis Anjing">Spesialis Anjing</option>
+                            <option value="Spesialis Exotic">Spesialis Exotic</option>
+                            <option value="Spesialis Bedah">Spesialis Bedah</option>
+                        </select>
                     </div>
-                </div>
 
-                <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
-                <div class="auth-links">
-                    <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
-                </div>
+
+                    <div class="form-group">
+                        <label>Pengalaman (tahun)</label>
+                        <input type="number" name="pengalaman" placeholder="Masukkan pengalaman" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload File SIP</label>
+                        <input type="file" name="file_sip" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload File STRV</label>
+                        <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                    </div>
+
+                    <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
+                    <?php if (!$show_register2_form): ?>
+                        <div class="auth-links">
+                            <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
+                        </div>
+                    <?php endif; ?>
             </form>
         </div>
 
     <script>
+        const API_URL = '<?php echo $_SERVER['PHP_SELF']; ?>' + '?route=auth-dokter&action=cancel_registration';
+        const tabs = document.querySelectorAll('.auth-tab');
+
         function showForm(formType) {
+            console.log(formType);
+
             // Hide all forms
             document.querySelectorAll('.auth-form').forEach(form => {
                 form.classList.remove('active');
@@ -418,42 +457,36 @@ $flash = getFlash();
             document.querySelectorAll('.auth-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-
-            let targetForm;
-            let targetTab;
-            if(formType==='login'){
-                targetForm='login-form';
-                targetTab = document.querySelectorAll('.auth-tab')[0];
-            }else if(formType==='register1'){
-                targetForm='register1-form';
-                targetTab=document.querySelectorAll('.auth-tab')[1];
-            }else if(formType==='register2'){
-                targetForm='register2-form';
-                targetTab=document.querySelectorAll('.auth-tab')[1];
-            }
-
-            if(targetForm){
-                document.getElementById(targetForm).classList.add('active');
-            }
-            if(targetTab){
-                targetTab.classList.add('active');
+            if (formType === 'login') {
+                document.getElementById('login-form').classList.add('active');
+                tabs[0].classList.add('active');
+            } else if (formType === 'register') {
+                document.getElementById('register1-form').classList.add('active');
+                tabs[1].classList.add('active');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function(){
-            const activeForm = document.querySelector('.auth-form.active');
-        
-            if (activeForm) {
-                const formId = activeForm.id;
-                // Atur tab aktif berdasarkan form aktif
-                if (formId === 'login-form') {
-                    document.querySelectorAll('.auth-tab')[0].classList.add('active');
-                } else if (formId === 'register1-form' || formId === 'register2-form') {
-                    // Jika form 1 atau form 2 yang aktif, tombol 'Daftar' harus aktif
-                    document.querySelectorAll('.auth-tab')[1].classList.add('active');
-                }
+        function confirmAndCancel() {
+            const confirmation = confirm("Apakah Anda yakin ingin membatalkan pendaftaran? Data yang telah dimasukkan akan dihapus.");
+            if (confirmation) {
+                fetch(API_URL)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert("Pendaftaran berhasil dibatalkan. Mengalihkan ke halaman Masuk.");
+                            showForm('login');
+                            window.location.reload();
+                        } else {
+                            alert("Gagal membatalkan pendaftaran. Coba lagi atau muat ulang halaman. Pesan: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Kesalahan koneksi:", error);
+                        alert("Terjadi kesalahan jaringan. Silakan coba lagi.");
+                    });
             }
-        });
+        }
     </script>
 </body>
+
 </html>

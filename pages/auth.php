@@ -62,11 +62,6 @@ function showRegisterForm($message = '', $messageType = '')
         <?php endif; ?>
         <form method="POST" action="?route=auth&action=register" class="space-y-6">
             <div>
-                <label for="name" class="block mb-2 font-semibold">Nama Lengkap</label>
-                <input type="text" id="name" name="name" required class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70 
-                    focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
-            </div>
-            <div>
                 <label for="email" class="block mb-2 font-semibold">Email</label>
                 <input type="email" id="email" name="email" required class="w-full px-4 py-3 border border-purple-400 rounded-xl shadow-lg shadow-purple-300/70 
                     focus:outline-none focus:ring-4 focus:ring-purple-500/70" />
@@ -136,19 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $objUser = new DTO_pengguna(email:$validEmail, pass:$pass);
             $user = userService::login($objUser);
             if (!$user[0]) {
-                if ($user[1] === 'err') {
-                    //error pasti kerna database
-                    $message = "Error saat pengambilan data";
-                } else {
-                    //ambil data ini buat ditampilin di frontend user,
-                    // ini pesan error yang beda-beda tergantung errornya.
-                    $message = $user[1];
-                }
+                $message = $user[1];
                 $content = showLoginForm($message, 'error');
             } else {
                 $_SESSION['user'] = $objUser;
-                error_log("Berhasil");
-                //objUser ini udah otomatis terisi data user, bisa langsung dipake
                 if ($objUser->getRole() === 'Member') {
                     header('Location: ?route=dashboard');
                     exit;
@@ -175,11 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $objUser = new DTO_pengguna(email:$validEmail, pass:$pass, role:"Member");
             $user = userService::register($objUser);
             if (!$user[0]) { //jika false, pesan error semua
-                if ($user[1] === 'err') {
-                    $message = "Error saat validasi data";
-                } else {
-                    $message = $user[1]; //ambil ini buat ditampilin di frontend
-                }
+                $message = $user[1];
                 $content = showRegisterForm($message, 'error');
             } else { //jika gak ada error
                 $content = showLoginForm('Berhasil Daftar');

@@ -3,7 +3,7 @@ require_once 'DAO_user.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class userService{
+class userService{ //account service
     private static function hashPass(string $pass){
         return password_hash($pass, PASSWORD_ARGON2ID);
     }
@@ -19,6 +19,11 @@ class userService{
         return DAO_pengguna::insertUser($dat, $hashPass);
     }
 
+    static function deleteUser(int $dat){
+        error_log("hapus : ".$dat);
+        return DAO_pengguna::deleteUser($dat);
+    }
+
     static function login(DTO_pengguna $dat){
         $hasil = DAO_pengguna::getUserEmail($dat->getEmail());
 
@@ -31,7 +36,7 @@ class userService{
         if(password_verify($inputpass, $hashedpass)){
             $dat->setReturn($dataHasil);
             return [true];
-        }else{return [false, "Password salah!"];}
+        }else{return [false, "Email atau password salah!"];}
     }
 
     static function forgetPass(DTO_pengguna $data){
@@ -68,7 +73,7 @@ class userService{
             }else{ return [false, "Gagal"];}
         }catch(Exception $e){
             error_log("userService::verifyEmail".$e->getMessage());
-            return [false, 'err'];
+            return [false, 'Gagal mengirim email token! '. DAO_pengguna::$pesan];
         }
     }
 

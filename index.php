@@ -5,15 +5,12 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 
-// ----------------------------------------------------
-// BAGIAN 1: LOGIKA KONTROLER (MEMPROSES DATA & REDIRECT)
-// ----------------------------------------------------
-
-// Definisikan variabel default
-$pageTitle = 'VetCare - Perawatan Hewan Terbaik';
-$pageDescription = 'Platform Telemedicine #1 untuk Hewan - Konsultasi online dengan dokter hewan terpercaya';
-$contentFile = 'pages/home.php';
+// Define page variables
+$pageTitle = '';
+$pageDescription = '';
+$ajaxLoad = false;
 
 // Route handling: Tentukan file konten dan jalankan logika controller
 switch ($route) {
@@ -27,6 +24,7 @@ switch ($route) {
         $pageDescription = 'Masuk atau daftar akun dokter VetCare';
         $contentFile = 'pages/auth-dokter.php';
         $noHeaderFooter = true;
+        $ajaxLoad = true;
         break;
     case 'dashboard-dokter':
         $pageTitle = 'Dashboard Dokter - VetCare';
@@ -76,21 +74,32 @@ switch ($route) {
         break;
 }
 
+// Output content
+if (isset($noHeaderFooter) && $noHeaderFooter) {
+    if (file_exists($contentFile)) {
+        if(!$ajaxLoad){
+            include 'base.php';
+        }
+        include $contentFile;
+    } else {
+        echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+    }
+} else {
 // Include base template
 include 'base.php';
-
-// Output content
-?>
-<div class="min-h-screen bg-gray-50">
-    <?php include 'header.php'; ?>
-    <main>
-        <?php
-        if (file_exists($contentFile)) {
-            include $contentFile;
-        } else {
-            echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
-        }
-        ?>
-    </main>
-    <?php include 'footer.php'; ?>
-</div>
+    ?>
+    <div class="min-h-screen bg-gray-50">
+        <?php include 'header.php'; ?>
+        <main>
+            <?php
+            if (file_exists($contentFile)) {
+                include $contentFile;
+            } else {
+                echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+            }
+            ?>
+        </main>
+        <?php include 'footer.php'; ?>
+    </div>
+    <?php
+}
