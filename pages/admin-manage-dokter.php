@@ -21,19 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn = Database::getConnection();
             
             if ($action === 'approve') {
-                $query = "UPDATE m_dokter SET status = 'aktif' WHERE id_dokter = ?";
-                
-                $stmt = $conn->prepare($query);
-                $result = $stmt->execute([$id_dokter]);
-                
-                if ($result) {
-                    $message = "✅ Dokter berhasil di-approve dan status diubah menjadi aktif!";
-                    $messageType = "success";
-                } else {
-                    $message = "❌ Gagal meng-approve dokter";
+                $exp_strv = $_POST['exp_strv'];
+                $exp_sip = $_POST['exp_sip'];
+
+                if (empty($exp_strv) || empty($exp_sip)) {
+                    $message = "❌ Harap isi kedua tanggal kedaluwarsa (Exp. STRV dan Exp. SIP).";
                     $messageType = "error";
+                } elseif (new DateTime($exp_strv) < new DateTime('today') || new DateTime($exp_sip) < new DateTime('today')) {
+                    // Tambahkan validasi tanggal
+                    $message = "❌ Tanggal kedaluwarsa tidak boleh lebih awal dari hari ini.";
+                    $messageType = "error";
+                } else {
+                    $query = "UPDATE m_dokter SET status = 'aktif', exp_strv = ?, exp_sip = ? WHERE id_dokter = ?";
+                    
+                    $stmt = $conn->prepare($query);
+                    $result = $stmt->execute([$exp_strv, $exp_sip, $id_dokter]);
+                    
+                    if ($result) {
+                        $message = "✅ Dokter berhasil di-approve, data EXP disimpan, dan status diubah menjadi aktif!";
+                        $messageType = "success";
+                    } else {
+                        $message = "❌ Gagal meng-approve dokter";
+                        $messageType = "error";
+                    }
                 }
-                
             } elseif ($action === 'reject') {
                 $reason = $_POST['rejection_reason'] ?? '';
                 
@@ -125,28 +136,24 @@ try {
                 <div>
                   <h3 class="text-2xl font-bold text-gray-800"><?php echo htmlspecialchars($dokter['nama_dokter']); ?></h3>
                   <p class="text-gray-600">📧 Email: <?php echo htmlspecialchars($dokter['email']); ?></p>
-                  <p class="text-gray-600">🏥 STRV: 
-                    <?php if (!empty($dokter['strv'])): ?>
-                        <a href="public/docs/dokter/<?php echo htmlspecialchars($dokter['strv']); ?>" target="_blank" class="text-blue-500 hover:underline"><?php echo htmlspecialchars($dokter['strv']); ?></a>
-                    <?php else: ?>
-                        <span>(Tidak ada)</span>
-                    <?php endif; ?>
-                  </p>
-                  <p class="text-gray-600">🏥 SIP: 
-                    <?php if (!empty($dokter['sip'])): ?>
-                        <a href="public/docs/dokter/<?php echo htmlspecialchars($dokter['sip']); ?>" target="_blank" class="text-blue-500 hover:underline"><?php echo htmlspecialchars($dokter['sip']); ?></a>
-                    <?php else: ?>
-                        <span>(Tidak ada)</span>
-                    <?php endif; ?>
-                  </p>
                 </div>
                 <div class="text-right">
-                  <span class="inline-block px-4 py-2 rounded-full text-white bg-yellow-500">
-                    ⏳ Menunggu Approval
-                  </span>
+                    <?php if (!empty($dokter['strv']) || !empty($dokter['sip'])): ?>
+                        <div class="inline-block">
+                            <?php if (!empty($dokter['strv'])): ?>
+                                  <a href="public/docs/dokter/strv/<?php echo htmlspecialchars($dokter['strv']); ?>" target="_blank" class="inline-flex items-center px-4 py-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 mr-2">Lihat STRV</a>
+                            <?php endif; ?>
+                            <?php if (!empty($dokter['sip'])): ?>
+                                <a href="public/docs/dokter/sip/<?php echo htmlspecialchars($dokter['sip']); ?>" target="_blank" class="inline-flex items-center px-4 py-2 rounded-full text-white bg-blue-500 hover:bg-blue-600">Lihat SIP</a>
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <span class="inline-block px-4 py-2 rounded-full text-gray-600 bg-gray-200">Tidak ada dokumen</span>
+                    <?php endif; ?>
                   <p class="text-gray-600 text-sm mt-2">Terdaftar: <?php echo date('d/m/Y H:i', strtotime($dokter['tgl_daftar'])); ?></p>
                 </div>
               </div>
+
 
               <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
                 <div>
@@ -166,6 +173,17 @@ try {
                 <input type="hidden" name="id_dokter" value="<?php echo $dokter['id_dokter']; ?>">
                 
                 <p class="text-gray-700 font-semibold mb-4">Pilih aksi untuk dokter ini:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="exp_strv_<?php echo $dokter['id_dokter']; ?>" class="block text-sm font-medium text-gray-700">Exp. STRV</label>
+                        <input type="date" id="exp_strv_<?php echo $dokter['id_dokter']; ?>" name="exp_strv" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label for="exp_sip_<?php echo $dokter['id_dokter']; ?>" class="block text-sm font-medium text-gray-700">Exp. SIP</label>
+                        <input type="date" id="exp_sip_<?php echo $dokter['id_dokter']; ?>" name="exp_sip" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    </div>
+                </div>
                 
                 <div class="flex gap-3">
                   <button type="submit" name="action" value="approve" 

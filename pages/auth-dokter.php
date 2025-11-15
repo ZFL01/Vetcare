@@ -139,7 +139,7 @@ if (isset($_POST['register2'])) {
             // Upload SIP file
             $file_sip_name = null;
             if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR . '/');
+                $upload_result = uploadDocument($_FILES['file_sip'], SIP_DIR, 'sip_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file SIP: ' . $upload_result['error']);
                 }
@@ -149,7 +149,7 @@ if (isset($_POST['register2'])) {
             // Upload STRV file
             $file_strv_name = null;
             if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR . '/');
+                $upload_result = uploadDocument($_FILES['file_strv'], STRV_DIR, 'strv_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file STRV: ' . $upload_result['error']);
                 }
@@ -178,9 +178,9 @@ if (isset($_POST['register2'])) {
                 $id_user,
                 $nama,
                 $ttl,
-                'PENDING',  // strv - placeholder, admin akan update
+                $file_strv_name,  // strv
                 null,  // exp_strv - nullable, admin akan update
-                'PENDING',  // sip - placeholder, admin akan update
+                $file_sip_name,  // sip
                 null,  // exp_sip - nullable, admin akan update
                 $foto_name ?? 'default-profile.jpg',
                 $pengalaman
