@@ -7,11 +7,26 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-require_once __DIR__ . '/../services/database.php';
+require_once __DIR__ . '/../includes/database.php';
 
 // Get kategori filter dari query string
 $filter_kategori = isset($_GET['kategori']) ? trim($_GET['kategori']) : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// Mapping slug ke nama_kateg
+$slugToKategori = [
+    'peliharaan' => 'Hewan Peliharaan',
+    'ternak' => 'Hewan Ternak',
+    'eksotis' => 'Hewan Eksotis',
+    'akuatik' => 'Hewan Akuatik',
+    'kecil' => 'Hewan Kecil',
+    'unggas' => 'Hewan Unggas'
+];
+
+// Convert slug ke nama_kateg jika perlu
+if ($filter_kategori && $filter_kategori !== 'all' && isset($slugToKategori[$filter_kategori])) {
+    $filter_kategori = $slugToKategori[$filter_kategori];
+}
 
 try {
     $conn = Database::getConnection();
@@ -21,7 +36,7 @@ try {
                      l.nama_klinik, l.alamat, l.lat, l.long
               FROM m_dokter d
               LEFT JOIN m_lokasipraktik l ON d.id_dokter = l.dokter
-              WHERE d.status = 'aktif' AND d.status_approval = 'approved'";
+              WHERE d.status = 'aktif'";
     
     $params = [];
     
@@ -95,7 +110,52 @@ try {
                 ];
             }
         }
+        
+        // Fetch jumlah review dari log_rating
+        $queryReview = "SELECT id_dokter, COUNT(*) as jumlah_review 
+                      FROM log_rating 
+                      WHERE id_dokter IN (" . $idValid . ") AND `liked?` = 1
+                      GROUP BY id_dokter";
+        $stmtReview = $conn->query($queryReview);
+        $hasilReview = $stmtReview->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($hasilReview as $row) {
+            $id = $row['id_dokter'];
+            if (isset($dokters[$id])) {
+                $dokters[$id]['jumlah_review'] = (int)$row['jumlah_review'];
+            }
+        }
     }
+    
+    // Tambahkan data default untuk field yang tidak ada di database
+    foreach ($dokters as $id => &$dokter) {
+        // Jumlah review default jika tidak ada
+        if (!isset($dokter['jumlah_review'])) {
+            $dokter['jumlah_review'] = 0;
+        }
+        
+        // Status online (sementara random, bisa diganti dengan logika sesungguhnya)
+        $dokter['is_online'] = (rand(0, 100) > 40); // 60% chance online
+        
+        // Biaya konsultasi default (bisa disesuaikan)
+        $dokter['biaya_konsultasi'] = isset($dokter['biaya_konsultasi']) ? $dokter['biaya_konsultasi'] : 75000; // Default Rp 75.000
+        
+        // Deskripsi berdasarkan kategori pertama
+        $kategoriPertama = !empty($dokter['kategori']) ? $dokter['kategori'][0] : 'Umum';
+        $deskripsiMap = [
+            'Hewan Peliharaan' => 'Berpengalaman menangani hewan peliharaan dan eksotis dengan pendekatan holistik',
+            'Hewan Ternak' => 'Spesialis kesehatan dan produktivitas hewan ternak dengan sertifikasi internasional',
+            'Hewan Eksotis' => 'Ahli dalam perawatan dan pengobatan hewan eksotis dan langka',
+            'Hewan Akuatik' => 'Spesialis kesehatan ikan dan hewan air dengan pengalaman luas',
+            'Hewan Kecil' => 'Berpengalaman menangani hewan kecil seperti kelinci, hamster, dan marmut',
+            'Hewan Unggas' => 'Ahli dalam diagnosa dan pengobatan penyakit pada hewan unggas',
+        ];
+        $dokter['deskripsi'] = $deskripsiMap[$kategoriPertama] ?? 'Dokter berpengalaman dalam berbagai kasus kesehatan hewan dengan pendekatan profesional';
+        
+        // Bahasa yang didukung (default)
+        $dokter['bahasa'] = ['Indonesia', 'English'];
+    }
+    unset($dokter);
     
     // Return response
     http_response_code(200);
@@ -107,11 +167,22 @@ try {
     
 } catch (PDOException $e) {
     error_log("API Error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Database error: ' . $e->getMessage()
-    ]);
+        'message' => 'Database error: ' . $e->getMessage(),
+        'error' => $e->getMessage()
+    ], JSON_PRETTY_PRINT);
+    exit;
+} catch (Exception $e) {
+    error_log("API General Error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error: ' . $e->getMessage(),
+        'error' => $e->getMessage()
+    ], JSON_PRETTY_PRINT);
     exit;
 }
 ?>
