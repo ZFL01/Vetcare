@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ?route=dashboard-dokter');
                     exit;
                 } elseif ($objUser->getRole() === 'Admin') {
-                    header('location: >route=dashboard=admin');
+                    header('Location: ?route=admin-manage-dokter');
                     exit;
                 }
             }

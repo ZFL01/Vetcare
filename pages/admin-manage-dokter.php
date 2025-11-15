@@ -1,14 +1,12 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 
 // Check if user is admin
-if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {
-    header('Location: ?route=auth');
-    exit();
-}
+// if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {
+//     header('Location: ?route=auth');
+//     exit();
+// }
 
 $message = '';
 $messageType = '';
@@ -23,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn = Database::getConnection();
             
             if ($action === 'approve') {
-                // Simply change status to 'aktif'
                 $query = "UPDATE m_dokter SET status = 'aktif' WHERE id_dokter = ?";
                 
                 $stmt = $conn->prepare($query);
@@ -128,8 +125,20 @@ try {
                 <div>
                   <h3 class="text-2xl font-bold text-gray-800"><?php echo htmlspecialchars($dokter['nama_dokter']); ?></h3>
                   <p class="text-gray-600">📧 Email: <?php echo htmlspecialchars($dokter['email']); ?></p>
-                  <p class="text-gray-600">🏥 STRV: <?php echo htmlspecialchars($dokter['strv']); ?></p>
-                  <p class="text-gray-600">🏥 SIP: <?php echo htmlspecialchars($dokter['sip']); ?></p>
+                  <p class="text-gray-600">🏥 STRV: 
+                    <?php if (!empty($dokter['strv'])): ?>
+                        <a href="public/docs/dokter/<?php echo htmlspecialchars($dokter['strv']); ?>" target="_blank" class="text-blue-500 hover:underline"><?php echo htmlspecialchars($dokter['strv']); ?></a>
+                    <?php else: ?>
+                        <span>(Tidak ada)</span>
+                    <?php endif; ?>
+                  </p>
+                  <p class="text-gray-600">🏥 SIP: 
+                    <?php if (!empty($dokter['sip'])): ?>
+                        <a href="public/docs/dokter/<?php echo htmlspecialchars($dokter['sip']); ?>" target="_blank" class="text-blue-500 hover:underline"><?php echo htmlspecialchars($dokter['sip']); ?></a>
+                    <?php else: ?>
+                        <span>(Tidak ada)</span>
+                    <?php endif; ?>
+                  </p>
                 </div>
                 <div class="text-right">
                   <span class="inline-block px-4 py-2 rounded-full text-white bg-yellow-500">
@@ -142,11 +151,11 @@ try {
               <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
                 <div>
                   <p><strong>TTL:</strong> <?php echo htmlspecialchars($dokter['ttl']); ?></p>
-                  <p><strong>Pengalaman:</strong> <?php echo htmlspecialchars($dokter['pengalaman']); ?> Tahun</p>
+                  <p><strong>Tahun awal mulai praktik:</strong> <?php echo htmlspecialchars($dokter['pengalaman']); ?></p>
                 </div>
                 <div>
-                  <p><strong>Exp. STRV:</strong> <?php echo htmlspecialchars($dokter['exp_strv']); ?></p>
-                  <p><strong>Exp. SIP:</strong> <?php echo htmlspecialchars($dokter['exp_sip']); ?></p>
+                  <p><strong>Exp. STRV:</strong> <?php echo htmlspecialchars($dokter['exp_strv'] ?? ''); ?></p>
+                  <p><strong>Exp. SIP:</strong> <?php echo htmlspecialchars($dokter['exp_sip'] ?? ''); ?></p>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-z<?php
+  <?php
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 ?>

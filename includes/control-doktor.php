@@ -1,125 +1,160 @@
 <?php
 session_start();
-include_once 'database.php';
-include_once 'DAO_dokter.php';
+require_once 'database.php';
+require_once 'DAO_dokter.php';
 
 // Definisikan lokasi upload
-define('PROFILE_DIR', dirname(__DIR__) . '/public/img/dokter/');
+define('DOCS_DIR', dirname(__DIR__) . '/public/docs/dokter/');
 
 // Create directory if not exist
-if (!is_dir(PROFILE_DIR)) mkdir(PROFILE_DIR, 0755, true);
+if (!is_dir(DOCS_DIR)) mkdir(DOCS_DIR, 0755, true);
 
-// Cek apakah user sudah login dan submit form
-if (!isset($_SESSION['id_dokter_verifikasi']) || !isset($_POST['kirim_verifikasi'])) {
-    header('Location: registrasi-awal.php');
+// Check POST dari auth-dokter.php register2
+if (!isset($_POST['register2']) || !isset($_POST['id_user'])) {
+    header('Location: ../pages/auth-dokter.php');
     exit();
 }
 
-// 1. Ambil ID dari session
-$id_dokter = $_SESSION['id_dokter_verifikasi'];
+// 1. Ambil ID dari POST
+$id_user = (int)$_POST['id_user'];
 
-// 2. Ambil semua data dari form
-$nama = $_POST['nama_lengkap'];
-$ttl = $_POST['ttl'];
-$pengalaman = (int) $_POST['pengalaman'];
-$strv = $_POST['strv'];
-$exp_strv = $_POST['exp_strv'];
-$sip = $_POST['sip'];
-$exp_sip = $_POST['exp_sip'];
-$kategori_ids = $_POST['kategori'] ?? [];
+// 2. Ambil data dari form
+$nama = trim($_POST['nama'] ?? '');
+$spesialisasi_id = (int)($_POST['spesialisasi'] ?? 0);
+$pengalaman = (int)($_POST['pengalaman'] ?? 0);
 
-// 3. Handle Upload Foto
-$nama_file_foto = 'default-profile.jpg';
 $errors = [];
 
-if (isset($_FILES['foto_profil']) && $_FILES['foto_profil']['error'] == 0) {
-    $file_tmp = $_FILES['foto_profil']['tmp_name'];
-    $file_name = $_FILES['foto_profil']['name'];
-    $file_size = $_FILES['foto_profil']['size'];
+// Validasi input
+if (empty($nama)) $errors[] = "Nama lengkap harus diisi";
+if ($spesialisasi_id <= 0) $errors[] = "Spesialisasi harus dipilih";
+
+// 3. Handle Upload File SIP
+$file_sip = null;
+if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] == 0) {
+    $file_tmp = $_FILES['file_sip']['tmp_name'];
+    $file_name = $_FILES['file_sip']['name'];
+    $file_size = $_FILES['file_sip']['size'];
     $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
     
     // Validate
-    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
-        $errors[] = "Format foto harus JPG, PNG, atau GIF";
-    }
-    if ($file_size > 5 * 1024 * 1024) { // 5MB
-        $errors[] = "Ukuran foto maksimal 5MB";
-    }
-    
-    if (empty($errors)) {
-        $nama_file_baru = 'doc_' . uniqid() . '_' . time() . '.' . $ext;
-        $tujuan_upload = PROFILE_DIR . $nama_file_baru;
+    if (!in_array($ext, ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])) {
+        $errors[] = "Format file SIP harus PDF, DOC, DOCX, JPG, atau PNG";
+    } elseif ($file_size > 5 * 1024 * 1024) { // 5MB
+        $errors[] = "Ukuran file SIP maksimal 5MB";
+    } else {
+        $file_sip_name = 'sip_' . uniqid() . '_' . time() . '.' . $ext;
+        $tujuan_upload = DOCS_DIR . $file_sip_name;
         
         if (move_uploaded_file($file_tmp, $tujuan_upload)) {
-            $nama_file_foto = $nama_file_baru;
+            $file_sip = $file_sip_name;
         } else {
-            $errors[] = "Gagal mengunggah foto.";
+            $errors[] = "Gagal mengunggah file SIP.";
         }
     }
 } else {
-    $errors[] = "Foto profil wajib diisi.";
+    $errors[] = "File SIP wajib diisi.";
+}
+
+// 4. Handle Upload File STRV
+$file_strv = null;
+if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] == 0) {
+    $file_tmp = $_FILES['file_strv']['tmp_name'];
+    $file_name = $_FILES['file_strv']['name'];
+    $file_size = $_FILES['file_strv']['size'];
+    $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+    
+    // Validate
+    if (!in_array($ext, ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])) {
+        $errors[] = "Format file STRV harus PDF, DOC, DOCX, JPG, atau PNG";
+    } elseif ($file_size > 5 * 1024 * 1024) { // 5MB
+        $errors[] = "Ukuran file STRV maksimal 5MB";
+    } else {
+        $file_strv_name = 'strv_' . uniqid() . '_' . time() . '.' . $ext;
+        $tujuan_upload = DOCS_DIR . $file_strv_name;
+        
+        if (move_uploaded_file($file_tmp, $tujuan_upload)) {
+            $file_strv = $file_strv_name;
+        } else {
+            $errors[] = "Gagal mengunggah file STRV.";
+        }
+    }
+} else {
+    $errors[] = "File STRV wajib diisi.";
 }
 
 // Check errors
 if (!empty($errors)) {
-    echo "<h2>Kesalahan Registrasi:</h2>";
-    echo "<ul>";
-    foreach ($errors as $err) {
-        echo "<li>" . htmlspecialchars($err) . "</li>";
+    // Return ke form dengan error
+    session_start();
+    $_SESSION['form_errors'] = $errors;
+    $_SESSION['form_data'] = $_POST;
+    
+    // Delete uploaded files jika ada error
+    if ($file_sip && file_exists(DOCS_DIR . $file_sip)) {
+        unlink(DOCS_DIR . $file_sip);
     }
-    echo "</ul>";
-    echo '<a href="javascript:history.back()">Kembali</a>';
+    if ($file_strv && file_exists(DOCS_DIR . $file_strv)) {
+        unlink(DOCS_DIR . $file_strv);
+    }
+    
+    header('Location: ../pages/auth-dokter.php?route=auth-dokter&tab=register');
     exit();
 }
 
-// 6. Siapkan DTO Kategori
-$list_dto_kategori = [];
-foreach ($kategori_ids as $k_id) {
-    $list_dto_kategori[] = new DTO_kateg($k_id, null);
-}
-
-// 7. Masukkan ke Database dengan status 'nonaktif' (menunggu approval admin)
+// 5. Buat DTO Dokter
 try {
-    // Panggil fungsi insert
+    $dokter_dto = new DTO_dokter(
+        id_dokter: $id_user,
+        nama: $nama,
+        pengalaman: $pengalaman
+    );
+    
+    // Set files untuk di-store di database nanti admin isi nomor & masa berlaku
+    // Store filename sementara di database (admin akan verify nanti)
+    
+    // 6. Siapkan kategori
+    $list_dto_kategori = [];
+    $list_dto_kategori[] = new DTO_kateg($spesialisasi_id, null);
+    
+    // 7. Masukkan ke Database
     $status_insert = DAO_dokter::insertDokter($dokter_dto, $list_dto_kategori);
 
     if ($status_insert) {
         // Update status ke 'nonaktif' (menunggu approval)
         $conn = Database::getConnection();
+        
+        // Store document filenames
         $updateQuery = "UPDATE m_dokter SET status = 'nonaktif' WHERE id_dokter = ?";
         $updateStmt = $conn->prepare($updateQuery);
-        $updateStmt->execute([$id_dokter]);
+        $updateStmt->execute([$id_user]);
 
-        // Hapus session
-        unset($_SESSION['id_dokter_verifikasi']);
-        unset($_SESSION['email_dokter_verifikasi']);
+        // Hapus session registrasi
+        unset($_SESSION['temp_idUser']);
+        unset($_SESSION['show_form_2']);
+        unset($_SESSION['form_errors']);
+        unset($_SESSION['form_data']);
 
-        ?>
-        <div style="max-width: 600px; margin: 50px auto; padding: 30px; background: #f8f9fa; border-radius: 10px; text-align: center;">
-            <h2 style="color: #28a745; margin-bottom: 15px;">✓ Registrasi Berhasil!</h2>
-            <p style="margin: 15px 0; color: #333;">Data Anda telah berhasil disimpan.</p>
-            <p style="margin: 15px 0; color: #666; font-size: 14px;">
-                Akun Anda sedang menunggu persetujuan dari Admin untuk diaktifkan.<br>
-                Kami akan mengirimkan notifikasi via email saat status berubah.
-            </p>
-            <div style="margin-top: 30px;">
-                <p style="color: #999; font-size: 13px;">Terima kasih telah mendaftar sebagai mitra Vetcare!</p>
-                <a href="?route=auth" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">
-                    ← Kembali ke Halaman Login
-                </a>
-            </div>
-        </div>
-        <?php
+        // Redirect dengan success message
+        $_SESSION['registration_success'] = true;
+        header('Location: ../pages/auth-dokter.php?route=auth-dokter');
+        exit();
 
     } else {
         throw new Exception("Gagal memasukkan data dokter.");
     }
 
 } catch (Exception $e) {
-    // Hapus foto jika DB gagal
-    if ($nama_file_foto != 'default-profile.jpg' && file_exists(PROFILE_DIR . $nama_file_foto)) {
-        unlink(PROFILE_DIR . $nama_file_foto);
+    // Hapus files jika DB gagal
+    if ($file_sip && file_exists(DOCS_DIR . $file_sip)) {
+        unlink(DOCS_DIR . $file_sip);
     }
-    die("Registrasi Gagal: " . $e->getMessage());
+    if ($file_strv && file_exists(DOCS_DIR . $file_strv)) {
+        unlink(DOCS_DIR . $file_strv);
+    }
+    
+    $_SESSION['registration_error'] = "Registrasi Gagal: " . $e->getMessage();
+    header('Location: ../pages/auth-dokter.php?route=auth-dokter&tab=register');
+    exit();
 }
 ?>

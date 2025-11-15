@@ -19,10 +19,10 @@ date_default_timezone_set('Asia/Jakarta');
 define('BASE_URL', 'http://localhost/Vetcare-1/');
 
 // Upload directories
-define('UPLOAD_DIR', __DIR__ . '/../../public/images/');
+define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
 define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
-define('DOCUMENTS_DIR', __DIR__ . '/../../public/documents/');
+define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
