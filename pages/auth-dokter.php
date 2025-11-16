@@ -178,10 +178,10 @@ if (isset($_POST['register2'])) {
                 $id_user,
                 $nama,
                 $ttl,
-                null,  // strv
-                null,  // exp_strv
-                null,  // sip
-                null,  // exp_sip
+                'PENDING',  // strv - placeholder, admin akan update
+                null,  // exp_strv - nullable, admin akan update
+                'PENDING',  // sip - placeholder, admin akan update
+                null,  // exp_sip - nullable, admin akan update
                 $foto_name ?? 'default-profile.jpg',
                 $pengalaman
             );
@@ -495,7 +495,7 @@ $flash = getFlash();
                 </div>
 
                 <div class="form-group">
-                    <label>Pengalaman (tahun)</label>
+                    <label>Tahun awal mulai praktik (Tahun)</label>
                     <input type="number" name="pengalaman" placeholder="0" min="0" value="0">
                 </div>
 
