@@ -9,8 +9,8 @@ header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/../includes/database.php';
 
-// Get kategori filter dari query string
-$filter_kategori = isset($_GET['kategori']) ? trim($_GET['kategori']) : '';
+// Get kategori filter dari query string (bisa multiple dengan koma)
+$filter_kategori = isset($_GET['kategori']) ? $_GET['kategori'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Mapping slug ke nama_kateg
@@ -23,9 +23,21 @@ $slugToKategori = [
     'unggas' => 'Hewan Unggas'
 ];
 
-// Convert slug ke nama_kateg jika perlu
-if ($filter_kategori && $filter_kategori !== 'all' && isset($slugToKategori[$filter_kategori])) {
-    $filter_kategori = $slugToKategori[$filter_kategori];
+// Handle multiple kategori (bisa array atau string dengan koma)
+$kategoriArray = [];
+if ($filter_kategori && $filter_kategori !== 'all') {
+    if (is_array($filter_kategori)) {
+        $kategoriArray = $filter_kategori;
+    } else {
+        $kategoriArray = explode(',', $filter_kategori);
+    }
+    
+    // Convert slug ke nama_kateg jika perlu
+    $kategoriArray = array_map(function($kat) use ($slugToKategori) {
+        $kat = trim($kat);
+        return isset($slugToKategori[$kat]) ? $slugToKategori[$kat] : $kat;
+    }, $kategoriArray);
+    $kategoriArray = array_filter($kategoriArray); // Remove empty
 }
 
 try {
@@ -40,14 +52,15 @@ try {
     
     $params = [];
     
-    // Filter berdasarkan kategori
-    if ($filter_kategori && $filter_kategori !== 'all') {
+    // Filter berdasarkan kategori (support multiple)
+    if (!empty($kategoriArray)) {
+        $placeholders = str_repeat('?,', count($kategoriArray) - 1) . '?';
         $query .= " AND d.id_dokter IN (
                         SELECT dd.id_dokter FROM detail_dokter dd
                         INNER JOIN m_kategori k ON dd.id_kategori = k.id_kategori
-                        WHERE k.nama_kateg = ?
+                        WHERE k.nama_kateg IN ($placeholders)
                     )";
-        $params[] = $filter_kategori;
+        $params = array_merge($params, $kategoriArray);
     }
     
     // Filter berdasarkan search (nama dokter)
@@ -128,11 +141,28 @@ try {
     }
     
     // Tambahkan data default untuk field yang tidak ada di database
+    $currentYear = (int)date('Y');
     foreach ($dokters as $id => &$dokter) {
         // Jumlah review default jika tidak ada
         if (!isset($dokter['jumlah_review'])) {
             $dokter['jumlah_review'] = 0;
         }
+        
+        // Hitung pengalaman dari tahun awal praktik
+        // pengalaman di database adalah YEAR type (tahun awal praktik)
+        if (isset($dokter['pengalaman']) && $dokter['pengalaman']) {
+            $tahunAwal = (int)$dokter['pengalaman'];
+            // Jika tahun awal lebih besar dari tahun sekarang, berarti format salah
+            if ($tahunAwal > $currentYear) {
+                $dokter['pengalaman_tahun'] = 0;
+            } else {
+                $dokter['pengalaman_tahun'] = $currentYear - $tahunAwal;
+            }
+        } else {
+            $dokter['pengalaman_tahun'] = 0;
+        }
+        // Simpan juga tahun awal untuk referensi
+        $dokter['tahun_awal_praktik'] = isset($dokter['pengalaman']) ? (int)$dokter['pengalaman'] : null;
         
         // Status online (sementara random, bisa diganti dengan logika sesungguhnya)
         $dokter['is_online'] = (rand(0, 100) > 40); // 60% chance online
