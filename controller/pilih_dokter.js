@@ -36,15 +36,16 @@ if (urlKategori) {
 }
 
 // ==================== DOM ELEMENTS ====================
-const searchInput = document.getElementById('searchInput');
-const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
-const btnSemua = document.getElementById('btnSemua');
-const doktersContainer = document.getElementById('doktersContainer');
-const loadingIndicator = document.getElementById('loadingIndicator');
-const emptyState = document.getElementById('emptyState');
-const resultCount = document.getElementById('resultCount');
-const modalDokter = document.getElementById('modalDokter');
-const modalContent = document.getElementById('modalContent');
+// Akan diinisialisasi setelah DOM ready
+let searchInput;
+let categoryCheckboxes;
+let btnSemua;
+let doktersContainer;
+let loadingIndicator;
+let emptyState;
+let resultCount;
+let modalDokter;
+let modalContent;
 
 // ==================== UTILITY FUNCTIONS ====================
 
@@ -128,6 +129,9 @@ function formatJadwalDetail(jadwal) {
  * Update selected categories dari checkbox
  */
 function updateSelectedCategories() {
+  if (!categoryCheckboxes || categoryCheckboxes.length === 0) {
+    return;
+  }
   selectedCategories = Array.from(categoryCheckboxes)
     .filter(cb => cb.checked)
     .map(cb => cb.value);
@@ -137,8 +141,11 @@ function updateSelectedCategories() {
  * Toggle semua kategori
  */
 function toggleSemua() {
-  const allChecked = categoryCheckboxes.length > 0 && 
-    Array.from(categoryCheckboxes).every(cb => cb.checked);
+  if (!categoryCheckboxes || categoryCheckboxes.length === 0) {
+    return;
+  }
+  
+  const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
   
   categoryCheckboxes.forEach(cb => {
     cb.checked = !allChecked;
@@ -153,8 +160,11 @@ function toggleSemua() {
  * Update tampilan tombol Semua
  */
 function updateSemuaButton() {
-  const allChecked = categoryCheckboxes.length > 0 && 
-    Array.from(categoryCheckboxes).every(cb => cb.checked);
+  if (!btnSemua || !categoryCheckboxes || categoryCheckboxes.length === 0) {
+    return;
+  }
+  
+  const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
   
   if (allChecked || selectedCategories.length === 0) {
     btnSemua.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-purple-700', 'text-white');
@@ -172,6 +182,12 @@ function updateSemuaButton() {
  */
 async function fetchDokters() {
   try {
+    // Pastikan DOM elements sudah diinisialisasi
+    if (!loadingIndicator || !doktersContainer || !emptyState) {
+      console.error('DOM elements not initialized in fetchDokters');
+      return;
+    }
+
     // Show loading indicator
     loadingIndicator.classList.remove('hidden');
     doktersContainer.classList.add('hidden');
@@ -182,7 +198,8 @@ async function fetchDokters() {
     const params = new URLSearchParams();
     
     // Handle multiple kategori
-    if (selectedCategories.length > 0 && selectedCategories.length < categoryCheckboxes.length) {
+    const totalCategories = categoryCheckboxes ? categoryCheckboxes.length : 0;
+    if (selectedCategories.length > 0 && selectedCategories.length < totalCategories) {
       params.append('kategori', selectedCategories.join(','));
     }
     
@@ -212,9 +229,11 @@ async function fetchDokters() {
     }
 
     const data = await response.json();
+    console.log('API Response:', data); // Debug log
 
     if (data.success) {
       allDokters = data.data || [];
+      console.log('Dokter ditemukan:', allDokters.length); // Debug log
       filterAndDisplayDokters();
     } else {
       console.error('API Error:', data.message);
@@ -232,6 +251,11 @@ async function fetchDokters() {
  * Filter and display dokters dengan optimasi
  */
 function filterAndDisplayDokters() {
+  if (!loadingIndicator || !doktersContainer || !emptyState || !resultCount) {
+    console.error('DOM elements not initialized yet');
+    return;
+  }
+
   loadingIndicator.classList.add('hidden');
 
   // Filter based on search keyword (client-side filtering untuk UX lebih cepat)
@@ -246,6 +270,8 @@ function filterAndDisplayDokters() {
       return namaMatch || kategoriMatch;
     });
   }
+
+  console.log('Filtered dokters:', filteredDokters.length); // Debug log
 
   // Update result count
   resultCount.textContent = filteredDokters.length;
@@ -264,6 +290,10 @@ function filterAndDisplayDokters() {
  * Show empty state
  */
 function showEmptyState() {
+  if (!doktersContainer || !loadingIndicator || !emptyState) {
+    console.error('DOM elements not initialized in showEmptyState');
+    return;
+  }
   doktersContainer.classList.add('hidden');
   loadingIndicator.classList.add('hidden');
   emptyState.classList.remove('hidden');
@@ -275,9 +305,22 @@ function showEmptyState() {
  * Render dokters to DOM
  */
 function renderDokters(dokters) {
+  if (!doktersContainer) {
+    console.error('doktersContainer not found');
+    return;
+  }
+
+  console.log('Rendering', dokters.length, 'dokters'); // Debug log
   doktersContainer.innerHTML = '';
 
-  dokters.forEach(doc => {
+  if (dokters.length === 0) {
+    console.warn('No dokters to render');
+    return;
+  }
+
+  dokters.forEach((doc, index) => {
+    console.log(`Rendering dokter ${index + 1}:`, doc.nama_dokter); // Debug log
+    
     const kategoriText = doc.kategori && doc.kategori.length > 0 ? 
       doc.kategori[0] : 'Dokter Hewan Umum';
     
@@ -343,7 +386,7 @@ function renderDokters(dokters) {
         <!-- Bahasa -->
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-500">Bahasa:</span>
-          ${bahasa.map((b, idx) => `
+          ${(doc.bahasa || ['Indonesia', 'English']).map((b, idx) => `
             <button class="px-2 py-1 text-xs rounded-md transition-colors ${
               idx === 0 
                 ? 'bg-purple-100 text-purple-700 font-medium' 
@@ -372,7 +415,19 @@ function renderDokters(dokters) {
     doktersContainer.appendChild(card);
   });
 
+  console.log('Cards appended, showing container'); // Debug log
+  console.log('Total cards in container:', doktersContainer.children.length); // Debug log
+  
+  // Pastikan container ditampilkan
   doktersContainer.classList.remove('hidden');
+  
+  // Double check
+  if (doktersContainer.classList.contains('hidden')) {
+    console.error('Container masih hidden setelah remove hidden class');
+    doktersContainer.style.display = 'grid'; // Force display
+  } else {
+    console.log('Container berhasil ditampilkan'); // Debug log
+  }
 }
 
 // ==================== MODAL FUNCTIONS ====================
@@ -567,24 +622,8 @@ function chatDokter(id_dokter) {
 
 // ==================== EVENT LISTENERS ====================
 
-// Debounced filter untuk search
-const debouncedFilter = debounceSearch(() => {
-  filterAndDisplayDokters();
-}, 300);
-
-searchInput.addEventListener('input', (e) => {
-  searchKeyword = e.target.value.trim();
-  debouncedFilter();
-});
-
-// Event listener untuk checkbox kategori
-categoryCheckboxes.forEach(checkbox => {
-  checkbox.addEventListener('change', (e) => {
-    updateSelectedCategories();
-    updateSemuaButton();
-    fetchDokters();
-  });
-});
+// Debounced filter untuk search (akan diinisialisasi setelah DOM ready)
+let debouncedFilter;
 
 // ==================== INITIALIZATION ====================
 
@@ -592,6 +631,43 @@ categoryCheckboxes.forEach(checkbox => {
  * Initialize page
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Inisialisasi DOM elements setelah DOM ready
+  searchInput = document.getElementById('searchInput');
+  categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+  btnSemua = document.getElementById('btnSemua');
+  doktersContainer = document.getElementById('doktersContainer');
+  loadingIndicator = document.getElementById('loadingIndicator');
+  emptyState = document.getElementById('emptyState');
+  resultCount = document.getElementById('resultCount');
+  modalDokter = document.getElementById('modalDokter');
+  modalContent = document.getElementById('modalContent');
+
+  // Pastikan semua element ada
+  if (!searchInput || !doktersContainer || !loadingIndicator || !emptyState || !resultCount) {
+    console.error('Error: Required DOM elements not found');
+    return;
+  }
+
+  // Setup debounced filter
+  debouncedFilter = debounceSearch(() => {
+    filterAndDisplayDokters();
+  }, 300);
+
+  // Event listener untuk search input
+  searchInput.addEventListener('input', (e) => {
+    searchKeyword = e.target.value.trim();
+    debouncedFilter();
+  });
+
+  // Event listener untuk checkbox kategori
+  categoryCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      updateSelectedCategories();
+      updateSemuaButton();
+      fetchDokters();
+    });
+  });
+
   // Update checkbox jika ada kategori dari URL
   if (selectedCategories.length > 0) {
     categoryCheckboxes.forEach(cb => {
