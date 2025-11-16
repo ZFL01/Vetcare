@@ -23,8 +23,8 @@ define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
 define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
 define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
-define('STRV_DIR', DOCUMENTS_DIR . '/strv/');
-define('SIP_DIR', DOCUMENTS_DIR . '/sip/');
+define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
+define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);

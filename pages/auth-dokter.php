@@ -101,7 +101,7 @@ if (isset($_POST['register1'])) {
     } else {
         $cek = userService::login($objUser);
         $cek2 = DAO_dokter::getProfilDokter($objUser, true);
-        if ($cek[0] && $objUser->getRole() === 'Dokter' && $cek2 == null) {
+        if ($cek[0] && $objUser->getRole() === 'Dokter' && $cek2 ==null) {
             setFlash('success', 'Email sudah terdaftar. Silahkan lanjutkan tahap registrasi berikutnya.');
             CeknGo($objUser->getIdUser());
             exit();
@@ -117,10 +117,95 @@ if (isset($_POST['register1'])) {
     }
 }
 
-//taruh di sini logika post register2
-if (isset($_POST['register2']) && isset($_SESSION['temp_idUser'])) {
-}
+// Handle registration stage 2 (dokter data)
+if (isset($_POST['register2'])) {
+    $id_user = $_SESSION['temp_idUser'] ?? null;
+    
+    if (!$id_user) {
+        setFlash('error', 'Session expired. Please register again.');
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
 
+    $nama = clean($_POST['nama'] ?? '');
+    $ttl = $_POST['ttl'] ?? '';
+    $pengalaman = intval($_POST['pengalaman'] ?? 0);
+    $kategori_ids = $_POST['kategori'] ?? [];
+
+    if (empty($nama) || empty($ttl) || empty($kategori_ids)) {
+        setFlash('error', 'Nama, tanggal lahir, dan kategori harus diisi!');
+    } else {
+        try {
+            // Upload SIP file
+            $file_sip_name = null;
+            if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] === UPLOAD_ERR_OK) {
+                $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR . '/');
+                if (!$upload_result['success']) {
+                    throw new Exception('Gagal upload file SIP: ' . $upload_result['error']);
+                }
+                $file_sip_name = $upload_result['filename'];
+            }
+
+            // Upload STRV file
+            $file_strv_name = null;
+            if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] === UPLOAD_ERR_OK) {
+                $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR . '/');
+                if (!$upload_result['success']) {
+                    throw new Exception('Gagal upload file STRV: ' . $upload_result['error']);
+                }
+                $file_strv_name = $upload_result['filename'];
+            }
+
+            // Upload foto profil
+            $foto_name = null;
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+                $upload_result = uploadImage($_FILES['foto'], PROFILE_DIR);
+                if (!$upload_result['success']) {
+                    throw new Exception('Gagal upload foto: ' . $upload_result['message']);
+                }
+                $foto_name = $upload_result['filename'];
+            }
+
+            // Create array of DTO_kateg from kategori IDs
+            $datKateg = [];
+            foreach ($kategori_ids as $id_kat) {
+                $datKateg[] = new DTO_kateg(intval($id_kat), '');
+            }
+
+            // Create DTO_dokter object
+            $objDokter = new DTO_dokter($id_user, $nama);
+            $objDokter->upsertDokter(
+                $id_user,
+                $nama,
+                $ttl,
+                null,  // strv
+                null,  // exp_strv
+                null,  // sip
+                null,  // exp_sip
+                $foto_name ?? 'default-profile.jpg',
+                $pengalaman
+            );
+            $objDokter->setStatus('nonaktif'); // Default status untuk tunggu approval admin
+
+            // Insert dokter ke database
+            $insert_result = DAO_dokter::insertDokter($objDokter, $datKateg);
+            if (!$insert_result) {
+                throw new Exception('Gagal menyimpan data dokter');
+            }
+
+            // Clear session
+            unset($_SESSION['temp_idUser']);
+            unset($_SESSION['show_form_2']);
+
+            setFlash('success', 'Registrasi berhasil! Akun Anda sedang menunggu persetujuan admin. Silahkan login kembali setelah disetujui.');
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit;
+
+        } catch (Exception $e) {
+            setFlash('error', $e->getMessage());
+        }
+    }
+}
 // Get flash message
 $flash = getFlash();
 ?>
@@ -355,8 +440,6 @@ $flash = getFlash();
                 </div>
             <?php endif; ?>
 
-
-
             <!-- Login Form -->
             <form class="auth-form <?php echo $show_login_form ? 'active' : ''; ?>" id="login-form" method="POST">
                 <div class="form-group">
@@ -393,58 +476,62 @@ $flash = getFlash();
                     <label>Konfirmasi Password *</label>
                     <input type="password" name="confirm_password" placeholder="Ulangi password" required>
                 </div>
-                <button type="submit" name="register1" class="btn-primary">Buat akun</button>
+                <button type="submit" name="register1" class="btn-primary">Lanjut ke Data Dokter</button>
             </form>
 
             <!--register kedua -->
             <form class="auth-form <?php echo $show_register2_form ? 'active' : ''; ?>" id="register2-form"
                 method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id_user" value="<?php echo $_SESSION['temp_idUser'] ?? ''; ?>">
+                
                 <div class="form-group">
+                    <label>Nama Lengkap *</label>
+                    <input type="text" name="nama" placeholder="Masukkan nama lengkap beserta gelar" required>
+                </div>
 
-                    <div class="form-group">
-                        <label>Nama Lengkap</label>
-                        <input type="text" name="nama" placeholder="Masukkan Lengkap Beserta Gelar">
+                <div class="form-group">
+                    <label>Tanggal Lahir *</label>
+                    <input type="date" name="ttl" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Pengalaman (tahun)</label>
+                    <input type="number" name="pengalaman" placeholder="0" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Upload File SIP *</label>
+                    <input type="file" name="file_sip" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                    <small style="display: block; margin-top: 5px; color: #666;">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload File STRV *</label>
+                    <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                    <small style="display: block; margin-top: 5px; color: #666;">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Kategori Spesialisasi *</label>
+                    <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <?php 
+                        $all_kategori = DAO_kategori::getAllKategori();
+                        foreach ($all_kategori as $kat): 
+                        ?>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" name="kategori[]" value="<?php echo $kat->getIdK(); ?>" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span><?php echo htmlspecialchars($kat->getNamaKateg()); ?></span>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label>Spesialisasi *</label>
-                        <select name="spesialisasi" required>
-                            <option value="">Pilih Spesialisasi</option>
-                            <option value="Dokter Hewan Umum">Dokter Hewan Umum</option>
-                            <option value="Spesialis Kucing">Spesialis Kucing</option>
-                            <option value="Spesialis Anjing">Spesialis Anjing</option>
-                            <option value="Spesialis Exotic">Spesialis Exotic</option>
-                            <option value="Spesialis Bedah">Spesialis Bedah</option>
-                        </select>
-                    </div>
-
-
-                    <div class="form-group">
-                        <label>Pengalaman (tahun)</label>
-                        <input type="number" name="pengalaman" placeholder="Masukkan pengalaman" min="0" value="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Upload File SIP</label>
-                        <input type="file" name="file_sip" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                        <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Upload File STRV</label>
-                        <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                        <small class="text-muted">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
-                    </div>
-
-                    <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
-                    <?php if (!$show_register2_form): ?>
-                        <div class="auth-links">
-                            <p>Sudah punya akun? <a href="#" onclick="showForm('login')">Masuk di sini</a></p>
-                        </div>
-                    <?php endif; ?>
+                <button type="submit" name="register2" class="btn-primary">Daftar Sekarang</button>
+                <div class="auth-links">
+                    <p>Batalkan? <a href="#" onclick="confirmAndCancel(); return false;">Batal registrasi</a></p>
+                </div>
             </form>
         </div>
-    </div>
 
     <script>
         const API_URL = '<?php echo $_SERVER['PHP_SELF']; ?>' + '?route=auth-dokter&action=cancel_registration';
