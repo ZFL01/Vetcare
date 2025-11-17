@@ -435,7 +435,7 @@ class DAO_dokter{
 
 //update
 
-    static function updateDokter(bool $admin,int $idDokter, DTO_dokter $data, $status){
+    static function updateDokter(int $idDokter, DTO_dokter $data, $status, bool $admin=false){
         $conn = Database::getConnection();
         $sqlDokter = "update m_dokter set nama_dokter =?, ttl=?, pengalaman=? where id_dokter=?";
         $sqlAdmin = "update m_dokter set strv=?, exp_strv=?, sip=?, exp_sip=?, status=? where id_dokter=?";
