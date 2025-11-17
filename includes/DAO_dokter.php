@@ -1,10 +1,18 @@
 <?php
 include_once 'database.php';
 
-class DTO_kateg{
-    function __construct(private ?int $id = null, private ?string $namaKateg = null){}
+class DTO_kateg implements JsonSerializable{
+    function __construct(private ?int $id = null, private ?string $namaKateg = null, private ?string $fotoKateg=null){}
     function getIdK(){return $this->id;}
     function getNamaKateg(){return $this->namaKateg;}
+    function getFotoKateg(){return $this->fotoKateg;}
+    function jsonSerialize(): mixed {
+        return [
+            'id_kategori' => $this->id,
+            'nama_kateg' => $this->namaKateg,
+            'foto' => $this->fotoKateg
+        ];
+    }
 }
 
 class DTO_jadwal{
@@ -18,11 +26,6 @@ class DTO_jadwal{
     {
         return $this->tutup;
     }
-}
-
-class documentDocter{
-    function __construct(private ?string $sip = null, private ?string $expSIP = null,
-    private ?string $strv = null, private ?string $expSTRV = null){}
 }
 
 class DTO_dokter implements JsonSerializable
@@ -191,7 +194,7 @@ class DAO_kategori
             }
 
             foreach ($hasil as $row) {
-                $kateg[] = new DTO_kateg($row['id_kategori'], $row['nama_kateg']);
+                $kateg[] = new DTO_kateg($row['id_kategori'], $row['nama_kateg'], $row['foto']);
             }
             return $kateg;
         } catch (PDOException $e) {
@@ -203,10 +206,10 @@ class DAO_kategori
     static function newKategori(DTO_kateg $dat)
     {
         $conn = Database::getConnection();
-        $sql = 'insert into m_kategori (nama_kateg) values (?)';
+        $sql = 'insert into m_kategori (nama_kateg, foto) values (?, ?)';
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getNamaKateg()]);
+            return $stmt->execute([$dat->getNamaKateg(), $dat->getFotoKateg()]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::newKategori] : " . $e->getMessage());
             return false;
@@ -216,10 +219,10 @@ class DAO_kategori
     static function updateKateg(DTO_kateg $dat)
     {
         $conn = Database::getConnection();
-        $sql = 'update m_kategori set nama_kateg=? where id_kategori=?';
+        $sql = 'update m_kategori set nama_kateg=?, foto=? where id_kategori=?';
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getNamaKateg(), $dat->getIdK()]);
+            return $stmt->execute([$dat->getNamaKateg(), $dat->getFotoKateg(), $dat->getIdK()]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::updateKateg] : " . $e->getMessage());
             return false;
@@ -266,16 +269,15 @@ class DAO_dokter
         return $obj;
     }
 
-    static function getAllDokter(DTO_kateg $filter)
+    static function getAllDokter()
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select m.id_dokter, m.nama_dokter, m.foto, m.pengalaman, m.rate
-            from m_dokter as m join detail_dokter as d on d.id_dokter=m.id_dokter
-            where status = 'aktif' and d.id_kategori = ?";
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate
+            from m_dokter where status='aktif'";
 
             $stmt = $conn->prepare($queryDokter);
-            $stmt->execute($filter->getIdK());
+            $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (empty($results)) {
@@ -332,6 +334,23 @@ class DAO_dokter
         } catch (PDOException $e) {
             error_log("DAO_dokter::getAllDokter :" . $e->getMessage());
             return [];
+        }
+    }
+
+    static function manageDokter(DTO_dokter $data)
+    {
+        $conn = Database::getConnection();
+        try {
+            $sql = 'select * from m_doc_dokter where id_dokter = ?';
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$data->getId()]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($hasil == null) {return null;}
+            $data->setDoc($hasil['path_sip'], $data->getExp_SIP(), $hasil['path_strv'], $data->getExp_STRV());
+            return true;
+        }catch (PDOException $e) {
+            error_log("[DAO_dokter::manageDokter] : " . $e->getMessage());
+            return false;
         }
     }
 
@@ -472,9 +491,6 @@ class DAO_dokter
     { //register kedua dokter
         $conn = Database::getConnection();
 
-        // saya mengubah ini pli
-        // Kita sebutkan 10 nama kolom secara manual.
-        // Kolom 'rate' TIDAK DISEBUT agar database mengisinya dengan nilai default (1.00).
         $query = "INSERT INTO m_dokter (
                     id_dokter, 
                     nama_dokter, 
@@ -482,6 +498,12 @@ class DAO_dokter
                     foto, 
                     pengalaman 
                   ) VALUES (?, ?, ?, ?, ?)";
+        $sqlDocuments = "insert into m_doc_dokter (id_dokter, path_sip, path_strv) values (?,?,?)";
+        $paramDoc = [
+            $data->getId(),
+            $data->getSIP(),
+            $data->getSTRV()
+        ];
 
         // Pastikan jumlah parameter di sini ada 10, sama dengan jumlah tanda tanya (?) di atas
         $params = [
@@ -493,14 +515,22 @@ class DAO_dokter
         ];
 
         try {
+            $conn->beginTransaction();
+
             $stmt = $conn->prepare($query);
             $mDokter = $stmt->execute($params);
+            $stmtDoc = $conn->prepare($sqlDocuments);
+            $stmtDoc->execute($paramDoc);
 
             // Panggil fungsi set kategori
             $detDok = self::setKategDokter(false, $data->getId(), $datKateg);
            
-            return $detDok && $mDokter;
+            $conn->commit();
+            return $detDok && $mDokter && $stmtDoc;
         } catch (PDOException $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
             error_log("DAO_dokter::insertDokter :".$e->getMessage());
             return false;
         }
@@ -596,6 +626,21 @@ class DAO_dokter
 
     //update
 
+    static function updateDocument(DTO_dokter $data){
+        $conn = Database::getConnection();
+        $sql = "update m_doc_dokter set path_sip=?, path_strv=? where id_dokter=?";
+        try {
+            $stmt = $conn->prepare($sql);
+            return $stmt->execute([
+                $data->getSIP(),
+                $data->getSTRV(),
+                $data->getId()
+            ]);
+        } catch (PDOException $e) {
+            error_log("DAO_dokter::updateDocument: " . $e->getMessage());
+            return false;
+        }
+    }
     static function updateDokter(int $idDokter, DTO_dokter $data, $status, bool $admin=false){
         $conn = Database::getConnection();
         $sqlDokter = "update m_dokter set nama_dokter =?, ttl=?, pengalaman=? where id_dokter=?";
