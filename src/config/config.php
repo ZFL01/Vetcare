@@ -19,10 +19,12 @@ date_default_timezone_set('Asia/Jakarta');
 define('BASE_URL', 'http://localhost/Vetcare-1/');
 
 // Upload directories
-define('UPLOAD_DIR', __DIR__ . '/../../public/images/');
+define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
 define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
-define('DOCUMENTS_DIR', __DIR__ . '/../../public/documents/');
+define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
+define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
+define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
@@ -37,6 +39,12 @@ if (!file_exists(ARTIKEL_DIR)) {
 }
 if (!file_exists(DOCUMENTS_DIR)) {
     mkdir(DOCUMENTS_DIR, 0777, true);
+}
+if (!file_exists(STRV_DIR)) {
+    mkdir(STRV_DIR, 0777, true);
+}
+if (!file_exists(SIP_DIR)) {
+    mkdir(SIP_DIR, 0777, true);
 }
 
 /**
@@ -183,7 +191,7 @@ function uploadImage($file, $directory) {
     
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = uniqid() . '_' . time() . '.' . $extension;
+    $filename = 'doc_' . uniqid() . '_' . time() . '.' . $extension;
     $filepath = $directory . $filename;
     
     // Move file
@@ -205,7 +213,7 @@ function deleteImage($filename, $directory) {
     return false;
 }
 
-function uploadDocument($file, $target_dir) {
+function uploadDocument($file, $target_dir, $prefix = 'doc_') {
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
     // Check if file is uploaded
@@ -241,7 +249,7 @@ function uploadDocument($file, $target_dir) {
 
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = uniqid('doc_', true) . '.' . $file_extension;
+    $new_filename = uniqid($prefix, true) . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists
