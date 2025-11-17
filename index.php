@@ -1,5 +1,8 @@
 <?php
 // Start session at the very beginning to avoid header issues
+require_once __DIR__ . '/includes/DAO_user.php';
+require_once __DIR__ . '/includes/DAO_dokter.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -61,6 +64,16 @@ switch ($route) {
         $pageTitle = 'Manajemen Dokter - VetCare Admin';
         $pageDescription = 'Admin panel untuk verifikasi dan approval dokter';
         $contentFile = 'pages/admin-manage-dokter.php';
+        break;
+    case 'tanya-jawab':
+        $pageTitle = 'Tanya Jawab - VetCare';
+        $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
+        $contentFile = 'pages/Tanya-Jawab.php';
+        break;
+    case 'chat':
+        $pageTitle = 'Chat dengan Dokter - VetCare';
+        $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
+        $contentFile = 'pages/chat-dokter.php';
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':

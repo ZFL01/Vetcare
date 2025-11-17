@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
-                    header('Location: ?route=dashboard');
+                    header('Location: ?route=tanya-jawab');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {
                     header('Location: ?route=dashboard-dokter');

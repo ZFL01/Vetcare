@@ -3,78 +3,58 @@
  * File: pages/chat-pasien.php
  * Halaman untuk pasien mengajukan pertanyaan kepada dokter
  */
+$objUser = $_SESSION['user'];
 
 $pageTitle = "Tanya Dokter - VetCare";
 require_once __DIR__ . '/../src/config/config.php';
-require_once __DIR__ . '/../services/DAO_pertanyaan.php';
+require_once __DIR__ . '/../includes/DAO_others.php';
+
+$dataTag = DAO_Tag::getAllTags();
 
 // Handle form submission
 if (isset($_POST['submit_pertanyaan'])) {
-    $nama = clean($_POST['nama']);
-    $email = clean($_POST['email']);
     $judul = clean($_POST['judul']);
     $isi = clean($_POST['isi']);
     $kategori = clean($_POST['kategori']);
+    $kategoriId=null;
+
+    $found=null;
+    foreach($dataTag as $tag){
+        if (strtolower($tag->getTag()) === strtolower($kategori)){
+            $found=$tag;
+            break;
+        }
+    }
+    if($found !==null){
+        $kategoriId=$found->getIdTag();
+    }else{
+        $newTagId=DAO_Tag::insertTag($kategori);
+        if ($newTagId !== false){
+            $kategoriId=$newTagId;
+        } else{
+            setFlash('error', 'Gagal menambahkan kategori baru. Silakan coba lagi.');
+        }
+    }
 
     // Validation
-    if (empty($nama) || empty($email) || empty($judul) || empty($isi)) {
+    if (empty($judul) || empty($isi) || empty($kategoriId)) {
         setFlash('error', 'Semua field harus diisi!');
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        setFlash('error', 'Format email tidak valid!');
     } else {
-        $db = Database::getConnection();
-        $daoPertanyaan = new DAO_Pertanyaan($db);
+        $tanya = new DTO_tanyajawab();
+        $tanya->forCreateAsk($objUser, $judul, $isi, $kategoriId);
+        $hasil = DAO_Tanya::insertAsk($tanya);
 
-        // Check if user exists, if not create one
-        $user_id = getOrCreateUser($db, $nama, $email);
-
-        $data = [
-            'id_user' => $user_id,
-            'judul' => $judul,
-            'isi' => $isi,
-            'kategori' => $kategori
-        ];
-
-        if ($daoPertanyaan->create($data)) {
+        if ($hasil) {
             setFlash('success', 'Pertanyaan berhasil dikirim! Dokter akan segera menjawab.');
-            header('Location: ' . BASE_URL . 'pages/chat-pasien.php');
+            header('Location: ' . BASE_URL . 'pages/tanya-jawab.php');
             exit();
         } else {
             setFlash('error', 'Gagal mengirim pertanyaan. Silakan coba lagi.');
         }
     }
 }
-
 // Get flash message
 $flash = getFlash();
-
-/**
- * Get or create user
- */
-function getOrCreateUser($db, $nama, $email) {
-    // Check if user exists
-    $query = "SELECT id_user FROM m_pengguna WHERE email = :email LIMIT 1";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(":email", $email);
-    $stmt->execute();
-
-    if ($stmt->rowCount() > 0) {
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row['id_user'];
-    }
-
-    // Create new user
-    $query = "INSERT INTO m_pengguna (nama, email) VALUES (:nama, :email)";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(":nama", $nama);
-    $stmt->bindParam(":email", $email);
-
-    if ($stmt->execute()) {
-        return $db->lastInsertId();
-    }
-
-    return false;
-}
 ?>
 
 <!DOCTYPE html>
@@ -163,7 +143,7 @@ function getOrCreateUser($db, $nama, $email) {
 
         .form-group textarea {
             resize: vertical;
-            min-height: 120px;
+            min-height: 180px;
             line-height: 1.6;
         }
 
@@ -262,10 +242,10 @@ function getOrCreateUser($db, $nama, $email) {
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen py-8">
+<body class="bg-gray-50 min-h-screen py-12 pt-20">
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-8" style="padding-top: 3%;">
             <a href="<?php echo BASE_URL; ?>" class="inline-flex items-center text-primary hover:text-secondary transition-colors">
                 <span class="text-2xl mr-2">🏥</span>
                 <span class="text-xl font-bold">VetCare</span>
@@ -293,32 +273,27 @@ function getOrCreateUser($db, $nama, $email) {
                         <li>Pertanyaan Anda akan dijawab oleh dokter hewan berpengalaman</li>
                         <li>Jawaban biasanya diberikan dalam 24-48 jam</li>
                         <li>Berikan detail yang lengkap tentang kondisi hewan Anda</li>
-                        <li>Pastikan email yang Anda berikan aktif untuk notifikasi</li>
+                        <li>Pastikan email Anda aktif untuk menerima notifikasi</li>
                     </ul>
                 </div>
 
                 <form method="POST" action="">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="form-group">
-                            <label for="nama">Nama Lengkap *</label>
-                            <input type="text" id="nama" name="nama" placeholder="Masukkan nama Anda" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kategori">Kategori Pertanyaan *</label>
+                        <input type="text" id="kategori" name="kategori" placeholder="Ketik kategori atau pilih dari saran">
+                        <input type="hidden" id="kategoriId" name="kategoriId">
+                        <div id="kategori-suggestions" class="relative">
+                            <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 hidden"></ul>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="kategori">Kategori Pertanyaan</label>
-                        <select id="kategori" name="kategori">
-                            <option value="umum">Umum</option>
-                            <option value="kesehatan">Kesehatan</option>
-                            <option value="perawatan">Perawatan</option>
-                            <option value="nutrisi">Nutrisi</option>
-                            <option value="behavior">Perilaku</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label for="judul">Judul Pertanyaan *</label>
-                        <input type="text" id="judul" name="judul" placeholder="Berikan judul yang jelas dan singkat" required>
+                        <input type="text" id="judul" name="judul" placeholder="Berikan judul yang jelas dan singkat" required maxlength="150">
+                    <div id='judul-jml-karakter' class='text-right text-sm text-gray-500 mb-1'></div>
                     </div>
 
                     <div class="form-group">
@@ -327,10 +302,10 @@ function getOrCreateUser($db, $nama, $email) {
 • Jenis hewan dan ras
 • Usia hewan
 • Gejala yang dialami
-• Riwayat kesehatan sebelumnya
-• Perawatan yang sudah dilakukan" required></textarea>
+• Riwayat kesehatan sebelumnya (opsional)
+• Perawatan yang sudah dilakukan (jika sudah)" required maxlength="1000"></textarea>
+                    <div id='isi-jml-karakter' class='text-right text-sm text-gray-500 mb-1'></div>
                     </div>
-
                     <button type="submit" name="submit_pertanyaan" class="btn-submit">
                         🚀 Kirim Pertanyaan
                     </button>
@@ -350,10 +325,29 @@ function getOrCreateUser($db, $nama, $email) {
 
     <script>
         // Auto-resize textarea
+        const judul = document.getElementById('judul');
+        const hitunganJudul = document.getElementById('judul-jml-karakter');
+        const maxjudul= judul.getAttribute('maxlength');
+        
         const textarea = document.getElementById('isi');
+        const isiHitungan = document.getElementById('isi-jml-karakter');
+        const maxIsi= textarea.getAttribute('maxlength');
+
+        function updateCharacterCount(input, countElement, maxChars) {
+            const remaining = maxChars - input.value.length;
+            countElement.textContent = `${remaining} karakter tersisa`;
+        }
+        updateCharacterCount(judul, hitunganJudul, maxjudul);
+        updateCharacterCount(textarea, isiHitungan, maxIsi);
+
+        judul.addEventListener('input', ()=> {
+            updateCharacterCount(judul, hitunganJudul, maxjudul);
+        });
+
         textarea.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
+            updateCharacterCount(textarea, isiHitungan, maxIsi);
         });
 
         // Form validation enhancement
@@ -373,6 +367,40 @@ function getOrCreateUser($db, $nama, $email) {
                 return false;
             }
         });
+    </script>
+    <script>
+        const kategoriInput = document.getElementById('kategori');
+        const kategoriId = document.getElementById('kategoriId');
+        const suggestionsBox = document.getElementById('kategori-suggestions').querySelector('ul');
+        const kategoriList = <?php echo json_encode($dataTag); ?>;
+
+            kategoriInput.addEventListener('input', function(){
+                const inputValue = kategoriInput.value.toLowerCase();
+            suggestionsBox.innerHTML = '';
+            kategoriId.value='';
+            if (inputValue.length===0){
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+            console.log(kategoriList);
+            const filteredSuggest=kategoriList.filter(kategori => kategori.tag.toLowerCase().includes(inputValue));
+            if (filteredSuggest.length>0){
+                filteredSuggest.forEach(suggestion=>{
+                    const li = document.createElement('li');
+                    li.textContent = suggestion.tag;
+                    li.classList.add('p-2', 'cursor-pointer', 'hover:bg-gray-100');
+                    li.addEventListener('click', ()=>{
+                        kategoriInput.value = suggestion.tag;
+                        kategoriId.value = suggestion.idTag;
+                        suggestionsBox.classList.add('hidden');
+                    });
+                    suggestionsBox.appendChild(li);
+                });
+                suggestionsBox.classList.remove('hidden');
+            } else{
+                suggestionsBox.classList.add('hidden');
+            }
+            });
     </script>
 </body>
 </html>
