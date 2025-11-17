@@ -1,0 +1,11 @@
+{
+  "name": "vetcare",
+  "version": "1.0.0",
+  "description": "VetCare - Platform Telemedicine untuk Hewan",
+  "scripts": {
+    "build-css": "tailwindcss -i ./src/input.css -o ./public/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.18"
+  }
+}
