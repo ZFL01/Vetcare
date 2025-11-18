@@ -1,5 +1,19 @@
 <?php
 include_once 'database.php';
+class DTO_chat{
+    function __construct(
+        private ?int $idChat=null,
+        private ?int $idUser=null,
+        private ?int $idDokter=null,
+        private ?string $email=null,
+        private ?string $namaDokter=null
+        ){}
+    function getIdChat(){return $this->idChat;}
+    function getIdUser(){return $this->idUser;}
+    function getIdDokter(){return $this->idDokter;}
+    function getEmail(){return $this->email;}
+    function getNamaDokter(){return $this->namaDokter;}
+}
 class DTO_Tag implements JsonSerializable{
     private ?int $idTag=null;
     private ?string $tag=null;
@@ -200,6 +214,55 @@ class DAO_Tanya{
 }
 
 class DAO_chat{
+    static function getAllChats(?int $idUser=null, ?int $idDokter=null){
+        $conn=Database::getConnection();
+        $sql = "";
+        $param = [];
+        if($idUser){
+            $sql="SELECT T1.id_chat, T1.id_dokter, D.nama AS nama_dokter, L.end AS waktu_selesai, T1.dibayar AS waktu_mulai_terbaru
+        FROM transaksi T1
+        JOIN (
+            SELECT id_dokter, MAX(dibayar) AS waktu_terbaru 
+            FROM transaksi 
+            WHERE id_user = :userId GROUP BY id_dokter
+        ) T2 ON T1.id_dokter = T2.id_dokter AND T1.dibayar = T2.waktu_terbaru
+        LEFT JOIN tabel_log_chat L ON T1.id_chat = L.id_chat
+        JOIN m_dokter D ON T1.id_dokter = D.id_dokter
+        WHERE T1.id_user = :userId
+        ORDER BY T1.dibayar DESC;";
+            $param[] = $idUser;
+        }elseif($idDokter){
+            $sql="select c.idChat, u.email from log_rating as c join m_pengguna as u on c.id_pengguna=u.id_pengguna where id_dokter=?";
+            $param[] = $idDokter;
+        }else{
+            return [];
+        }
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute($param);
+            $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return [];}
+            $dto = [];
+            foreach($hasil as $dat){
+                if($idUser){
+                    $obj=new DTO_chat(
+                        $dat['idChat'],
+                        namaDokter: $dat['nama_dokter']
+                    );
+                }else{
+                    $obj=new DTO_chat(
+                        $dat['idChat'],
+                        email: $dat['email'],
+                    );
+                }
+                $dto[]=$obj;
+            }
+            return $dto;
+        }catch(PDOException $e){
+            error_log("[DAO_chat::getAllChats]: ".$e->getMessage());
+            return [];
+        }
+    }
     static function getRating(int $idDokter){
         $conn=Database::getConnection();
         $sql="select count(*) as total, sum(`liked?`) as suka from log_rating
@@ -220,6 +283,18 @@ class DAO_chat{
         try{
             $stmt=$conn->prepare($sql);
             return $stmt->execute([$idChat, $user->getIdUser(), $dokter->getId(), $liked]);
+        }catch(PDOException $e){
+            error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function updateLogMessage($idChat, bool $liked=true){
+        $conn=Database::getConnection();
+        $sql="update log_rating set `end`=now(), `liked?`=? where idChat=?";
+        try{
+            $stmt=$conn->prepare($sql);
+            return $stmt->execute([$liked, $idChat]);
         }catch(PDOException $e){
             error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
             return false;
