@@ -12,40 +12,8 @@ $pageTitle = '';
 $pageDescription = '';
 $ajaxLoad = false;
 
-// Route handling
+// Route handling: Tentukan file konten dan jalankan logika controller
 switch ($route) {
-    case '':
-    case '/':
-        $pageTitle = 'VetCare - Perawatan Hewan Terbaik';
-        $pageDescription = 'Platform Telemedicine #1 untuk Hewan - Konsultasi online dengan dokter hewan terpercaya';
-        $contentFile = 'pages/home.php';
-        break;
-    case 'konsultasi-dokter':
-        $pageTitle = 'Konsultasi Dokter - VetCare';
-        $pageDescription = 'Konsultasi langsung dengan dokter hewan via video call';
-        $contentFile = 'pages/konsultasi-dokter.php';
-        break;
-    case 'tanya-dokter':
-        $pageTitle = 'Tanya Dokter - VetCare';
-        $pageDescription = 'Konsultasi langsung dengan dokter hewan via video call';
-        $contentFile = 'pages/tanya-dokter.php';
-        break;
-
-    case 'klinik-terdekat':
-        $pageTitle = 'Klinik Terdekat - VetCare';
-        $pageDescription = 'Temukan klinik hewan terdekat di sekitar Anda';
-        $contentFile = 'pages/klinik-terdekat.php';
-        break;
-    case 'dokter-ternak':
-        $pageTitle = 'Dokter Ternak - VetCare';
-        $pageDescription = 'Layanan kesehatan untuk ternak dan hewan produktif';
-        $contentFile = 'pages/dokter-ternak.php';
-        break;
-    case 'dokter-hewan-kecil':
-        $pageTitle = 'Dokter Hewan Kecil - VetCare';
-        $pageDescription = 'Layanan kesehatan untuk kucing, anjing, dan hewan peliharaan kecil';
-        $contentFile = 'pages/dokter-hewan-kecil.php';
-        break;
     case 'auth':
         $pageTitle = 'Masuk/Daftar - VetCare';
         $pageDescription = 'Masuk atau daftar akun VetCare';
@@ -65,10 +33,26 @@ switch ($route) {
         $contentFile = 'pages/dashboard-dokter.php';
         break;
     case 'logout':
-        session_start();
         session_destroy();
-        header('Location: ?route=');
+        header('Location: ?route='); // Redirect akan bekerja
         exit;
+    // --- Route Dashboard Baru ---
+    case 'dashboard_member':
+        $pageTitle = 'Dashboard Member - VetCare';
+        $pageDescription = 'Area akun member dan riwayat konsultasi.';
+        $contentFile = 'pages/home.php';
+        break;
+    case 'dashboard_dokter':
+        $pageTitle = 'Dashboard Dokter - VetCare';
+        $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
+        $contentFile = 'pages/dashboard_dokter.php';
+        break;
+    // --- Route Lainnya: Hanya setting variabel ---
+    case '':
+    case '/':
+        $contentFile = 'pages/home.php';
+        break;
+    // ...
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';
         $pageDescription = 'Halaman yang Anda cari tidak ditemukan';
