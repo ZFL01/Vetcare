@@ -1,4 +1,4 @@
-<?php
+  <?php
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 ?>
@@ -18,8 +18,8 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                     <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300"></div>
                 </button>
 
-                <div class="relative" id="services-dropdown">
-                    <button onclick="toggleServicesMenu()" class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group flex items-center gap-1">
+                <div class="relative" id="services-container">
+                    <button class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group flex items-center gap-1">
                         <span>Layanan</span>
                         <svg class="w-4 h-4 transition-transform duration-300" id="services-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -149,11 +149,11 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                             <span class="mr-2">👤</span>
                             Masuk
                         </button>
-                        <button onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">✨</span>
                             Daftar Sekarang
                         </button>
-                    <?php endif; ?>
+                    <?php endif; ?> 
                 </div>
             </nav>
         </div>
@@ -219,28 +219,39 @@ function toggleServicesMenu() {
 
 // Enhanced dropdown functionality for better UX
 document.addEventListener('DOMContentLoaded', function() {
-    const dropdown = document.getElementById('services-dropdown');
+    const container = document.getElementById('services-container');
     const menu = document.getElementById('services-menu');
+    let hideTimeout;
 
-    if (dropdown && menu) {
+    if (container && menu) {
         // Show menu on hover
-        dropdown.addEventListener('mouseenter', showServicesMenu);
+        container.addEventListener('mouseenter', showServicesMenu);
 
-        // Hide menu when mouse leaves the dropdown area
-        dropdown.addEventListener('mouseleave', function(e) {
-            // Check if mouse is still within the dropdown bounds
-            const rect = dropdown.getBoundingClientRect();
-            const x = e.clientX;
-            const y = e.clientY;
+        // Hide menu when mouse leaves the container area with delay
+        container.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(hideServicesMenu, 150); // 150ms delay
+        });
 
-            if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-                hideServicesMenu();
+        // Cancel hide when entering the menu
+        menu.addEventListener('mouseenter', function() {
+            if (hideTimeout) {
+                clearTimeout(hideTimeout);
             }
+        });
+
+        // Hide menu when mouse leaves the menu
+        menu.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(hideServicesMenu, 150);
+        });
+
+        // Prevent menu clicks from closing the menu
+        menu.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
 
         // Close menu when clicking outside
         document.addEventListener('click', function(e) {
-            if (!dropdown.contains(e.target)) {
+            if (!container.contains(e.target) && !menu.contains(e.target)) {
                 hideServicesMenu();
             }
         });
@@ -281,5 +292,36 @@ window.addEventListener('DOMContentLoaded', function() {
             scrollToSection(scrollTo);
         }, 100);
     }
+});
+</script>
+
+<script>
+// Ensure the page content sits below the fixed header by applying
+// an equivalent padding-top to <body> equal to the header height.
+// This keeps layout correct across screen sizes and when header height
+// changes (mobile vs desktop).
+function adjustBodyPaddingForHeader() {
+    try {
+        var hdr = document.querySelector('header');
+        if (!hdr) return;
+        var height = hdr.offsetHeight || 0;
+        document.body.style.paddingTop = height + 'px';
+    } catch (e) {
+        // fail silently
+        console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+    }
+}
+
+// Debounce helper for resize
+var _resizeTimer;
+window.addEventListener('DOMContentLoaded', function() {
+    adjustBodyPaddingForHeader();
+});
+window.addEventListener('load', function() {
+    adjustBodyPaddingForHeader();
+});
+window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(adjustBodyPaddingForHeader, 120);
 });
 </script>

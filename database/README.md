@@ -1,22 +1,22 @@
-# VetCare Database Setup - MySQL
+# Klinik Hewan Database Setup - MySQL
 
 ## Setup Instructions
 
 ### 1. Create Database
 1. Open phpMyAdmin (usually at http://localhost/phpmyadmin)
 2. Click "New" in the left sidebar
-3. Enter database name: `vetcare_db`
-4. Select collation: `utf8mb4_unicode_ci`
+3. Enter database name: `klinikh`
+4. Select collation: `utf8mb4_general_ci`
 5. Click "Create"
 
 ### 2. Import Schema
-1. Select the `vetcare_db` database from the left sidebar
+1. Select the `klinikh` database from the left sidebar
 2. Click "Import" tab at the top
-3. Click "Choose File" and select `mysql_schema.sql`
+3. Click "Choose File" and select `klinikH.sql`
 4. Click "Go" to execute the SQL
 
 ### 3. Alternative: Run SQL Directly
-You can also copy and paste the contents of `mysql_schema.sql` into the SQL tab and execute it.
+You can also copy and paste the contents of `klinikH.sql` into the SQL tab and execute it.
 
 ## Database Configuration
 
@@ -25,9 +25,9 @@ The database connection is configured in `includes/database.php`:
 ```php
 private $host = 'localhost';
 private $port = '3306';
-private $dbname = 'vetcare_db';
+private $dbname = 'klinikh';
 private $user = 'root';
-private $password = ''; 
+private $password = '';
 ```
 
 ### For XAMPP Users:
@@ -47,22 +47,23 @@ Update the credentials in `includes/database.php` accordingly.
 
 ## Tables Created
 
-1. **users** - User authentication and profiles
-2. **veterinarians** - Veterinarian information
-3. **veterinarian_badges** - Vet specializations/services
-4. **clinics** - Veterinary clinics
-5. **services** - Available services
-6. **articles** - Health articles
-7. **consultations** - Consultation sessions
-8. **consultation_messages** - Chat messages
+1. **m_pengguna** - User authentication and profiles (Admin, Dokter, Member)
+2. **m_dokter** - Doctor information with STRV and SIP licenses
+3. **m_kategori** - Doctor specializations/categories
+4. **m_artikel** - Health articles
+5. **m_hpraktik** - Doctor practice schedules
+6. **m_lokasipraktik** - Doctor practice locations/clinics
+7. **tr_tanya** - User questions
+8. **detail_dokter** - Doctor-category relationships
+9. **jwb_dokter** - Doctor answers to questions
+10. **detail_tanya** - Question-category relationships
 
 ## Sample Data
 
 The schema includes sample data for testing:
-- 1 admin user (admin@vetcare.com / password)
-- 1 veterinarian (Dr. Ahmad Santoso)
-- 1 clinic (Klinik Hewan Sejahtera)
-- Sample services and articles
+- 1 doctor user (Slamet / o@o.mai.com / 12345)
+- 1 member user (Oo / anu@mail.com / 12345)
+- Doctor details with licenses and experience
 
 ## Testing Authentication
 

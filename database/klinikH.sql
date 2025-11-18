@@ -2,7 +2,7 @@
 -- Host:                         127.0.0.1
 -- Versi server:                 8.4.3 - MySQL Community Server - GPL
 -- OS Server:                    Win64
--- HeidiSQL Versi:               12.8.0.6908
+-- HeidiSQL Versi:               12.10.0.7000
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -20,13 +20,9 @@ DROP DATABASE IF EXISTS `klinikh`;
 CREATE DATABASE IF NOT EXISTS `klinikh` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `klinikh`;
 
-
-
--- membuang struktur untuk table klinikh.m_pengguna
 DROP TABLE IF EXISTS `m_pengguna`;
 CREATE TABLE IF NOT EXISTS `m_pengguna` (
   `id_pengguna` int NOT NULL AUTO_INCREMENT,
-  `nama` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `email` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `pass` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `role` enum('Admin','Dokter','Member') COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -37,38 +33,106 @@ CREATE TABLE IF NOT EXISTS `m_pengguna` (
   PRIMARY KEY (`id_pengguna`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Membuang data untuk tabel klinikh.m_pengguna: ~1 rows (lebih kurang)
-INSERT INTO `m_pengguna` (`id_pengguna`, `nama`, `email`, `pass`, `role`, `no_wa`, `created`, `reset_token`, `exp_token`) VALUES
-	(1, 'Slamet', 'o@o.mai.com', '12345', 'Dokter', '082158035089', '2025-10-08 17:00:00', NULL, '2025-10-19 10:17:52'),
-	(2, 'Oo', 'anu@mail.com', '12345', 'Member', '089786654342', '2025-10-09 12:45:37', NULL, '2025-10-19 10:17:52');
-
--- membuang struktur untuk table klinikh.m_kategori
 DROP TABLE IF EXISTS `m_kategori`;
 CREATE TABLE IF NOT EXISTS `m_kategori` (
-  `id_kategori` tinyint NOT NULL AUTO_INCREMENT,
-  `nama_kateg` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `id_kategori` tinyint unsigned NOT NULL AUTO_INCREMENT,
+  `nama_kateg` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_kategori`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- membuang struktur untuk table klinikh.m_dokter
+
 DROP TABLE IF EXISTS `m_dokter`;
 CREATE TABLE IF NOT EXISTS `m_dokter` (
   `id_dokter` int NOT NULL,
   `nama_dokter` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
   `ttl` date NOT NULL DEFAULT (curdate()),
-  `STRV` char(21) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `strv` char(21) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
   `exp_strv` date NOT NULL DEFAULT (curdate()),
-  `SIP` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
-  `exp_SIP` date NOT NULL DEFAULT (curdate()),
+  `sip` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0',
+  `exp_sip` date NOT NULL DEFAULT (curdate()),
   `foto` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pengalaman` tinyint NOT NULL DEFAULT '2',
+  `pengalaman` year NOT NULL,
+  `rate` decimal(3,2) NOT NULL DEFAULT '1.00',
+  `status` enum('aktif','nonaktif') COLLATE utf8mb4_general_ci DEFAULT 'aktif',
   PRIMARY KEY (`id_dokter`),
-  UNIQUE KEY `STRV` (`STRV`),
-  UNIQUE KEY `SIP` (`SIP`),
+  UNIQUE KEY `STRV` (`strv`) USING BTREE,
+  UNIQUE KEY `SIP` (`sip`) USING BTREE,
   KEY `FK_idDokter` (`id_dokter`),
   CONSTRAINT `FK_idDokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- membuang struktur untuk table klinikh.detail_dokter
+DROP TABLE IF EXISTS `detail_dokter`;
+CREATE TABLE IF NOT EXISTS `detail_dokter` (
+  `id_dokter` int DEFAULT NULL,
+  `id_kategori` tinyint unsigned DEFAULT NULL,
+  KEY `FK_dDokter` (`id_dokter`),
+  KEY `FK_dKateg` (`id_kategori`),
+  CONSTRAINT `FK_dDokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `FK_dKateg` FOREIGN KEY (`id_kategori`) REFERENCES `m_kategori` (`id_kategori`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Pengeluaran data tidak dipilih.
+DROP TABLE IF EXISTS `tr_tanya`;
+CREATE TABLE IF NOT EXISTS `tr_tanya` (
+  `id_tanya` int NOT NULL AUTO_INCREMENT,
+  `id_penanya` int DEFAULT NULL,
+  `penanya` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `judul` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `pertanyaan` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `dibuat` timestamp NOT NULL DEFAULT (now()),
+  `status` enum('terjawab','menunggu') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'menunggu',
+  `privasi` enum('PUBLIK','PRIVASI') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PUBLIK',
+  PRIMARY KEY (`id_tanya`),
+  KEY `FK_penanya` (`id_penanya`),
+  CONSTRAINT `FK_penanya` FOREIGN KEY (`id_penanya`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- membuang struktur untuk table klinikh.detail_tanya
+DROP TABLE IF EXISTS `detail_tanya`;
+CREATE TABLE IF NOT EXISTS `detail_tanya` (
+  `tr_tanya` int DEFAULT NULL,
+  `kategori` tinyint unsigned DEFAULT NULL,
+  KEY `FK_pnanya` (`tr_tanya`),
+  KEY `FK_tanyakateg` (`kategori`),
+  CONSTRAINT `FK_pnanya` FOREIGN KEY (`tr_tanya`) REFERENCES `tr_tanya` (`id_tanya`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_tanyakateg` FOREIGN KEY (`kategori`) REFERENCES `m_kategori` (`id_kategori`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Pengeluaran data tidak dipilih.
+
+-- membuang struktur untuk table klinikh.jwb_dokter
+DROP TABLE IF EXISTS `jwb_dokter`;
+CREATE TABLE IF NOT EXISTS `jwb_dokter` (
+  `id_dokter` int NOT NULL,
+  `id_tanya` int DEFAULT NULL,
+  `nama_dokter` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `isi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `publish` timestamp NULL DEFAULT (now()),
+  `update` timestamp NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  KEY `FK1_jwban` (`id_dokter`),
+  KEY `FK2_artanya` (`id_tanya`),
+  CONSTRAINT `FK1_jwban` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`),
+  CONSTRAINT `FK2_artanya` FOREIGN KEY (`id_tanya`) REFERENCES `tr_tanya` (`id_tanya`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Pengeluaran data tidak dipilih.
+
+-- membuang struktur untuk table klinikh.log_rating
+DROP TABLE IF EXISTS `log_rating`;
+CREATE TABLE IF NOT EXISTS `log_rating` (
+  `idChat` char(12) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `id_pengguna` int DEFAULT '0',
+  `id_dokter` int DEFAULT NULL,
+  `liked?` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`idChat`),
+  KEY `FK_log_rating_m_pengguna` (`id_pengguna`),
+  KEY `FK_log_rating_m_dokter` (`id_dokter`),
+  CONSTRAINT `FK_log_rating_m_dokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `FK_log_rating_m_pengguna` FOREIGN KEY (`id_pengguna`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_artikel
 DROP TABLE IF EXISTS `m_artikel`;
@@ -86,9 +150,11 @@ CREATE TABLE IF NOT EXISTS `m_artikel` (
   CONSTRAINT `FK_author` FOREIGN KEY (`author_id`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE SET NULL ON UPDATE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Membuang data untuk tabel klinikh.m_dokter: ~1 rows (lebih kurang)
-INSERT INTO `m_dokter` (`id_dokter`, `nama_dokter`, `ttl`, `STRV`, `exp_strv`, `SIP`, `exp_SIP`, `foto`, `pengalaman`) VALUES
-	(1, 'Slamet', '1995-10-09', '79snkdua', '2025-10-09', 'ra4456112', '2031-10-09', NULL, 2);
+-- Pengeluaran data tidak dipilih.
+
+-- membuang struktur untuk table klinikh.m_dokter
+
+-- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_hpraktik
 DROP TABLE IF EXISTS `m_hpraktik`;
@@ -101,7 +167,11 @@ CREATE TABLE IF NOT EXISTS `m_hpraktik` (
   CONSTRAINT `FK_dokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Membuang data untuk tabel klinikh.m_kategori: ~0 rows (lebih kurang)
+-- Pengeluaran data tidak dipilih.
+
+-- membuang struktur untuk table klinikh.m_kategori
+
+-- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.m_lokasipraktik
 DROP TABLE IF EXISTS `m_lokasipraktik`;
@@ -115,64 +185,15 @@ CREATE TABLE IF NOT EXISTS `m_lokasipraktik` (
   CONSTRAINT `FK_locdok` FOREIGN KEY (`dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE SET NULL ON UPDATE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Membuang data untuk tabel klinikh.m_lokasipraktik: ~0 rows (lebih kurang)
+-- Pengeluaran data tidak dipilih.
+
+-- membuang struktur untuk table klinikh.m_pengguna
+
+-- Pengeluaran data tidak dipilih.
 
 -- membuang struktur untuk table klinikh.tr_tanya
-DROP TABLE IF EXISTS `tr_tanya`;
-CREATE TABLE IF NOT EXISTS `tr_tanya` (
-  `id_tanya` int NOT NULL AUTO_INCREMENT,
-  `id_penanya` int DEFAULT NULL,
-  `penanya` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `judul` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `pertanyaan` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `dibuat` timestamp NOT NULL DEFAULT (now()),
-  `status` enum('terjawab','menunggu') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'menunggu',
-  `privasi` enum('PUBLIK','PRIVASI') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PUBLIK',
-  PRIMARY KEY (`id_tanya`),
-  KEY `FK_penanya` (`id_penanya`),
-  CONSTRAINT `FK_penanya` FOREIGN KEY (`id_penanya`) REFERENCES `m_pengguna` (`id_pengguna`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- membuang struktur untuk table klinikh.detail_dokter
-DROP TABLE IF EXISTS `detail_dokter`;
-CREATE TABLE IF NOT EXISTS `detail_dokter` (
-  `id_dokter` int DEFAULT NULL,
-  `id_kategori` tinyint DEFAULT NULL,
-  KEY `FK_kategdokter` (`id_dokter`),
-  KEY `FK_kategori` (`id_kategori`),
-  CONSTRAINT `FK_kategdokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `FK_kategori` FOREIGN KEY (`id_kategori`) REFERENCES `m_kategori` (`id_kategori`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Membuang data untuk tabel klinikh.detail_dokter: ~0 rows (lebih kurang)
-
--- membuang struktur untuk table klinikh.jwb_dokter
-DROP TABLE IF EXISTS `jwb_dokter`;
-CREATE TABLE IF NOT EXISTS `jwb_dokter` (
-  `id_dokter` int NOT NULL,
-  `id_tanya` int DEFAULT NULL,
-  `nama_dokter` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `isi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `publish` timestamp NULL DEFAULT (now()),
-  `update` timestamp NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-  KEY `FK1_jwban` (`id_dokter`),
-  KEY `FK2_artanya` (`id_tanya`),
-  CONSTRAINT `FK1_jwban` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`),
-  CONSTRAINT `FK2_artanya` FOREIGN KEY (`id_tanya`) REFERENCES `tr_tanya` (`id_tanya`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- membuang struktur untuk table klinikh.detail_tanya
-DROP TABLE IF EXISTS `detail_tanya`;
-CREATE TABLE IF NOT EXISTS `detail_tanya` (
-  `tr_tanya` int DEFAULT NULL,
-  `kategori` tinyint DEFAULT NULL,
-  KEY `FK_pnanya` (`tr_tanya`),
-  KEY `FK_kategtanya` (`kategori`),
-  CONSTRAINT `FK_kategtanya` FOREIGN KEY (`kategori`) REFERENCES `m_kategori` (`id_kategori`),
-  CONSTRAINT `FK_pnanya` FOREIGN KEY (`tr_tanya`) REFERENCES `tr_tanya` (`id_tanya`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Membuang data untuk tabel klinikh.detail_tanya: ~0 rows (lebih kurang)
+-- Pengeluaran data tidak dipilih.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
