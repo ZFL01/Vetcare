@@ -20,7 +20,7 @@
                     </svg>
                 </div>
                 <h1 class="text-4xl font-display font-bold text-gray-800 mb-4">
-                    Tanya Dokter
+                    Chat Dokter
                 </h1>
                 <p class="text-gray-600 text-lg max-w-2xl mx-auto">
                     Tanyakan masalah kesehatan hewan peliharaan Anda langsung ke dokter hewan melalui chat

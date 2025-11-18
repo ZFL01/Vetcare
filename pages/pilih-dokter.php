@@ -1,12 +1,8 @@
 <?php
 require_once __DIR__ . '/../header.php';
 
-// Get selected kategori from URL parameter
-$kategori = isset($_GET['kategori']) ? htmlspecialchars($_GET['kategori']) : '';
-
-// Get all available categories for filter dropdown
-require_once __DIR__ . '/../includes/DAO_dokter.php';
-$all_kategori = DAO_kategori::getAllKategori();
+// Include controller untuk logika backend
+require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
 ?>
 
 <main class="pb-20 bg-gradient-to-b from-white via-purple-50 to-white min-h-[80vh]">
@@ -18,42 +14,54 @@ $all_kategori = DAO_kategori::getAllKategori();
       <p class="text-gray-600">Temukan dokter hewan terbaik untuk hewan kesayangan Anda</p>
     </div>
 
-    <!-- Search & Filter Bar -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-purple-200/50">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Search Input -->
-        <div class="md:col-span-2">
-          <div class="relative">
-            <span class="absolute left-4 top-3.5 text-gray-400">🔍</span>
-            <input 
-              type="text" 
-              id="searchInput" 
-              placeholder="Cari nama dokter..."
-              class="w-full pl-12 pr-4 py-3 border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
-            />
-          </div>
-        </div>
+    <div class="mb-4">
+    <label for="searchInput" class="sr-only">Cari Dokter</label>
+    <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Cari nama dokter atau kategori..." 
+        class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 transition duration-150"
+    >
+    </div>
 
-        <!-- Category Filter -->
-        <div>
-          <select 
-            id="categoryFilter"
-            class="w-full px-4 py-3 border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
-          >
-            <option value="all">Semua Kategori</option>
-            <?php foreach ($all_kategori as $kat): ?>
-              <option value="<?php echo htmlspecialchars($kat->getNamaKateg()); ?>"
-                <?php echo $kategori === $kat->getNamaKateg() ? 'selected' : ''; ?>>
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-purple-200/50">
+    <div id="filter-kategori-container" class="flex flex-wrap gap-3 mt-6">
+        <?php 
+        // Ambil nama kategori yang sedang aktif (dari controller)
+        $activeKategName = $kategori; 
+        // Cek apakah tidak ada filter sama sekali (alias 'Semua Kategori')
+        $isAllActive = empty($activeKategName); 
+        ?>
+        
+        <label class="inline-flex items-center cursor-pointer relative">
+            <input 
+                type="radio"
+                name="category-filter"
+                class="category-radio sr-only peer" 
+                value="" 
+                <?php echo $isAllActive ? 'checked' : ''; ?>
+            />
+            <span
+            >
+                Semua Kategori
+            </span>
+        </label>
+          <?php foreach ($all_kategori as $kat): ?>
+            <label class="inline-flex items-center cursor-pointer relative">
+              <input type="radio" name="category-filter" class="category-radio sr-only peer"
+                value="<?php echo htmlspecialchars($kat->getNamaKateg()); ?>" <?php echo $kategori === $kat->getNamaKateg() ? 'checked' : ''; ?>
+                />
+              <span class="px-6 py-3 rounded-lg ...">
                 <?php echo htmlspecialchars($kat->getNamaKateg()); ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+              </span>
+            </label>
+          <?php endforeach; ?>
         </div>
       </div>
 
       <!-- Results Counter -->
-      <div class="mt-4 text-sm text-gray-600">
-        Menampilkan <span id="resultCount">0</span> dokter
+      <div class="text-sm text-gray-600 font-medium">
+        Menampilkan <span id="resultCount" class="text-purple-600 font-bold">0</span> dokter
       </div>
     </div>
 
@@ -78,215 +86,60 @@ $all_kategori = DAO_kategori::getAllKategori();
   </div>
 </main>
 
-<script>
-// Data store
-let allDokters = [];
-let selectedCategory = '<?php echo $kategori ?: 'all'; ?>';
-let searchKeyword = '';
+<!-- Modal Detail Dokter -->
+<div id="modalDokter" class="fixed inset-0 z-50 hidden overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="closeModal()"></div>
 
-// DOM Elements
-const searchInput = document.getElementById('searchInput');
-const categoryFilter = document.getElementById('categoryFilter');
-const doktersContainer = document.getElementById('doktersContainer');
-const loadingIndicator = document.getElementById('loadingIndicator');
-const emptyState = document.getElementById('emptyState');
-const resultCount = document.getElementById('resultCount');
-
-// Event Listeners
-searchInput.addEventListener('input', (e) => {
-  searchKeyword = e.target.value.trim();
-  filterAndDisplayDokters();
-});
-
-categoryFilter.addEventListener('change', (e) => {
-  selectedCategory = e.target.value;
-  // Update URL without page reload
-  const newUrl = selectedCategory !== 'all' ? 
-    `?route=pilih-dokter&kategori=${encodeURIComponent(selectedCategory)}` : 
-    `?route=pilih-dokter`;
-  window.history.replaceState({}, '', newUrl);
-  
-  fetchDokters();
-});
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  fetchDokters();
-});
-
-// Fetch dokters from API
-async function fetchDokters() {
-  try {
-    loadingIndicator.classList.remove('hidden');
-    doktersContainer.classList.add('hidden');
-    emptyState.classList.add('hidden');
-
-    const url = new URL('controller/api_dokter_katalog.php', window.location.origin);
-    if (selectedCategory !== 'all') {
-      url.searchParams.append('kategori', selectedCategory);
-    }
-
-    const response = await fetch(url.toString());
-    const data = await response.json();
-
-    if (data.success) {
-      allDokters = data.data;
-      filterAndDisplayDokters();
-    } else {
-      console.error('API Error:', data.message);
-      showEmptyState();
-    }
-  } catch (error) {
-    console.error('Fetch Error:', error);
-    showEmptyState();
-  }
-}
-
-// Filter and display dokters
-function filterAndDisplayDokters() {
-  loadingIndicator.classList.add('hidden');
-
-  // Filter based on search keyword
-  let filteredDokters = allDokters;
-  if (searchKeyword) {
-    filteredDokters = allDokters.filter(doc =>
-      doc.nama_dokter.toLowerCase().includes(searchKeyword.toLowerCase())
-    );
-  }
-
-  // Update result count
-  resultCount.textContent = filteredDokters.length;
-
-  // Display or show empty state
-  if (filteredDokters.length === 0) {
-    showEmptyState();
-    return;
-  }
-
-  // Render dokters
-  renderDokters(filteredDokters);
-}
-
-// Render dokters to DOM
-function renderDokters(dokters) {
-  doktersContainer.innerHTML = '';
-
-  dokters.forEach(doc => {
-    const kategoriText = doc.kategori && doc.kategori.length > 0 ? 
-      doc.kategori.join(', ') : 'Belum dikategorikan';
-    
-    const jadwalText = formatJadwal(doc.jadwal);
-    const hargaKonsultasi = 150000; // Default konsultasi
-
-    const card = document.createElement('div');
-    card.className = 'relative rounded-2xl overflow-hidden bg-white shadow-card p-6 border border-purple-200/50 hover:shadow-lg transition-shadow';
-    card.innerHTML = `
-      <div class="flex gap-4">
-        <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
-          <img src="${doc.foto || 'https://i.pravatar.cc/120?img=1'}" 
-               alt="${doc.nama_dokter}" 
-               class="w-full h-full object-cover" 
-               onerror="this.src='https://i.pravatar.cc/120?img=1'" />
+    <!-- Modal Panel -->
+    <div
+      class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      <div class="bg-white px-6 py-4">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-800">Profile Dokter Hewan</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
-        <div class="flex-1">
-          <h4 class="font-semibold text-gray-800">${escapeHtml(doc.nama_dokter)}</h4>
-          <div class="text-sm text-purple-600 mb-2 font-medium">${escapeHtml(kategoriText)}</div>
-          <div class="flex items-center text-sm text-gray-600 gap-3 mb-2">
-            <span class="text-yellow-400">★</span>
-            <span>${parseFloat(doc.rate).toFixed(1)} (${doc.id_dokter} ulasan)</span>
-            <span class="text-gray-400">•</span>
-            <span>${doc.pengalaman} tahun</span>
-          </div>
-          <p class="text-sm text-gray-600 mb-3">Dokter berpengalaman dalam berbagai kasus hewan peliharaan dan ternak.</p>
 
-          <div class="text-sm text-gray-500 mb-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xs">⏰</span> 
-              <span>${jadwalText}</span>
+        <!-- Content Modal -->
+        <div id="modalContent" class="space-y-6">
+          <!-- Loading state -->
+          <div class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600">
             </div>
-            <div class="flex items-center gap-2 mt-2">
-              <span class="text-xs">📍</span> 
-              <span>${escapeHtml(doc.alamat || doc.nama_klinik || 'Lokasi tidak tersedia')}</span>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <div class="text-blue-600 font-semibold">Rp ${new Intl.NumberFormat('id-ID').format(hargaKonsultasi)}</div>
-            <button onclick="chatDokter(${doc.id_dokter})" 
-                    class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-2 rounded-full text-sm shadow-lg hover:scale-[1.02] transition-transform">
-              <span class="w-5 h-5 flex items-center justify-center bg-white/10 rounded-full">💬</span>
-              Chat Sekarang
-            </button>
+            <p class="mt-2 text-gray-600">Memuat data dokter...</p>
           </div>
         </div>
       </div>
-    `;
+    </div>
+  </div>
+</div>
 
-    doktersContainer.appendChild(card);
-  });
+<data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
+<data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
 
-  doktersContainer.classList.remove('hidden');
-}
-
-// Format jadwal
-function formatJadwal(jadwal) {
-  if (!jadwal || Object.keys(jadwal).length === 0) {
-    return 'Jadwal tidak tersedia';
-  }
-
-  const today = new Date();
-  const daysInIndonesian = {
-    'Senin': 'Senin',
-    'Selasa': 'Selasa',
-    'Rabu': 'Rabu',
-    'Kamis': 'Kamis',
-    'Jumat': 'Jumat',
-    'Sabtu': 'Sabtu',
-    'Minggu': 'Minggu'
-  };
-
-  // Get first available schedule
-  for (let day in jadwal) {
-    const times = jadwal[day];
-    if (times && times.length > 0) {
-      const jam = times[0];
-      return `${daysInIndonesian[day]}: ${jam.buka} - ${jam.tutup}`;
-    }
-  }
-
-  return 'Jadwal tidak tersedia';
-}
-
-// Show empty state
-function showEmptyState() {
-  doktersContainer.classList.add('hidden');
-  loadingIndicator.classList.add('hidden');
-  emptyState.classList.remove('hidden');
-}
-
-// Chat function
-function chatDokter(id_dokter) {
-  // Implement chat functionality
-  alert('Fitur chat akan segera tersedia untuk dokter ID: ' + id_dokter);
-}
-
-// Utility function to escape HTML
-function escapeHtml(text) {
-  const map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return text.replace(/[&<>"']/g, m => map[m]);
-}
-</script>
+<script src="../controller/pilih_dokter.js"></script>
 
 <style>
-  .shadow-card { box-shadow: 0 10px 30px rgba(150, 100, 200, 0.08); }
-</style>
+  .shadow-card {
+    box-shadow: 0 10px 30px rgba(150, 100, 200, 0.08);
+  }
 
-<style>
-  .shadow-card { box-shadow: 0 10px 30px rgba(150, 100, 200, 0.08); }
+  .shadow-card:hover {
+    box-shadow: 0 15px 40px rgba(150, 100, 200, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* Styling untuk radio kategori - menggunakan Tailwind peer utility */
+  .category-radio:checked+span {
+    background: linear-gradient(to right, #a855f7, #9333ea) !important;
+    box-shadow: 0 4px 10px rgba(147, 51, 234, 0.4) !important;
+    color: white !important;
+    border-color: transparent !important;
+  }
 </style>

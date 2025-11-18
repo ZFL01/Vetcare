@@ -1,12 +1,27 @@
 <?php
 include_once 'database.php';
+class DTO_Tag implements JsonSerializable{
+    private ?int $idTag=null;
+    private ?string $tag=null;
+
+    function __construct(int $idTag, string $tag){
+        $this->idTag=$idTag; $this->tag=$tag;
+    }
+    function getIdTag(){return $this->idTag;}
+    function getTag(){return $this->tag;}
+    function jsonSerialize():mixed{
+        return ['idTag'=>$this->idTag, 'tag'=>$this->tag];
+    }
+}
+
 class DTO_tanyajawab{
     private ?int $idTanya=null;
     private ?int $idUser=null;
     private ?int $idDokter=null;
+    private string|int|null $Tag=null;
 
     private string $user, $dokter, $judul, $pertanyaan,
-    $jawaban, $status, $dibuat, $tag, $tglJawab;   
+    $jawaban, $status, $dibuat, $tglJawab;   
 
     function forPreview($idtanya, $user, $judul, $destanya, $dibuat, $status, $tag){
         $this->idTanya=$idtanya; $this->user=$user;
@@ -17,9 +32,9 @@ class DTO_tanyajawab{
         $this->dokter=$dokter; $this->jawaban=$jwaban; $this->tglJawab=$publish;
         $this->pertanyaan=$destanya;
     }
-    function forCreateAsk(DTO_pengguna $user, string $judul, string $deskripsi, $tag){
+    function forCreateAsk(DTO_pengguna $user, string $judul, string $deskripsi, int $tag){
         $this->idUser=$user->getIdUser(); $this->user=$user->getEmail();
-        $this->judul=$judul; $this->pertanyaan=$deskripsi; $this->tag=$tag;
+        $this->judul=$judul; $this->pertanyaan=$deskripsi; $this->Tag=$tag;
     }
     function forAnswering(DTO_dokter $dokter, DTO_tanyajawab $tanya, $isi){
         $this->idDokter=$dokter->getId(); $this->dokter=$dokter->getNama();
@@ -36,8 +51,42 @@ class DTO_tanyajawab{
     function getJawaban(){return $this->jawaban;}
     function getStatus(){return $this->status;}
     function getCreated(){return $this->dibuat;}
-    function getTag(){return $this->tag;}
+    function getTag(): mixed{return $this->Tag;}
     function getTglJawab(){return $this->tglJawab;}
+}
+
+class DAO_Tag{
+    static function getAllTags(){
+        $conn=Database::getConnection();
+        $sql="select idTag, tag from m_tag";
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute();
+            $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return [];}
+            $dto = [];
+            foreach($hasil as $dat){
+                $obj=new DTO_Tag($dat['idTag'], $dat['tag']);
+                $dto[]=$obj;
+            }
+            return $dto;
+        }catch(PDOException $e){
+            error_log("[DAO_others::getAllTags]: ".$e->getMessage());
+            return [];
+        }
+    }
+    static function insertTag(string $tag){
+        $conn=Database::getConnection();
+        $sql="insert into m_tag (tag) values (?)";
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute([$tag]);
+            return $conn->lastInsertId();
+        }catch(PDOException $e){
+            error_log("[DAO_others::insertTag]: ".$e->getMessage());
+            return false;
+        }
+    }
 }
 
 class DAO_Tanya{
@@ -79,10 +128,10 @@ class DAO_Tanya{
 
     static function insertAsk(DTO_tanyajawab $dat){
         $conn=Database::getConnection();
-        $sql="insert into tr_tanya (id_penanya, penanya, judul, pertanyaan, tag)";
+        $sql="insert into tr_tanya (id_penanya, penanya, judul, pertanyaan, idTag) values (?,?,?,?,?)";
         try{
             $stmt=$conn->prepare($sql);
-            return $stmt->execute([$dat->getIdUser(), $dat->getUser(), $dat->getJudul(), $dat->getTag()]);
+            return $stmt->execute([$dat->getIdUser(), $dat->getUser(), $dat->getJudul(),$dat->getDeskripsi(), $dat->getTag()]);
         }catch(PDOException $e){
             error_log('[DAO_others::insertAsk]: '.$e->getMessage());
             return false;

@@ -1,5 +1,8 @@
 <?php
 // Start session at the very beginning to avoid header issues
+require_once __DIR__ . '/includes/DAO_user.php';
+require_once __DIR__ . '/includes/DAO_dokter.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -46,6 +49,31 @@ switch ($route) {
         $pageTitle = 'Dashboard Dokter - VetCare';
         $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
         $contentFile = 'pages/dashboard_dokter.php';
+        break;
+    case 'pilih-kategori':
+        $pageTitle = 'Pilih Kategori Hewan - VetCare';
+        $pageDescription = 'Pilih kategori hewan yang ingin Anda konsultasikan';
+        $contentFile = 'pages/pilih-kategori.php';
+        break;
+    case 'pilih-dokter':
+        $pageTitle = 'Pilih Dokter - VetCare';
+        $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
+        $contentFile = 'pages/pilih-dokter.php';
+        break;
+    case 'admin-manage-dokter':
+        $pageTitle = 'Manajemen Dokter - VetCare Admin';
+        $pageDescription = 'Admin panel untuk verifikasi dan approval dokter';
+        $contentFile = 'pages/admin-manage-dokter.php';
+        break;
+    case 'tanya-jawab':
+        $pageTitle = 'Tanya Jawab - VetCare';
+        $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
+        $contentFile = 'pages/Tanya-Jawab.php';
+        break;
+    case 'chat':
+        $pageTitle = 'Chat dengan Dokter - VetCare';
+        $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
+        $contentFile = 'pages/chat-dokter.php';
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':

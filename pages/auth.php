@@ -91,8 +91,7 @@ function showRegisterForm($message = '', $messageType = '')
     return $html;
 }
 
-function showForgotPasswordForm($message = '', $messageType = '')
-{
+function showForgotPasswordForm($message = '', $messageType = '') {
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
         <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Lupa Kata Sandi</h2>
@@ -137,13 +136,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
-                    header('Location: ?route=dashboard');
+                    header('Location: ?route=tanya-jawab');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {
                     header('Location: ?route=dashboard-dokter');
                     exit;
                 } elseif ($objUser->getRole() === 'Admin') {
-                    header('location: >route=dashboard=admin');
+                    header('Location: ?route=admin-manage-dokter');
                     exit;
                 }
             }
