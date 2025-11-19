@@ -11,7 +11,6 @@ let searchKeyword = '';
 // Data dari PHP (Disimpan jika dibutuhkan, tapi tidak digunakan untuk logic filter)
 let slugToKategori = {};
 try {
-  // Mengambil JSON dari tag <script> yang di-echo oleh PHP
   const slugElement = document.getElementById('slugToKategori');
   if (slugElement) {
     slugToKategori = JSON.parse(slugElement.textContent || '{}');
@@ -109,6 +108,27 @@ function formatJadwalDetail(jadwal) {
   };
 }
 
+// ==================== DATA NORMALIZATION HELPERS ====================
+// Helpers to normalize DTO fields coming from server (different endpoints
+// sometimes return slightly different property names).
+function getDokName(d) {
+  return (d.nama || d.nama_dokter || '') + '';
+}
+
+function getDokKategs(d) {
+  const raw = d.kategori || d.kateg || [];
+  if (!Array.isArray(raw)) return [];
+  return raw.map(k => {
+    if (!k && k !== 0) return '';
+    if (typeof k === 'string') return k;
+    return (k.nama_kateg || k.nama_kategori || k.namaK || k.nama || '') + '';
+  });
+}
+
+function getDokId(d) {
+  return d.id ?? d.id_dokter ?? null;
+}
+
 
 // ==================== INITIALIZATION ====================
 function unescapeHtml(text) {
@@ -132,6 +152,15 @@ function initDokters() {
   categoryRadioButtons.forEach(radio => {
     radio.addEventListener('change', (e) => {
       selectedCategoryName = e.target.value.trim();
+      console.log('[KATEGORI CHANGE] selectedCategoryName:', selectedCategoryName);
+      
+      // When switching to "Semua Kategori" (empty value), optionally clear search too
+      // Uncomment line below if you want to auto-clear search when clicking "all"
+      // if (!selectedCategoryName) {
+      //   searchKeyword = '';
+      //   searchInput.value = '';
+      // }
+      
       const newUrl = selectedCategoryName
         ? '?route=pilih-dokter&kategori=' + encodeURIComponent(selectedCategoryName)
         : '?route=pilih-dokter';
@@ -154,7 +183,7 @@ function initDokters() {
   //   }
   // }
   loadingIndicator.classList.remove('hidden');
-  fetch('../controller/pilih_dokter_controller.php?api=true')
+  fetch('controller/pilih_dokter_controller.php?api=true')
     .then(response => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -174,7 +203,16 @@ function initDokters() {
 
   const urlKategoriElement = document.getElementById('urlKategori');
   if (urlKategoriElement) {
-    selectedCategoryName = urlKategoriElement.getAttribute('value') || '';
+    const urlValue = urlKategoriElement.getAttribute('value') || '';
+    selectedCategoryName = urlValue;
+    console.log('[INIT] selectedCategoryName from URL:', selectedCategoryName);
+    
+    // Also update the radio button to reflect URL state
+    const matchingRadio = document.querySelector(`.category-radio[value="${urlValue}"]`);
+    if (matchingRadio) {
+      matchingRadio.checked = true;
+      console.log('[INIT] Radio button checked for:', urlValue);
+    }
   }
 
   if (!searchInput || !doktersContainer || !loadingIndicator || !emptyState || !resultCount) {
@@ -190,7 +228,19 @@ function initDokters() {
   // Event listener untuk search input
   searchInput.addEventListener('input', (e) => {
     searchKeyword = e.target.value.trim();
+    console.log('[SEARCH INPUT] searchKeyword:', searchKeyword);
     debouncedFilter();
+    
+    // Update URL dengan parameter search
+    const urlParams = new URLSearchParams(window.location.search);
+    if (searchKeyword) {
+      urlParams.set('search', searchKeyword);
+    } else {
+      urlParams.delete('search');
+    }
+    
+    const newUrl = '?route=pilih-dokter&' + urlParams.toString();
+    window.history.pushState({ path: newUrl }, '', newUrl);
   });
   filterAndDisplayDokters();
 }
@@ -199,7 +249,7 @@ function initDokters() {
 // ==================== FILTER & DISPLAY ====================
 
 /**
- * Filter and display dokters (Hanya untuk Search Keyword)
+ * Filter and display dokters (Support kategori + search)
  */
 function filterAndDisplayDokters() {
   if (!loadingIndicator || !doktersContainer || !emptyState || !resultCount) {
@@ -211,31 +261,47 @@ function filterAndDisplayDokters() {
     showEmptyState();
     return;
   }
+
+  console.log('[FILTER] Start with allDokters.length:', allDokters.length);
+  console.log('[FILTER] selectedCategoryName:', selectedCategoryName, 'searchKeyword:', searchKeyword);
+
+  // Filter by kategori (jika dipilih)
   if (selectedCategoryName) {
     const categoryLower = selectedCategoryName.toLowerCase();
     filteredDokters = filteredDokters.filter(doc => {
-      // Asumsi doc.kateg adalah array of strings (nama kategori)
-      return doc.kategori && doc.kategori.some(kat =>
-        kat.toLowerCase() === categoryLower // Pencocokan harus eksak
-      );
+      const kategs = getDokKategs(doc);
+      const match = kategs.some(k => k.toLowerCase() === categoryLower);
+      return match;
     });
+    console.log('[FILTER] After kategori filter:', filteredDokters.length);
   }
 
+  // Filter by search keyword (jika ada)
   if (searchKeyword) {
     const keywordLower = searchKeyword.toLowerCase();
     filteredDokters = filteredDokters.filter(doc => {
-      const namaMatch = doc.nama_dokter.toLowerCase().includes(keywordLower);
-      const kategoriMatch = doc.kateg && doc.kateg.some(kat =>
-        kat.toLowerCase().includes(keywordLower)
-      );
-      return namaMatch || kategoriMatch;
+      const name = getDokName(doc).toLowerCase();
+      const namaMatch = name.includes(keywordLower);
+      const kategs = getDokKategs(doc);
+      const kategoriMatch = kategs.some(k => k.toLowerCase().includes(keywordLower));
+      const result = namaMatch || kategoriMatch;
+      if (result) {
+        console.log('[SEARCH MATCH]', getDokName(doc), 'name match:', namaMatch, 'kateg match:', kategoriMatch);
+      }
+      return result;
     });
+    console.log('[FILTER] After search filter:', filteredDokters.length);
   }
-  resultCount.textContent = filteredDokters.length;
 
+  resultCount.textContent = filteredDokters.length;
   renderDokters(filteredDokters);
-  doktersContainer.classList.remove('hidden');
-  emptyState.classList.add('hidden');
+  
+  if (filteredDokters.length === 0) {
+    showEmptyState();
+  } else {
+    doktersContainer.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+  }
 }
 
 /**
@@ -261,15 +327,17 @@ function renderDokters(dokters) {
 
   // Implementasi rendering kartu dokter ke doktersContainer
   const html = dokters.map(dokter => {
-    const kategoriList = Array.isArray(dokter.kategori) ? dokter.kategori.join(', ') : '';
-    const pengalaman = dokter.pengalaman < new Date().getFullYear() ? new Date().getFullYear() - dokter.pengalaman : 0;
-    const namaKlinik = dokter.klinik || 'Klinik Tidak Diketahui';
-    // Pastikan Anda memanggil showModal dengan id_dokter yang benar
+    const kategs = getDokKategs(dokter);
+    const kategoriList = kategs.join(', ');
+    const pengalaman = typeof dokter.pengalaman === 'number' ? dokter.pengalaman : (dokter.pengalaman ?? 0);
+    const namaKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || 'Klinik Tidak Diketahui';
+    const idForModal = getDokId(dokter);
+    const displayName = getDokName(dokter) || 'Dokter';
     return `
-            <div class="shadow-card p-6 rounded-xl cursor-pointer" onclick="showModal(${dokter.id})">
-                <h3 class="text-lg font-semibold text-gray-800">${escapeHtml(dokter.nama)}</h3>
+            <div class="shadow-card p-6 rounded-xl cursor-pointer" onclick="showModal(${idForModal})">
+                <h3 class="text-lg font-semibold text-gray-800">${escapeHtml(displayName)}</h3>
                 <p class="text-sm text-purple-600 mb-2">${escapeHtml(kategoriList)}</p>
-                <p class="text-gray-500">Pengalaman: ${pengalaman} tahun</p>
+                <p class="text-gray-500">Pengalaman: ${escapeHtml(String(pengalaman))} tahun</p>
                 <p class="text-gray-500">Klinik: ${escapeHtml(namaKlinik)}</p>
             </div>
         `;
@@ -285,40 +353,45 @@ function renderDokters(dokters) {
 function showModal(idDokter) {
   if (!modalDokter || !modalContent) return;
 
-  const dokter = allDokters.find(d => d.id_dokter === idDokter);
+  const dokter = allDokters.find(d => (d.id ?? d.id_dokter) === idDokter);
   if (!dokter) return;
 
   const jadwalFormatted = formatJadwalDetail(dokter.jadwal);
 
+  const modalNama = getDokName(dokter);
+  const modalKategs = getDokKategs(dokter).join(', ');
+  const modalKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
+  const modalAlamat = dokter.alamat || '';
+
   const html = `
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">${escapeHtml(dokter.nama_dokter)}</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">${escapeHtml(modalNama)}</h2>
         
-        <div class="mb-4">
-            <p class="text-sm font-medium text-purple-600">Kategori Spesialisasi:</p>
-            <p class="text-base text-gray-700">${escapeHtml(dokter.kateg.join(', '))}</p>
-        </div>
+    <div class="mb-4">
+      <p class="text-sm font-medium text-purple-600">Kategori Spesialisasi:</p>
+      <p class="text-base text-gray-700">${escapeHtml(modalKategs)}</p>
+    </div>
         
-        <div class="mb-4">
-            <p class="text-sm font-medium text-purple-600">Klinik:</p>
-            <p class="text-base text-gray-700">${escapeHtml(dokter.namaKlinik)} (${escapeHtml(dokter.alamat)})</p>
-        </div>
+    <div class="mb-4">
+      <p class="text-sm font-medium text-purple-600">Klinik:</p>
+      <p class="text-base text-gray-700">${escapeHtml(modalKlinik)} (${escapeHtml(modalAlamat)})</p>
+    </div>
 
-        <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <p class="text-sm font-medium text-purple-700 mb-1">Jadwal Hari Ini (${jadwalFormatted.hariIni.startsWith('Tidak') ? '❌' : '✅'}):</p>
-            <p class="text-base font-semibold text-gray-800">${escapeHtml(jadwalFormatted.hariIni)}</p>
-        </div>
+    <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+      <p class="text-sm font-medium text-purple-700 mb-1">Jadwal Hari Ini (${jadwalFormatted.hariIni.startsWith('Tidak') ? '❌' : '✅'}):</p>
+      <p class="text-base font-semibold text-gray-800">${escapeHtml(jadwalFormatted.hariIni)}</p>
+    </div>
 
-        <div class="mb-4">
-            <p class="text-sm font-medium text-purple-600">Semua Hari Praktik:</p>
-            <p class="text-base text-gray-700">${escapeHtml(jadwalFormatted.hariPraktik)}</p>
-        </div>
+    <div class="mb-4">
+      <p class="text-sm font-medium text-purple-600">Semua Hari Praktik:</p>
+      <p class="text-base text-gray-700">${escapeHtml(jadwalFormatted.hariPraktik)}</p>
+    </div>
 
-        <div class="mt-6">
-            <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors">
-                Tutup
-            </button>
-        </div>
-    `;
+    <div class="mt-6">
+      <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors">
+        Tutup
+      </button>
+    </div>
+  `;
 
   modalContent.innerHTML = html;
   modalDokter.classList.remove('hidden');

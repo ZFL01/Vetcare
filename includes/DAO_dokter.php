@@ -697,6 +697,62 @@ class DAO_dokter
             return false;
         }
     }
+
+    /**
+     * Simple search/filter helper for doctors.
+     * Falls back to in-memory filtering of `getAllDokter()` results to avoid
+     * complex SQL changes. Accepts a search string and a category name/id.
+     *
+     * @param string $searchTerm
+     * @param string $kategori
+     * @return DTO_dokter[]
+     */
+    static function searchDokter(string $searchTerm = '', string $kategori = ''): array
+    {
+        $all = self::getAllDokter();
+        if (empty($searchTerm) && empty($kategori)) {
+            return $all;
+        }
+
+        $searchTerm = trim($searchTerm);
+        $kategori = trim($kategori);
+
+        $filtered = [];
+        foreach ($all as $dok) {
+            // filter by search term (name)
+            $matchSearch = true;
+            if ($searchTerm !== '') {
+                $name = $dok->getNama() ?? '';
+                $matchSearch = (stripos($name, $searchTerm) !== false);
+            }
+
+            // filter by kategori (category name or id)
+            $matchKateg = true;
+            if ($kategori !== '') {
+                $kategs = $dok->getKategori() ?? [];
+                $matchKateg = false;
+                foreach ($kategs as $k) {
+                    // allow matching by name (case-insensitive) or numeric id
+                    if (is_numeric($kategori)) {
+                        if ((string)$k === (string)$kategori) {
+                            $matchKateg = true;
+                            break;
+                        }
+                    }
+                    if (stripos((string)$k, $kategori) !== false) {
+                        $matchKateg = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($matchSearch && $matchKateg) {
+                $filtered[] = $dok;
+            }
+        }
+
+        return $filtered;
+    }
 }
 
 ?>
