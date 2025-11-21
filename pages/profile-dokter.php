@@ -6,38 +6,19 @@
  */
 
 $pageTitle = "Profil Dokter - VetCare";
-require_once __DIR__ . '/../header.php';
-require_once __DIR__ . '/../services/DAO_dokter.php';
-require_once __DIR__ . '/../services/DAO_artikel.php';
+require_once __DIR__ . '/../src/config/config.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../includes/DAO_Article.php';
 
 // Require login
-requireLogin();
-
+requireLogin(true, 'profil');
 // Get current dokter profile
-$currentDokter = [
-    'id_dokter' => $_SESSION['dokter_id'] ?? null,
-    'nama' => $_SESSION['dokter_nama'] ?? null,
-    'email' => $_SESSION['dokter_email'] ?? null,
-    'foto' => $_SESSION['dokter_foto'] ?? null
-];
+$currentDokter = $_SESSION['user'];
 
-if (!$currentDokter['id_dokter']) {
-    setFlash('error', 'Session login tidak valid. Silakan login kembali!');
-    header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
-    exit();
-}
+$profil= DAO_dokter::getProfilDokter($currentDokter, false);
 
-    $db = Database::getConnection();
-    $daoDokter = new DAO_Dokter($db);
-    $daoArtikel = new DAO_Artikel($db);
-
-    $dokter = $daoDokter->getById($currentDokter['id_dokter']);
-
-// Get doctor's articles
-$artikel_list = $daoArtikel->getByDokter($currentDokter['id_dokter'], 10);
-
-if (!$dokter) {
-    setFlash('error', 'Data dokter tidak ditemukan!');
+if (!$profil) {
+    setFlash('error', 'Gagal mengambil data, silahkan login ulang!');
     header('Location: ' . BASE_URL . 'pages/dashboard-dokter.php');
     exit();
 }
@@ -45,26 +26,20 @@ if (!$dokter) {
     // Handle profile update
     if (isset($_POST['update_profile'])) {
         $nama_lengkap = clean($_POST['nama_lengkap']);
-        $nomor_telepon = clean($_POST['nomor_telepon']);
         $spesialisasi = clean($_POST['spesialisasi']);
         $pengalaman = (int)clean($_POST['pengalaman']);
-
-        $data = [
-            'nama_lengkap' => $nama_lengkap,
-            'nomor_telepon' => $nomor_telepon,
-            'spesialisasi' => $spesialisasi,
-            'pengalaman' => $pengalaman
-        ];
+        $ttl = (int)clean($_POST['ttl']);
+        $data=[];
 
     // Handle SIP file upload
     if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] == 0) {
         $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR);
         if ($upload_result['success']) {
             // Delete old file if exists
-            if ($dokter['file_sip'] && file_exists(DOCUMENTS_DIR . $dokter['file_sip'])) {
-                unlink(DOCUMENTS_DIR . $dokter['file_sip']);
+            if ($profil->getSIP() && file_exists(DOCUMENTS_DIR . $profil->getSIP())) {
+                unlink(DOCUMENTS_DIR . $profil->getSIP());
             }
-            $data['file_sip'] = $upload_result['filename'];
+            $data['sip'] = $upload_result['filename'];
         }
     }
 
@@ -73,22 +48,23 @@ if (!$dokter) {
         $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR);
         if ($upload_result['success']) {
             // Delete old file if exists
-            if ($dokter['file_strv'] && file_exists(DOCUMENTS_DIR . $dokter['file_strv'])) {
-                unlink(DOCUMENTS_DIR . $dokter['file_strv']);
+            if ($profil->getSIP() && file_exists(DOCUMENTS_DIR . $profil->getSIP())) {
+                unlink(DOCUMENTS_DIR . $profil->getSIP());
             }
-            $data['file_strv'] = $upload_result['filename'];
+            $data['strv'] = $upload_result['filename'];
         }
     }
 
+    $profil->upsertDokter($profil->getId(), $nama_lengkap,$ttl, $data['strv'], sip:$data['sip']);
 
 
-    if ($daoDokter->updateProfile($currentDokter['id_dokter'], $data)) {
-        setFlash('success', 'Profil berhasil diperbarui!');
-        header('Location: ' . BASE_URL . 'pages/profile-dokter.php');
-        exit();
-    } else {
-        setFlash('error', 'Gagal memperbarui profil!');
-    }
+    // if (DAO_dokter::updateDokter($profil->getId(), )) {
+    //     setFlash('success', 'Profil berhasil diperbarui!');
+    //     header('Location: ' . BASE_URL . 'pages/profile-dokter.php');
+    //     exit();
+    // } else {
+    //     setFlash('error', 'Gagal memperbarui profil!');
+    // }
 }
 
 // Handle photo upload
@@ -118,7 +94,7 @@ if (isset($_POST['update_foto'])) {
 }
 
 // Get statistics
-$statistik = $daoDokter->getStatistik($currentDokter['id_dokter']);
+$statistik = null
 ?>
 
 <style>
@@ -239,9 +215,6 @@ $statistik = $daoDokter->getStatistik($currentDokter['id_dokter']);
             </button>
             <button onclick="switchTab('jadwal')" class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" id="tab-jadwal">
                 📅 Jadwal
-            </button>
-            <button onclick="switchTab('artikel')" class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" id="tab-artikel">
-                📝 Artikel
             </button>
             <button onclick="switchTab('riwayat')" class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300" id="tab-riwayat">
                 📊 Riwayat
@@ -442,76 +415,6 @@ $statistik = $daoDokter->getStatistik($currentDokter['id_dokter']);
                 <p class="text-gray-600">Jadwal praktik akan ditampilkan di sini...</p>
             </div>
         </div>
-
-        <div class="lg:col-span-3 hidden" id="content-artikel">
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-6">📝 Artikel Saya</h3>
-
-                <?php if (empty($artikel_list)): ?>
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📝</div>
-                        <h4 class="text-xl font-semibold text-gray-800 mb-2">Belum Ada Artikel</h4>
-                        <p class="text-gray-600 mb-6">Anda belum menulis artikel apapun.</p>
-                        <a href="<?php echo BASE_URL; ?>pages/tambah-artikel.php" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors">
-                            Tulis Artikel Pertama
-                        </a>
-                    </div>
-                <?php else: ?>
-                    <div class="grid gap-6">
-                        <?php foreach ($artikel_list as $artikel): ?>
-                            <div class="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
-                                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-start justify-between mb-3">
-                                            <h4 class="text-lg font-semibold text-gray-800 mb-2"><?php echo htmlspecialchars($artikel['judul']); ?></h4>
-                                            <span class="px-3 py-1 rounded-full text-sm font-medium <?php echo $artikel['status'] == 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                                                <?php echo ucfirst($artikel['status']); ?>
-                                            </span>
-                                        </div>
-
-                                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                                            <span class="flex items-center gap-1">
-                                                📅 <?php echo formatTanggal($artikel['created_at']); ?>
-                                            </span>
-                                            <span class="bg-gray-200 px-3 py-1 rounded-full">
-                                                <?php echo ucfirst($artikel['kategori']); ?>
-                                            </span>
-                                            <?php if ($artikel['status'] == 'published'): ?>
-                                                <span class="flex items-center gap-1">
-                                                    👁️ <?php echo $artikel['views']; ?> views
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <div class="text-gray-700 mb-4 line-clamp-2">
-                                            <?php
-                                            $content = strip_tags($artikel['konten']);
-                                            echo strlen($content) > 150 ? substr($content, 0, 150) . '...' : $content;
-                                            ?>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex gap-3 mt-4 lg:mt-0 lg:ml-6">
-                                        <a href="<?php echo BASE_URL; ?>artikel/<?php echo $artikel['slug']; ?>" target="_blank"
-                                           class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors flex items-center gap-2">
-                                            <span>👁️</span>
-                                            Lihat
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <div class="mt-6 text-center">
-                        <a href="<?php echo BASE_URL; ?>pages/kelola-artikel.php" class="text-primary hover:text-secondary font-medium">
-                            Kelola Semua Artikel →
-                        </a>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
         <div class="lg:col-span-3 hidden" id="content-riwayat">
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <h3 class="text-xl font-semibold text-gray-800 mb-6">📊 Riwayat Aktivitas</h3>
@@ -649,7 +552,7 @@ $statistik = $daoDokter->getStatistik($currentDokter['id_dokter']);
         }
 
         // Hide all content sections
-        const contents = ['data-diri', 'artikel', 'riwayat'];
+        const contents = ['data-diri', 'riwayat'];
         contents.forEach(content => {
             document.getElementById('content-' + content).classList.add('hidden');
             document.getElementById('tab-' + content).classList.remove('active', 'bg-primary', 'text-white');

@@ -75,6 +75,11 @@ switch ($route) {
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
         break;
+    case 'profil':
+        $pageTitle = 'Profil - VetCare';
+        $pageDescription = 'Lihat dan perbarui informasi profil Anda';
+        $contentFile = 'pages/profile-dokter.php';
+        break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
     case '/':
@@ -91,6 +96,7 @@ switch ($route) {
 // Output content
 if (isset($noHeaderFooter) && $noHeaderFooter) {
     if (file_exists($contentFile)) {
+        error_log($contentFile);
         if(!$ajaxLoad){
             include 'base.php';
         }

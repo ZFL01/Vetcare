@@ -18,7 +18,6 @@ if (empty($categories)) {
     foreach ($categories as $catObj): 
         if (!($catObj instanceof DTO_kateg)) continue;
         $title = $catObj->getNamaKateg();
-        $img = $catObj->getFotoKateg();
         
         // URL HANYA MENGGUNAKAN NAMA KATEGORI
         ?>

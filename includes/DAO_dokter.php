@@ -2,15 +2,13 @@
 include_once 'database.php';
 
 class DTO_kateg implements JsonSerializable{
-    function __construct(private ?int $id = null, private ?string $namaKateg = null, private ?string $fotoKateg=null){}
+    function __construct(private ?int $id = null, private ?string $namaKateg = null){}
     function getIdK(){return $this->id;}
     function getNamaKateg(){return $this->namaKateg;}
-    function getFotoKateg(){return $this->fotoKateg;}
     function jsonSerialize(): mixed {
         return [
             'id_kategori' => $this->id,
             'nama_kateg' => $this->namaKateg,
-            'foto' => $this->fotoKateg
         ];
     }
 }
@@ -194,7 +192,7 @@ class DAO_kategori
             }
 
             foreach ($hasil as $row) {
-                $kateg[] = new DTO_kateg($row['id_kategori'], $row['nama_kateg'], $row['foto']);
+                $kateg[] = new DTO_kateg($row['id_kategori'], $row['nama_kateg']);
             }
             return $kateg;
         } catch (PDOException $e) {
@@ -206,10 +204,10 @@ class DAO_kategori
     static function newKategori(DTO_kateg $dat)
     {
         $conn = Database::getConnection();
-        $sql = 'insert into m_kategori (nama_kateg, foto) values (?, ?)';
+        $sql = 'insert into m_kategori (nama_kateg) values (?)';
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getNamaKateg(), $dat->getFotoKateg()]);
+            return $stmt->execute([$dat->getNamaKateg()]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::newKategori] : " . $e->getMessage());
             return false;
@@ -219,10 +217,10 @@ class DAO_kategori
     static function updateKateg(DTO_kateg $dat)
     {
         $conn = Database::getConnection();
-        $sql = 'update m_kategori set nama_kateg=?, foto=? where id_kategori=?';
+        $sql = 'update m_kategori set nama_kateg=? where id_kategori=?';
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getNamaKateg(), $dat->getFotoKateg(), $dat->getIdK()]);
+            return $stmt->execute([$dat->getNamaKateg(), $dat->getIdK()]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::updateKateg] : " . $e->getMessage());
             return false;
@@ -412,13 +410,13 @@ class DAO_dokter
             $sql="select * from m_dokter where id_dokter=?";
             $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
             $profil=$stmt->fetch(PDO::FETCH_ASSOC);
-            if($profil==null){return null;}
+            if($profil==null){return false;}
             
             $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate:$profil['rate']);
             if($initiate){return $dokter;}
             
 
-            $sql = "select k.id_kategori as idK, k.nama_kategori as namaK from m_kategori join detail_dokter as dd
+            $sql = "select k.id_kategori as idK, k.nama_kateg as namaK from m_kategori as k join detail_dokter as dd
             on dd.id_kategori=k.id_kategori where dd.id_dokter=?";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$data->getIdUser()]);

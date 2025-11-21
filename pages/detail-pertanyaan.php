@@ -6,34 +6,21 @@
 
 $pageTitle = "Detail Pertanyaan - VetCare";
 require_once __DIR__ . '/../header.php';
-require_once __DIR__ . '/../services/DAO_pertanyaan.php';
-
-// Require login
-requireLogin();
+require_once __DIR__ . '../includes/DAO_others.php';
 
 // Get ID pertanyaan
 if (!isset($_GET['id'])) {
     setFlash('error', 'ID pertanyaan tidak ditemukan!');
-    header('Location: ' . BASE_URL . 'pages/tanya-dokter.php');
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?route=tanya-dokter');
     exit();
 }
-
-$id_pertanyaan = clean($_GET['id']);
-
-$db = Database::getConnection();
-$daoPertanyaan = new DAO_Pertanyaan($db);
-
 // Get pertanyaan
-$pertanyaan = $daoPertanyaan->getById($id_pertanyaan);
-
-if (!$pertanyaan) {
+$objTanya = DAO_Tanya::showAnswer($_GET['id']);
+if (!$objTanya) {
     setFlash('error', 'Pertanyaan tidak ditemukan!');
-    header('Location: ' . BASE_URL . 'pages/tanya-dokter.php');
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?route=err');
     exit();
 }
-
-// Get jawaban
-$jawaban_list = $daoPertanyaan->getJawaban($id_pertanyaan);
 ?>
 
 <style>
@@ -242,7 +229,7 @@ $jawaban_list = $daoPertanyaan->getJawaban($id_pertanyaan);
 
 <div class="container">
     <div class="detail-container">
-        <a href="<?php echo BASE_URL; ?>pages/tanya-dokter.php" class="back-button">
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?route=tanya-dokter" class="back-button">
             ← Kembali ke Daftar Pertanyaan
         </a>
 
@@ -253,76 +240,63 @@ $jawaban_list = $daoPertanyaan->getJawaban($id_pertanyaan);
                          class="user-avatar"
                          alt="User Avatar">
                     <div class="user-info">
-                        <h3><?php echo htmlspecialchars($pertanyaan['nama_user']); ?></h3>
+                        <h3><?php echo htmlspecialchars($objTanya->getUser()); ?></h3>
                         <p>Pemilik Hewan</p>
                     </div>
                 </div>
-                <span class="status-badge status-<?php echo $pertanyaan['status']; ?>">
+                <span class="status-badge status-<?php echo $objTanya->getStatus(); ?>">
                     <?php
                     $status_text = [
-                        'baru' => 'Belum Dijawab',
-                        'dijawab' => 'Sudah Dijawab',
-                        'ditutup' => 'Ditutup'
+                        'menunggu' => 'Belum Dijawab',
+                        'terjawab' => 'Terjawab',
                     ];
-                    echo $status_text[$pertanyaan['status']];
+                    echo $status_text[$objTanya->getStatus()];
                     ?>
                 </span>
             </div>
 
-            <h1 class="question-title-main"><?php echo htmlspecialchars($pertanyaan['judul']); ?></h1>
+            <h1 class="question-title-main"><?php echo htmlspecialchars($objTanya->getJudul()); ?></h1>
 
             <div class="question-content-main">
-                <?php echo nl2br(htmlspecialchars($pertanyaan['isi'])); ?>
+                <?php echo nl2br(htmlspecialchars($objTanya->getDeskripsi())); ?>
             </div>
 
             <div class="question-meta-details">
-                <span class="kategori-badge"><?php echo ucfirst($pertanyaan['kategori']); ?></span>
+                <span class="kategori-badge"><?php echo ucfirst($objTanya->getTag()); ?></span>
                 <span class="time-info">
-                    📅 <?php echo formatTanggal($pertanyaan['dibuat']); ?>
+                    📅 <?php echo formatTanggal($objTanya->getCreated()); ?>
                 </span>
             </div>
         </div>
 
         <!-- JAWABAN -->
         <div class="answers-section">
-            <h2 class="answers-header">💬 Jawaban (<?php echo count($jawaban_list); ?>)</h2>
+            <h2 class="answers-header">💬 Jawaban</h2>
 
-            <?php if (empty($jawaban_list)): ?>
+            <?php if (empty($objTanya->getJawaban())): ?>
                 <div class="no-answers">
                     <div class="no-answers-icon">📝</div>
                     <p>Belum ada jawaban untuk pertanyaan ini</p>
                 </div>
             <?php else: ?>
-                <?php foreach ($jawaban_list as $jawaban): ?>
                     <div class="answer-item">
                         <div class="answer-header">
-                            <img src="<?php echo BASE_URL; ?>public/images/dokter/<?php echo $jawaban['dokter_foto'] ?: 'default-profile.jpg'; ?>"
+                            <img src="<?php echo BASE_URL; ?>public/images/dokter/default-profile.jpg">
                                  class="dokter-avatar"
                                  alt="Dokter Avatar">
                             <div class="dokter-info">
-                                <h4><?php echo htmlspecialchars($jawaban['nama_lengkap']); ?></h4>
-                                <p><?php
-                                    $spesialisasi_text = [
-                                        'umum' => 'Dokter Hewan Umum',
-                                        'kucing' => 'Spesialis Kucing',
-                                        'anjing' => 'Spesialis Anjing',
-                                        'exotic' => 'Spesialis Hewan Exotic',
-                                        'bedah' => 'Spesialis Bedah'
-                                    ];
-                                    echo $spesialisasi_text[$jawaban['spesialisasi']] ?? 'Dokter Hewan';
-                                ?></p>
+                                <h4><?php echo htmlspecialchars($objTanya->getDokter()); ?></h4>
                             </div>
                         </div>
 
                         <div class="answer-content">
-                            <?php echo nl2br(htmlspecialchars($jawaban['isi'])); ?>
+                            <?php echo nl2br(htmlspecialchars($objTanya->getJawaban())); ?>
                         </div>
 
                         <div class="answer-time">
-                            ⏰ Dijawab <?php echo timeAgo($jawaban['created_at']); ?>
+                            ⏰ Dijawab <?php echo timeAgo($objTanya->getTglJawab()); ?>
                         </div>
                     </div>
-                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>

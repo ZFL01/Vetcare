@@ -1,10 +1,11 @@
 <?php
 // Authentication page with database integration
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ .'/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/userService.php';
 
-$content='';
+$content = '';
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
 $message = '';
 $messageType = '';
@@ -91,7 +92,8 @@ function showRegisterForm($message = '', $messageType = '')
     return $html;
 }
 
-function showForgotPasswordForm($message = '', $messageType = '') {
+function showForgotPasswordForm($message = '', $messageType = '')
+{
     ?>
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl shadow-purple-400/70 border border-purple-300">
         <h2 class="text-3xl font-extrabold text-center text-purple-700 mb-8">Lupa Kata Sandi</h2>
@@ -128,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $content = showLoginForm('Email tidak valid atau kata sandi kosong');
         } else {
 
-            $objUser = new DTO_pengguna(email:$validEmail, pass:$pass);
+            $objUser = new DTO_pengguna(email: $validEmail, pass: $pass);
             $user = userService::login($objUser);
             if (!$user[0]) {
                 $message = $user[1];
@@ -136,11 +138,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
+                    previousPage();
                     header('Location: ?route=tanya-jawab');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {
-                    header('Location: ?route=dashboard-dokter');
-                    exit;
+                    $objDokter = DAO_dokter::getProfilDokter($objUser, true);
+                    if ($objDokter) {
+                        $_SESSION['dokter'] = $objDokter;
+                        previousPage();
+                        setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
+                        header('Location: ' . BASE_URL . '?route=dashboard-dokter');
+                        exit();
+                    } else if ($objDokter === null) {
+                        setFlash('error', 'Terdeteksi belum selesai daftar. Silahkan selesaikan registrasi Anda!');
+                        require_once 'auth-dokter.php';
+                        CeknGo($objUser->getIdUser());
+                    } else {
+                        setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
+                    }
                 } elseif ($objUser->getRole() === 'Admin') {
                     header('Location: ?route=admin-manage-dokter');
                     exit;
@@ -158,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($pass !== $konfirPass) {
             $content = showRegisterForm('Password dan konfirmasi password tidak sama!', 'error');
         } else {
-            $objUser = new DTO_pengguna(email:$validEmail, pass:$pass, role:"Member");
+            $objUser = new DTO_pengguna(email: $validEmail, pass: $pass, role: "Member");
             $user = userService::register($objUser);
             if (!$user[0]) { //jika false, pesan error semua
                 $message = $user[1];
