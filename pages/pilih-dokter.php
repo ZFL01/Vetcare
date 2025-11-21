@@ -15,73 +15,71 @@ require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
     </div>
 
     <div class="mb-4">
-    <label for="searchInput" class="sr-only">Cari Dokter</label>
-    <input 
-        type="text" 
-        id="searchInput" 
-        placeholder="Cari nama dokter atau kategori..." 
-        class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 transition duration-150"
-    >
+      <label for="searchInput" class="sr-only">Cari Dokter</label>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Cari nama dokter atau kategori..."
+        class="w-full px-5 py-3 bg-white rounded-3xl border border-purple-300 focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 focus:ring-offset-white transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none">
     </div>
 
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-purple-200/50">
-    <div id="filter-kategori-container" class="flex flex-wrap gap-3 mt-6">
-        <?php 
+      <div id="filter-kategori-container" class="flex flex-wrap gap-3 mt-6">
+        <?php
         // Ambil nama kategori yang sedang aktif (dari controller)
-        $activeKategName = $kategori; 
+        $activeKategName = $kategori;
         // Cek apakah tidak ada filter sama sekali (alias 'Semua Kategori')
-        $isAllActive = empty($activeKategName); 
+        $isAllActive = empty($activeKategName);
         ?>
-        
+
         <label class="inline-flex items-center cursor-pointer relative">
-            <input 
-                type="radio"
-                name="category-filter"
-                class="category-radio sr-only peer" 
-                value="" 
-                <?php echo $isAllActive ? 'checked' : ''; ?>
-            />
-            <span
-            >
-                Semua Kategori
-            </span>
+          <input
+            type="radio"
+            name="category-filter"
+            class="category-radio sr-only peer"
+            value=""
+            <?php echo $isAllActive ? 'checked' : ''; ?> />
+          <span class="px-6 py-3 rounded-lg transition-colors duration-200 ease-in-out border
+           border-purple-300 text-purple-700 peer-checked:bg-purple-600 peer-checked:text-white bg-white hover:bg-purple-50">
+            Semua Kategori
+          </span>
         </label>
-          <?php foreach ($all_kategori as $kat): ?>
-            <label class="inline-flex items-center cursor-pointer relative">
-              <input type="radio" name="category-filter" class="category-radio sr-only peer"
-                value="<?php echo htmlspecialchars($kat->getNamaKateg()); ?>" <?php echo $kategori === $kat->getNamaKateg() ? 'checked' : ''; ?>
-                />
-              <span class="px-6 py-3 rounded-lg ...">
-                <?php echo htmlspecialchars($kat->getNamaKateg()); ?>
-              </span>
-            </label>
-          <?php endforeach; ?>
-        </div>
-      </div>
-
-      <!-- Results Counter -->
-      <div class="text-sm text-gray-600 font-medium">
-        Menampilkan <span id="resultCount" class="text-purple-600 font-bold">0</span> dokter
+        <?php foreach ($all_kategori as $kat): ?>
+          <label class="inline-flex items-center cursor-pointer relative">
+            <input type="radio" name="category-filter" class="category-radio sr-only peer"
+              value="<?php echo htmlspecialchars($kat->getNamaKateg()); ?>" <?php echo $kategori === $kat->getNamaKateg() ? 'checked' : ''; ?> />
+            <span class="px-6 py-3 rounded-lg transition-colors duration-250 ease-in-out border border-purple-300 text-purple-700
+             peer-checked:bg-purple-600 peer-checked:text-white bg-white hover:bg-purple-50">
+              <?php echo htmlspecialchars($kat->getNamaKateg()); ?>
+            </span>
+          </label>
+        <?php endforeach; ?>
       </div>
     </div>
 
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="text-center py-12">
-      <div class="inline-flex items-center gap-3">
-        <div class="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-        <span class="text-gray-600">Memuat dokter...</span>
-      </div>
+    <!-- Results Counter -->
+    <div class="text-sm text-gray-600 font-medium">
+      Menampilkan <span id="resultCount" class="text-purple-600 font-bold">0</span> dokter
     </div>
+  </div>
 
-    <!-- Dokter List Container -->
-    <div id="doktersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+  <!-- Loading Indicator -->
+  <div id="loadingIndicator" class="text-center py-12">
+    <div class="inline-flex items-center gap-3">
+      <div class="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+      <span class="text-gray-600">Memuat dokter...</span>
     </div>
+  </div>
 
-    <!-- Empty State -->
-    <div id="emptyState" class="py-12 text-center hidden">
-      <p class="text-gray-600 text-lg">😔 Tidak ada dokter yang cocok dengan pencarian Anda</p>
-      <p class="text-gray-500 text-sm mt-2">Coba ubah filter kategori atau kata kunci pencarian</p>
-    </div>
+  <!-- Dokter List Container -->
+  <div id="doktersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="py-12 text-center hidden">
+    <p class="text-gray-600 text-lg">😔 Tidak ada dokter yang cocok dengan pencarian Anda</p>
+    <p class="text-gray-500 text-sm mt-2">Coba ubah filter kategori atau kata kunci pencarian</p>
+  </div>
 
   </div>
 </main>
@@ -123,7 +121,7 @@ require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
 <data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
 <data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
 
-<script src="../controller/pilih_dokter.js"></script>
+<script src="controller/pilih_dokter.js"></script>
 
 <style>
   .shadow-card {
