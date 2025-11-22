@@ -1,8 +1,7 @@
 <?php
 require_once __DIR__ . '/../header.php';
-
-// Include controller untuk logika backend
 require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
+$assetVersion = time();
 ?>
 
 <main class="pb-20 bg-gradient-to-b from-white via-purple-50 to-white min-h-[80vh]">
@@ -58,45 +57,44 @@ require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
     </div>
 
     <!-- Results Counter -->
-    <div class="text-sm text-gray-600 font-medium">
+    <div class="text-sm text-gray-600 font-medium mb-6">
       Menampilkan <span id="resultCount" class="text-purple-600 font-bold">0</span> dokter
     </div>
-  </div>
 
-  <!-- Loading Indicator -->
-  <div id="loadingIndicator" class="text-center py-12">
-    <div class="inline-flex items-center gap-3">
-      <div class="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-      <span class="text-gray-600">Memuat dokter...</span>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="text-center py-12">
+      <div class="inline-flex items-center gap-3">
+        <div class="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+        <span class="text-gray-600">Memuat dokter...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- Dokter List Container -->
-  <div id="doktersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
-  </div>
+    <!-- Dokter List Container -->
+    <div id="doktersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+    </div>
 
-  <!-- Empty State -->
-  <div id="emptyState" class="py-12 text-center hidden">
-    <p class="text-gray-600 text-lg">😔 Tidak ada dokter yang cocok dengan pencarian Anda</p>
-    <p class="text-gray-500 text-sm mt-2">Coba ubah filter kategori atau kata kunci pencarian</p>
-  </div>
+    <!-- Empty State -->
+    <div id="emptyState" class="py-12 text-center hidden">
+      <p class="text-gray-600 text-lg">😔 Tidak ada dokter yang cocok dengan pencarian Anda</p>
+      <p class="text-gray-500 text-sm mt-2">Coba ubah filter kategori atau kata kunci pencarian</p>
+    </div>
 
   </div>
 </main>
 
 <!-- Modal Detail Dokter -->
 <div id="modalDokter" class="fixed inset-0 z-50 hidden overflow-y-auto">
-  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+  <div class="flex items-center justify-center min-h-screen px-4">
     <!-- Backdrop -->
     <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="closeModal()"></div>
 
     <!-- Modal Panel -->
-    <div
-      class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-      <div class="bg-white px-6 py-4">
+        <div
+          class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-[480px] sm:w-full" style="max-width:480px !important;">
+          <div class="bg-white px-6 py-4" style="max-height:80vh; overflow:auto;">
         <!-- Header Modal -->
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold text-gray-800">Profile Dokter Hewan</h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">Profile Dokter Hewan</h3>
           <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -121,7 +119,7 @@ require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
 <data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
 <data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
 
-<script src="controller/pilih_dokter.js"></script>
+<script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
 
 <style>
   .shadow-card {
@@ -135,9 +133,12 @@ require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
 
   /* Styling untuk radio kategori - menggunakan Tailwind peer utility */
   .category-radio:checked+span {
-    background: linear-gradient(to right, #a855f7, #9333ea) !important;
-    box-shadow: 0 4px 10px rgba(147, 51, 234, 0.4) !important;
-    color: white !important;
-    border-color: transparent !important;
+<data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
+<data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
+
+<!-- expose API key to JS (set in src/config/config.php) -->
+<script>window.GOOGLE_MAPS_API_KEY = '<?php echo GOOGLE_MAPS_API_KEY; ?>';</script>
+<script src="controller/doctor_map.js?v=<?php echo $assetVersion; ?>"></script>
+<script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
   }
 </style>

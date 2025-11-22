@@ -45,7 +45,8 @@ class DTO_dokter implements JsonSerializable
         private ?int $pengalaman = null, //user, dokter
         private ?float $rate = null, //dokter, user
         private ?array $kategori = null, //dokter, user, admin
-        private ?array $jadwal = null //user, dokter
+        private ?array $jadwal = null, //user, dokter
+        private ?int $harga = null
     ) {}
 
 
@@ -162,6 +163,10 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->status;
     }
+    function getHarga()
+    {
+        return $this->harga;
+    }
 
     function jsonSerialize(): mixed
     {
@@ -171,7 +176,7 @@ class DTO_dokter implements JsonSerializable
             'rate' => $this->rate, 'kategori' => $this->kategori,
             'jadwal' => $this->jadwal, 'strv' => $this->strv,
             'klinik' => $this->namaKlinik, 'alamat' => $this->alamat,
-            'koor' => $this->koor
+            'koor' => $this->koor, 'harga' => $this->harga
         ];
     }
 }
@@ -253,7 +258,8 @@ class DAO_dokter
             $dat['pengalaman'] ?? null,
             $dat['rate'],
             $kateg,
-            $jadwal
+            $jadwal,
+            $dat['harga'] ?? null
         );
         $obj->setDoc(
             $dat['sip'] ?? null,
@@ -271,7 +277,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
             from m_dokter where status='aktif'";
 
             $stmt = $conn->prepare($queryDokter);
