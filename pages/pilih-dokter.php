@@ -89,9 +89,9 @@ $assetVersion = time();
     <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="closeModal()"></div>
 
     <!-- Modal Panel -->
-    <div
-      class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-[420px] sm:w-full" style="max-width:420px !important;">
-      <div class="bg-white px-4 py-3" style="max-height:80vh; overflow:auto;">
+        <div
+          class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-[480px] sm:w-full" style="max-width:480px !important;">
+          <div class="bg-white px-6 py-4" style="max-height:80vh; overflow:auto;">
         <!-- Header Modal -->
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gray-800">Profile Dokter Hewan</h3>

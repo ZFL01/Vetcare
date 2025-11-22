@@ -429,8 +429,8 @@ function showModal(idDokter) {
     const lng = dokter.koor[1];
     mapContainerId = 'doctor-map-' + idDokter;
     mapHtml = `
-      <div class="mt-2">
-        <div id="${mapContainerId}" style="height:200px;border-radius:8px;overflow:hidden;border:1px solid #eee"></div>
+      <div class="mt-3">
+        <div id="${mapContainerId}" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid #eee"></div>
       </div>`;
   }
 
@@ -462,11 +462,11 @@ function showModal(idDokter) {
 
       ${mapHtml}
 
-      <div class="pt-3 border-t flex items-center justify-between gap-2">
-        <div class="text-purple-600 font-semibold text-sm">Rp ${formatRupiah(harga)}</div>
-        <div class="flex gap-2">
-          <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-3 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
-          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-3 py-1 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
+      <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+        <div class="text-purple-600 font-semibold text-base">Rp ${formatRupiah(harga)}</div>
+        <div class="flex gap-3">
+          <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
+          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
         </div>
       </div>
     </div>
