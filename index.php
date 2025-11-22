@@ -50,11 +50,6 @@ switch ($route) {
         $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
         $contentFile = 'pages/dashboard_dokter.php';
         break;
-    case 'pilih-kategori':
-        $pageTitle = 'Pilih Kategori Hewan - VetCare';
-        $pageDescription = 'Pilih kategori hewan yang ingin Anda konsultasikan';
-        $contentFile = 'pages/pilih-kategori.php';
-        break;
     case 'pilih-dokter':
         $pageTitle = 'Pilih Dokter - VetCare';
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';

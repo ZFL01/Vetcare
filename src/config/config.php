@@ -47,6 +47,9 @@ if (!file_exists(SIP_DIR)) {
     mkdir(SIP_DIR, 0777, true);
 }
 
+// API KEY nya gugel maps
+define('GOOGLE_MAPS_API_KEY', '');
+
 /**
  * Check if user is logged in
  */

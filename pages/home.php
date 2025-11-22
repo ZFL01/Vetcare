@@ -26,7 +26,7 @@
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 relative z-30">
-                        <button onclick="navigateTo('?route=pilih-kategori')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
+                        <button onclick="navigateTo('?route=pilih-dokter')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
                             <span class="mr-2">🩺</span>
                             Mulai Konsultasi
                         </button>

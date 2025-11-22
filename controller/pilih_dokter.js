@@ -69,43 +69,32 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
+function formatRupiah(val) {
+  if (val === null || val === undefined || val === '' || isNaN(Number(val))) return '-';
+  try {
+    return new Intl.NumberFormat('id-ID').format(Number(val));
+  } catch (_) {
+    return String(val);
+  }
+}
+
 /**
  * Format jadwal detail (Dioptimasi untuk multiple slot)
  */
-function formatJadwalDetail(jadwal) {
-  if (!jadwal || Object.keys(jadwal).length === 0) {
-    return {
-      hariIni: 'Jadwal tidak tersedia',
-      hariPraktik: 'Jadwal tidak tersedia'
-    };
-  }
+function formatJadwalHariIni(jadwal) {
+  if (!jadwal) return 'Jadwal tidak tersedia';
 
   const today = new Date();
-  const dayIndex = today.getDay();
+  // Map day numbers to capitalized Indonesian day names (as stored in database)
   const daysInIndonesian = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const hariIniNama = daysInIndonesian[dayIndex];
-
-  // Cek jadwal hari ini
-  let jadwalHariIni = 'Tidak praktik hari ini';
+  const hariIniNama = daysInIndonesian[today.getDay()];
 
   if (jadwal[hariIniNama] && jadwal[hariIniNama].length > 0) {
     const slots = jadwal[hariIniNama].map(jam => `${jam.buka} - ${jam.tutup}`);
-    jadwalHariIni = slots.join(' / ');
+    return slots.join(' / ');
   }
 
-  // Kumpulkan semua hari praktik
-  const hariPraktik = [];
-  for (let day in jadwal) {
-    // Cek jika hari tersebut valid dan memiliki jadwal
-    if (jadwal[day] && jadwal[day].length > 0 && daysInIndonesian.includes(day)) {
-      hariPraktik.push(day);
-    }
-  }
-
-  return {
-    hariIni: jadwalHariIni,
-    hariPraktik: hariPraktik.length > 0 ? hariPraktik.join(', ') : 'Jadwal tidak tersedia'
-  };
+  return 'Tidak praktik hari ini';
 }
 
 // ==================== DATA NORMALIZATION HELPERS ====================
@@ -153,14 +142,14 @@ function initDokters() {
     radio.addEventListener('change', (e) => {
       selectedCategoryName = e.target.value.trim();
       console.log('[KATEGORI CHANGE] selectedCategoryName:', selectedCategoryName);
-      
+
       // When switching to "Semua Kategori" (empty value), optionally clear search too
       // Uncomment line below if you want to auto-clear search when clicking "all"
       // if (!selectedCategoryName) {
       //   searchKeyword = '';
       //   searchInput.value = '';
       // }
-      
+
       const newUrl = selectedCategoryName
         ? '?route=pilih-dokter&kategori=' + encodeURIComponent(selectedCategoryName)
         : '?route=pilih-dokter';
@@ -206,7 +195,7 @@ function initDokters() {
     const urlValue = urlKategoriElement.getAttribute('value') || '';
     selectedCategoryName = urlValue;
     console.log('[INIT] selectedCategoryName from URL:', selectedCategoryName);
-    
+
     // Also update the radio button to reflect URL state
     const matchingRadio = document.querySelector(`.category-radio[value="${urlValue}"]`);
     if (matchingRadio) {
@@ -230,7 +219,7 @@ function initDokters() {
     searchKeyword = e.target.value.trim();
     console.log('[SEARCH INPUT] searchKeyword:', searchKeyword);
     debouncedFilter();
-    
+
     // Update URL dengan parameter search
     const urlParams = new URLSearchParams(window.location.search);
     if (searchKeyword) {
@@ -238,7 +227,7 @@ function initDokters() {
     } else {
       urlParams.delete('search');
     }
-    
+
     const newUrl = '?route=pilih-dokter&' + urlParams.toString();
     window.history.pushState({ path: newUrl }, '', newUrl);
   });
@@ -295,7 +284,7 @@ function filterAndDisplayDokters() {
 
   resultCount.textContent = filteredDokters.length;
   renderDokters(filteredDokters);
-  
+
   if (filteredDokters.length === 0) {
     showEmptyState();
   } else {
@@ -325,22 +314,66 @@ function showEmptyState() {
 function renderDokters(dokters) {
   if (!doktersContainer) return;
 
-  // Implementasi rendering kartu dokter ke doktersContainer
   const html = dokters.map(dokter => {
     const kategs = getDokKategs(dokter);
     const kategoriList = kategs.join(', ');
     const pengalaman = typeof dokter.pengalaman === 'number' ? dokter.pengalaman : (dokter.pengalaman ?? 0);
-    const namaKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || 'Klinik Tidak Diketahui';
+    const namaKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
+    const alamat = dokter.alamat || '';
     const idForModal = getDokId(dokter);
     const displayName = getDokName(dokter) || 'Dokter';
+    const foto = dokter.foto || dokter.urlFoto || null;
+    const rate = dokter.rate ?? '-';
+    const jadwalHariIni = formatJadwalHariIni(dokter.jadwal);
+    const harga = dokter.harga;
+
     return `
-            <div class="shadow-card p-6 rounded-xl cursor-pointer" onclick="showModal(${idForModal})">
-                <h3 class="text-lg font-semibold text-gray-800">${escapeHtml(displayName)}</h3>
-                <p class="text-sm text-purple-600 mb-2">${escapeHtml(kategoriList)}</p>
-                <p class="text-gray-500">Pengalaman: ${escapeHtml(String(pengalaman))} tahun</p>
-                <p class="text-gray-500">Klinik: ${escapeHtml(namaKlinik)}</p>
+      <div class="bg-white rounded-2xl shadow-card p-6 border border-gray-100 w-full flex flex-col justify-between min-h-0 cursor-pointer" onclick="showModal(${idForModal})">
+        <div>
+            <div class="flex items-center gap-4 mb-4">
+              <div class="flex-shrink-0">
+                ${foto
+        ? `<img src="${escapeHtml(foto)}" alt="Foto Dokter" class="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-md"/>`
+        : `<div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-3xl text-white">👩‍⚕️</div>`
+      }
+              </div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold text-gray-900">${escapeHtml(displayName)}</h3> 
+                <p class="text-sm text-gray-600"> Spesialis ${escapeHtml(kategoriList || 'Spesialisasi belum diatur')}</p>
+                <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                  <span class="flex items-center gap-1"><span class="text-yellow-400">⭐</span>${escapeHtml(String(rate))}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(String(pengalaman))} tahun</span>
+                </div>
+              </div>
             </div>
-        `;
+
+            
+
+            <div class="space-y-4 text-sm">
+              <div class="flex items-start gap-3">
+                <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">🕘</div>
+                <div class="font-medium text-gray-800">Jadwal Hari Ini: ${escapeHtml(jadwalHariIni)}</div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">📍</div>
+                <div>
+                  <div class="font-medium text-gray-800">${escapeHtml(namaKlinik || 'Klinik belum diatur')}</div>
+                  <div class="text-gray-500">${escapeHtml(alamat || 'Alamat tidak tersedia')}</div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
+          <div class="text-purple-600 font-semibold text-lg">Rp ${formatRupiah(harga)}</div>
+          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="window.location.href = '?route=chat&dokter_id=${idForModal}'; event.stopPropagation();">
+            <span class="text-base"></span>
+            Chat Sekarang
+          </button>
+        </div>
+      </div>
+    `;
   }).join('');
 
   doktersContainer.innerHTML = html;
@@ -356,45 +389,124 @@ function showModal(idDokter) {
   const dokter = allDokters.find(d => (d.id ?? d.id_dokter) === idDokter);
   if (!dokter) return;
 
-  const jadwalFormatted = formatJadwalDetail(dokter.jadwal);
+  const foto = dokter.foto || dokter.urlFoto || null;
+  const nama = getDokName(dokter);
+  const kategs = getDokKategs(dokter).join(', ');
+  const klinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
+  const alamat = dokter.alamat || '';
+  const harga = dokter.harga ?? dokter.price ?? null;
 
-  const modalNama = getDokName(dokter);
-  const modalKategs = getDokKategs(dokter).join(', ');
-  const modalKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
-  const modalAlamat = dokter.alamat || '';
+  // Build full jadwal HTML
+  let jadwalHtml = '';
+  if (dokter.jadwal && typeof dokter.jadwal === 'object') {
+    const hariKeys = Object.keys(dokter.jadwal);
+    if (hariKeys.length === 0) {
+      jadwalHtml = '<div class="text-xs text-gray-600">Jadwal tidak tersedia</div>';
+    } else {
+      jadwalHtml = '<div class="space-y-1">';
+      hariKeys.forEach(h => {
+        const slots = dokter.jadwal[h] || [];
+        const slotsText = (Array.isArray(slots) && slots.length > 0)
+          ? slots.map(s => `${s.buka} - ${s.tutup}`).join(' / ')
+          : 'Tidak praktik';
+        jadwalHtml += `
+          <div class="flex items-start justify-between px-2 py-1 text-xs">
+            <div class="font-medium text-gray-700">${escapeHtml(h)}</div>
+            <div class="text-gray-600">${escapeHtml(slotsText)}</div>
+          </div>`;
+      });
+      jadwalHtml += '</div>';
+    }
+  } else {
+    jadwalHtml = '<div class="text-xs text-gray-600">Jadwal tidak tersedia</div>';
+  }
+
+  // Map / koordinat
+  let mapHtml = '';
+  let mapContainerId = null;
+  if (dokter.koor && Array.isArray(dokter.koor) && dokter.koor.length === 2) {
+    const lat = dokter.koor[0];
+    const lng = dokter.koor[1];
+    mapContainerId = 'doctor-map-' + idDokter;
+    mapHtml = `
+      <div class="mt-2">
+        <div id="${mapContainerId}" style="height:200px;border-radius:8px;overflow:hidden;border:1px solid #eee"></div>
+      </div>`;
+  }
 
   const html = `
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">${escapeHtml(modalNama)}</h2>
-        
-    <div class="mb-4">
-      <p class="text-sm font-medium text-purple-600">Kategori Spesialisasi:</p>
-      <p class="text-base text-gray-700">${escapeHtml(modalKategs)}</p>
-    </div>
-        
-    <div class="mb-4">
-      <p class="text-sm font-medium text-purple-600">Klinik:</p>
-      <p class="text-base text-gray-700">${escapeHtml(modalKlinik)} (${escapeHtml(modalAlamat)})</p>
-    </div>
+    <div class="flex flex-col gap-3">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0">
+          ${foto ? `<img src="${escapeHtml(foto)}" alt="Foto Dokter" class="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-md"/>` : `<div class="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center text-2xl">👩‍⚕️</div>`}
+        </div>
+        <div class="flex-1">
+          <h2 class="text-base font-bold text-gray-800">${escapeHtml(nama)}</h2>
+          <p class="text-xs text-purple-600">${escapeHtml(kategs || 'Spesialisasi belum diatur')}</p>
+          <div class="mt-1 text-xs text-gray-500 font-medium">
+            ⭐ ${dokter.rate || 0} (${dokter.pengalaman || 0} tahun)
+          </div>
+        </div>
+      </div>
 
-    <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-      <p class="text-sm font-medium text-purple-700 mb-1">Jadwal Hari Ini (${jadwalFormatted.hariIni.startsWith('Tidak') ? '❌' : '✅'}):</p>
-      <p class="text-base font-semibold text-gray-800">${escapeHtml(jadwalFormatted.hariIni)}</p>
-    </div>
+      <div class="p-0 bg-transparent">
+        <p class="text-xs font-medium text-purple-700 mb-2">Jadwal Praktik</p>
+        ${jadwalHtml}
+      </div>
 
-    <div class="mb-4">
-      <p class="text-sm font-medium text-purple-600">Semua Hari Praktik:</p>
-      <p class="text-base text-gray-700">${escapeHtml(jadwalFormatted.hariPraktik)}</p>
-    </div>
+      <div>
+        <p class="text-xs font-medium text-gray-700 mb-2">📍 Lokasi Praktik</p>
+        <p class="text-xs text-gray-700 font-medium">${escapeHtml(klinik)}</p>
+        <p class="text-xs text-gray-600">${escapeHtml(alamat)}</p>
+      </div>
 
-    <div class="mt-6">
-      <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors">
-        Tutup
-      </button>
+      ${mapHtml}
+
+      <div class="pt-3 border-t flex items-center justify-between gap-2">
+        <div class="text-purple-600 font-semibold text-sm">Rp ${formatRupiah(harga)}</div>
+        <div class="flex gap-2">
+          <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-3 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
+          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-3 py-1 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
+        </div>
+      </div>
     </div>
   `;
 
   modalContent.innerHTML = html;
   modalDokter.classList.remove('hidden');
+  // Initialize map if coordinates present. Prefer Google Maps if API key provided,
+  // otherwise fall back to an OpenStreetMap iframe so the user always sees a map.
+  if (mapContainerId) {
+    const coords = dokter.koor;
+    const container = document.getElementById(mapContainerId);
+    const hasGmapsKey = !!(window.GOOGLE_MAPS_API_KEY && window.GOOGLE_MAPS_API_KEY.trim());
+
+    function renderOsmFallback(lat, lng, targetEl) {
+      // Use an OSM static iframe (no API key required)
+      const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(Number(lng)-0.01)}%2C${encodeURIComponent(Number(lat)-0.01)}%2C${encodeURIComponent(Number(lng)+0.01)}%2C${encodeURIComponent(Number(lat)+0.01)}&layer=mapnik&marker=${encodeURIComponent(Number(lat))}%2C${encodeURIComponent(Number(lng))}`;
+      targetEl.innerHTML = `<iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="${src}" style="border:0;border-radius:12px"></iframe>`;
+    }
+
+    if (hasGmapsKey && window.VetcareMap && typeof window.VetcareMap.initDoctorMap === 'function') {
+      window.VetcareMap.initDoctorMap(mapContainerId, Number(coords[0]), Number(coords[1]))
+        .catch(err => {
+          console.warn('Map init failed:', err.message || err);
+          try { renderOsmFallback(coords[0], coords[1], container); } catch(e){}
+        });
+    } else {
+      // No Google Maps key / API available -> render OSM fallback
+      try { renderOsmFallback(coords[0], coords[1], container); } catch(e){}
+    }
+  }
+}
+
+
+/**
+ * Menutup modal detail dokter.
+ */
+function closeModal() {
+  if (!modalDokter) return;
+  modalDokter.classList.add('hidden');
 }
 
 
