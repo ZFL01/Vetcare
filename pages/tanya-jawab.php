@@ -1,6 +1,6 @@
 <?php
 /**
- * File: pages/chat-pasien.php
+ * File: pages/tanya-jawab.php
  * Halaman untuk pasien mengajukan pertanyaan kepada dokter
  */
 require_once __DIR__ . '/../src/config/config.php';
