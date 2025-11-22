@@ -3,11 +3,13 @@
  * File: pages/chat-pasien.php
  * Halaman untuk pasien mengajukan pertanyaan kepada dokter
  */
+require_once __DIR__ . '/../src/config/config.php';
+require_once __DIR__ . '/../includes/DAO_others.php';
+requireLogin(false);
+
 $objUser = $_SESSION['user'];
 
 $pageTitle = "Tanya Dokter - VetCare";
-require_once __DIR__ . '/../src/config/config.php';
-require_once __DIR__ . '/../includes/DAO_others.php';
 
 $dataTag = DAO_Tag::getAllTags();
 
@@ -46,7 +48,7 @@ if (isset($_POST['submit_pertanyaan'])) {
 
         if ($hasil) {
             setFlash('success', 'Pertanyaan berhasil dikirim! Dokter akan segera menjawab.');
-            header('Location: ' . BASE_URL . 'pages/tanya-jawab.php');
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?route=tanya-dokter');
             exit();
         } else {
             setFlash('error', 'Gagal mengirim pertanyaan. Silakan coba lagi.');

@@ -15,8 +15,22 @@ if (session_status() === PHP_SESSION_NONE) {
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
 
+//get dynamic path
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+
+$host = $_SERVER['HTTP_HOST'];
+
+$baseDir = dirname($_SERVER['PHP_SELF']);
+if ($baseDir === '/' || $baseDir === '\\') {
+    $baseUrlPath = '';
+} else {
+    $baseUrlPath = $baseDir;
+}
+$baseUrlPath = rtrim($baseUrlPath, '/\\');
+$dynamicBaseUrl = $protocol . $host . $baseUrlPath;
+
 // Base URL
-define('BASE_URL', 'http://localhost/Vetcare-1/');
+define('BASE_URL', $dynamicBaseUrl);
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
@@ -50,42 +64,25 @@ if (!file_exists(SIP_DIR)) {
 /**
  * Check if user is logged in
  */
-function isLoggedIn() {
-    return isset($_SESSION['dokter_id']);
-}
-
-/**
- * Get current dokter data
- */
-function getCurrentDokter() {
-    if (isLoggedIn()) {
-        return [
-            'id' => $_SESSION['dokter_id'],
-            'nama' => $_SESSION['dokter_nama'],
-            'email' => $_SESSION['dokter_email'],
-            'foto' => $_SESSION['dokter_foto'] ?? 'default-profile.jpg',
-            'spesialisasi' => $_SESSION['dokter_spesialisasi'] ?? 'umum'
-        ];
+function isLoggedIn(bool $dokter) {
+    if($dokter){
+        return isset($_SESSION['dokter']) && isset($_SESSION['user']);
+    }else{
+        return isset($_SESSION['user']);
     }
-    return null;
 }
 
 /**
  * Redirect if not logged in
  */
-function requireLogin() {
-    if (!isLoggedIn()) {
-        header('Location: ' . BASE_URL . 'pages/auth-dokter.php');
-        exit();
-    }
-}
-
-/**
- * Redirect if already logged in
- */
-function requireGuest() {
-    if (isLoggedIn()) {
-        header('Location: ' . BASE_URL . '?route=dashboard-dokter');
+function requireLogin(bool $dokter, string $onPage='') {
+    if (!isLoggedIn($dokter)) {
+        error_log("ada di ".$onPage);
+        if($onPage){
+            $_SESSION['prev_page'] = $onPage;
+        }
+        setFlash('Autentikasi dibutuhkan!', 'Silahkan login terlebih dahulu.');
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth');
         exit();
     }
 }
@@ -142,6 +139,15 @@ function formatTanggal($date, $format = 'd M Y') {
     }
     
     return $formatted;
+}
+
+function previousPage(){
+    if(isset($_SESSION['prev_page']) && $_SESSION['prev_page'] !== ''){
+        error_log($_SESSION['prev_page']);
+        header('Location: ' . BASE_URL . '?route=' . $_SESSION['prev_page']);
+        unset($_SESSION['prev_page']);
+        exit;
+    }
 }
 
 /**
