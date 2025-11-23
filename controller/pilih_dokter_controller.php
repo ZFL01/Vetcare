@@ -24,7 +24,7 @@ foreach ($listDokter as $dokter) {
 }
 
 // Filter dokter by today's schedule (only if they have any schedule data)
-// If no schedule exists yet, show all doctors anyway
+// Only show doctors who have schedule for today
 date_default_timezone_set('Asia/Jakarta');
 // Map English day names to Indonesian capitalized names (as stored in database)
 $daysMap = [
@@ -38,28 +38,15 @@ $daysMap = [
 ];
 $hariIni = $daysMap[(int)date('w')];
 
-// Check if any doctor has schedule data
-$hasAnySchedule = false;
-foreach ($listDokter as $dokter) {
-    if (is_array($dokter->getJadwal()) && !empty($dokter->getJadwal())) {
-        $hasAnySchedule = true;
-        break;
-    }
-}
+// Filter dokter that have schedule for today
+$dokterHariIni = array_filter($listDokter, function($dokter) use ($hariIni) {
+    $jadwal = $dokter->getJadwal();
+    // Only show if they have schedule entry for today AND the array is not empty
+    return is_array($jadwal) && isset($jadwal[$hariIni]) && !empty($jadwal[$hariIni]);
+});
 
-// Only filter if we have schedule data; otherwise show all doctors
-if ($hasAnySchedule) {
-    $dokterHariIni = array_filter($listDokter, function($dokter) use ($hariIni) {
-        $jadwal = $dokter->getJadwal();
-        return is_array($jadwal) && !empty($jadwal[$hariIni]);
-    });
-
-    // If filter produced results, use them. If not (nobody praktik hari ini),
-    // fallback to showing all doctors so page doesn't show zero unexpectedly.
-    if (!empty($dokterHariIni)) {
-        $listDokter = array_values($dokterHariIni);
-    }
-}
+// Use filtered list (if empty, will show empty state in frontend)
+$listDokter = array_values($dokterHariIni);
 
 if (isset($_GET['api']) && $_GET['api'] === 'true') {
     header('Content-Type: application/json');

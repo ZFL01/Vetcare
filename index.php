@@ -80,6 +80,11 @@ switch ($route) {
     case '/':
         $contentFile = 'pages/home.php';
         break;
+
+    case 'klinik-terdekat':
+        $pageTitle = 'Mencari Klinik Hewan Terdekat - VetCare';
+        $pageDescription = '';
+        $contentFile = 'klinik-terdekat.php';
     // ...
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';

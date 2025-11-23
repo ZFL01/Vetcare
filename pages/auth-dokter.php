@@ -219,7 +219,7 @@ $flash = getFlash();
     <title><?php echo $pageTitle; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/css/style.css">
     <style>
         * {
             margin: 0;

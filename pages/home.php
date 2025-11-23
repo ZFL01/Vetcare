@@ -216,7 +216,7 @@
                 </a>
 
                 <!-- Dokter Ternak -->
-                <a href="?route=pilih-dokter&kategori=Ternak" class="group service-card animate-slide-up" style="animation-delay: 0.3s">
+                <a href="?route=pilih-dokter-ternak" class="group service-card animate-slide-up" style="animation-delay: 0.3s">
                     <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
                         <!-- Ripple Effect -->
                         <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>

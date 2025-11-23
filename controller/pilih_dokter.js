@@ -136,6 +136,20 @@ function initDokters() {
   modalDokter = document.getElementById('modalDokter');
   modalContent = document.getElementById('modalContent');
 
+  console.log('[INIT] DOM Elements:', {
+    searchInput: !!searchInput,
+    categoryRadioButtons: categoryRadioButtons.length,
+    doktersContainer: !!doktersContainer,
+    loadingIndicator: !!loadingIndicator,
+    emptyState: !!emptyState,
+    resultCount: !!resultCount,
+    modalDokter: !!modalDokter,
+    modalContent: !!modalContent
+  });
+  
+  // PENTING: Tambah alert untuk verifikasi script terbaca
+  console.warn('%c=== PILIH_DOKTER.JS LOADED ===', 'color: green; font-size: 14px; font-weight: bold;');
+
   categoryRadioButtons = document.querySelectorAll('.category-radio');
 
   categoryRadioButtons.forEach(radio => {
@@ -172,22 +186,33 @@ function initDokters() {
   //   }
   // }
   loadingIndicator.classList.remove('hidden');
-  fetch('controller/pilih_dokter_controller.php?api=true')
+  
+  // Use global API_BASE_URL if available, fallback to relative path
+  const fetchUrl = (window.API_BASE_URL || '/Vetcare/controller/') + 'pilih_dokter_controller.php?api=true';
+  
+  console.log('[INIT] Fetching dokters from:', fetchUrl);
+  fetch(fetchUrl)
     .then(response => {
+      console.log('[FETCH] Response received:', { status: response.status, ok: response.ok });
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
+      console.log('[FETCH] Data received:', data);
       allDokters = data;
       console.log("Data dokter berhasil di-fetch!", allDokters.length);
       filterAndDisplayDokters();
     })
     .catch(error => {
-      console.error('Error fetching dokter data:', error);
-      doktersContainer.innerHTML = `<p class="text-red-600">Gagal memuat data dokter: ${error.message}</p>`;
-      loadingIndicator.classList.add('hidden');
+      console.error('[FETCH] Error fetching dokter data:', error);
+      if (doktersContainer) {
+        doktersContainer.innerHTML = `<p class="text-red-600">Gagal memuat data dokter: ${error.message}</p>`;
+      }
+      if (loadingIndicator) {
+        loadingIndicator.classList.add('hidden');
+      }
     });
 
   const urlKategoriElement = document.getElementById('urlKategori');
@@ -205,7 +230,13 @@ function initDokters() {
   }
 
   if (!searchInput || !doktersContainer || !loadingIndicator || !emptyState || !resultCount) {
-    console.error('Error: Required DOM elements not found');
+    console.error('Error: Required DOM elements not found', {
+      searchInput: !!searchInput,
+      doktersContainer: !!doktersContainer,
+      loadingIndicator: !!loadingIndicator,
+      emptyState: !!emptyState,
+      resultCount: !!resultCount
+    });
     return;
   }
 
@@ -231,7 +262,7 @@ function initDokters() {
     const newUrl = '?route=pilih-dokter&' + urlParams.toString();
     window.history.pushState({ path: newUrl }, '', newUrl);
   });
-  filterAndDisplayDokters();
+  // DO NOT call filterAndDisplayDokters() here - wait for fetch to complete
 }
 
 
@@ -241,17 +272,29 @@ function initDokters() {
  * Filter and display dokters (Support kategori + search)
  */
 function filterAndDisplayDokters() {
+  console.log('[FILTER] Called. DOM elements:', {
+    loadingIndicator: !!loadingIndicator,
+    doktersContainer: !!doktersContainer,
+    emptyState: !!emptyState,
+    resultCount: !!resultCount
+  });
+  
   if (!loadingIndicator || !doktersContainer || !emptyState || !resultCount) {
+    console.error('[FILTER] Required DOM elements not found!');
     return;
   }
-  loadingIndicator.classList.add('hidden');
+  
+  // Jangan hide loading jika data kosong
   let filteredDokters = allDokters;
+  console.log('[FILTER] Start with allDokters.length:', allDokters.length);
+  
   if (filteredDokters.length === 0) {
+    console.log('[FILTER] No data available');
+    loadingIndicator.classList.add('hidden');
     showEmptyState();
     return;
   }
 
-  console.log('[FILTER] Start with allDokters.length:', allDokters.length);
   console.log('[FILTER] selectedCategoryName:', selectedCategoryName, 'searchKeyword:', searchKeyword);
 
   // Filter by kategori (jika dipilih)
@@ -283,11 +326,17 @@ function filterAndDisplayDokters() {
   }
 
   resultCount.textContent = filteredDokters.length;
+  console.log('[FILTER] About to render', filteredDokters.length, 'dokters');
+  
   renderDokters(filteredDokters);
 
   if (filteredDokters.length === 0) {
+    console.log('[FILTER] No results, showing empty state');
+    loadingIndicator.classList.add('hidden');
     showEmptyState();
   } else {
+    console.log('[FILTER] Showing results');
+    loadingIndicator.classList.add('hidden');
     doktersContainer.classList.remove('hidden');
     emptyState.classList.add('hidden');
   }
@@ -312,7 +361,12 @@ function showEmptyState() {
  * Merender daftar kartu dokter ke dalam DOM.
  */
 function renderDokters(dokters) {
-  if (!doktersContainer) return;
+  console.log('[RENDER] Starting to render', dokters.length, 'dokters');
+  
+  if (!doktersContainer) {
+    console.error('[RENDER] doktersContainer not found');
+    return;
+  }
 
   const html = dokters.map(dokter => {
     const kategs = getDokKategs(dokter);
@@ -367,7 +421,7 @@ function renderDokters(dokters) {
 
         <div class="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
           <div class="text-purple-600 font-semibold text-lg">Rp ${formatRupiah(harga)}</div>
-          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="window.location.href = '?route=chat&dokter_id=${idForModal}'; event.stopPropagation();">
+          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="handleChatClick(${idForModal}); event.stopPropagation();">
             <span class="text-base"></span>
             Chat Sekarang
           </button>
@@ -376,7 +430,9 @@ function renderDokters(dokters) {
     `;
   }).join('');
 
+  console.log('[RENDER] Generated HTML, setting innerHTML');
   doktersContainer.innerHTML = html;
+  console.log('[RENDER] Render complete');
 }
 
 
@@ -466,7 +522,7 @@ function showModal(idDokter) {
         <div class="text-purple-600 font-semibold text-base">Rp ${formatRupiah(harga)}</div>
         <div class="flex gap-3">
           <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
-          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
+          <button onclick="handleChatClickFromModal(${idDokter})" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
         </div>
       </div>
     </div>
@@ -507,6 +563,27 @@ function showModal(idDokter) {
 function closeModal() {
   if (!modalDokter) return;
   modalDokter.classList.add('hidden');
+}
+
+/**
+ * Handle chat click dari kartu dokter
+ * Set dokter ID dan buka form konsultasi
+ */
+function handleChatClick(idDokter) {
+  console.log('[CHAT] Chat clicked for dokter:', idDokter);
+  window.currentDokterId = idDokter;
+  openKonsultasiModal();
+}
+
+/**
+ * Handle chat click dari modal detail
+ * Sama seperti handleChatClick tapi dari modal
+ */
+function handleChatClickFromModal(idDokter) {
+  console.log('[CHAT] Chat clicked from modal for dokter:', idDokter);
+  closeModal();
+  window.currentDokterId = idDokter;
+  openKonsultasiModal();
 }
 
 
