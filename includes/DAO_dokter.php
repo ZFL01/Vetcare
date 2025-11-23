@@ -583,7 +583,7 @@ class DAO_dokter
         $sql = "insert into detail_dokter values (?,?)";
         $sqlDel = "delete from detail_dokter where id_dokter =?";
         try {
-            $conn->beginTransaction();
+            if($update){$conn->beginTransaction();}
             if ($update) {
                 $stmt = $conn->prepare($sqlDel);
                 $stmt->execute([$idDokter]);
@@ -593,7 +593,7 @@ class DAO_dokter
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             }
-            $conn->commit();
+            if($update){$conn->commit();}
             return true;
         } catch (PDOException $e) {
             if ($conn->inTransaction()) {

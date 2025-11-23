@@ -34,11 +34,12 @@ define('BASE_URL', $dynamicBaseUrl);
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
-define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
+define('PROFILE_DIR', UPLOAD_DIR . 'dokter-profil/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
 define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
 define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
 define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
+define('URL_FOTO', BASE_URL . 'public/img/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
@@ -185,7 +186,7 @@ function timeAgo($datetime) {
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory) {
+function uploadImage($file, $directory, $prefix) {
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
     }
@@ -206,7 +207,7 @@ function uploadImage($file, $directory) {
     
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'doc_' . uniqid() . '_' . time() . '.' . $extension;
+    $filename = $prefix . $_SESSION['user']->getIdUser() . '.' . $extension;
     $filepath = $directory . $filename;
     
     // Move file
@@ -228,7 +229,7 @@ function deleteImage($filename, $directory) {
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix = 'doc_') {
+function uploadDocument($file, $target_dir, $prefix) {
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
     // Check if file is uploaded
@@ -264,7 +265,7 @@ function uploadDocument($file, $target_dir, $prefix = 'doc_') {
 
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = uniqid($prefix, true) . '.' . $file_extension;
+    $new_filename = $prefix . $_SESSION['user']->getIdUser() . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists

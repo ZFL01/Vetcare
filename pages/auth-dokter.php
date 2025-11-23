@@ -68,6 +68,7 @@ if (isset($_POST['login'])) {
         if ($pesan[0] && $objUser->getRole() === 'Dokter') {
             $objDokter = DAO_dokter::getProfilDokter($objUser, true);
             if ($objDokter) {
+                $_SESSION['user'] = $objUser;
                 $_SESSION['dokter'] = $objDokter;
                 previousPage();
                 setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
@@ -141,7 +142,7 @@ if (isset($_POST['register2'])) {
             // Upload SIP file
             $file_sip_name = null;
             if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR . '/');
+                $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR . '/', 'sip_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file SIP: ' . $upload_result['error']);
                 }
@@ -151,7 +152,7 @@ if (isset($_POST['register2'])) {
             // Upload STRV file
             $file_strv_name = null;
             if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR . '/');
+                $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR . '/', 'strv_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file STRV: ' . $upload_result['error']);
                 }
@@ -160,8 +161,8 @@ if (isset($_POST['register2'])) {
 
             // Upload foto profil
             $foto_name = null;
-            if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadImage($_FILES['foto'], PROFILE_DIR);
+            if (isset($_FILES['file_foto']) && $_FILES['file_foto']['error'] === UPLOAD_ERR_OK) {
+                $upload_result = uploadImage($_FILES['file_foto'], PROFILE_DIR, 'profil_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload foto: ' . $upload_result['message']);
                 }
@@ -513,6 +514,25 @@ $flash = getFlash();
                     <label>Upload File STRV *</label>
                     <input type="file" name="file_strv" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
                     <small style="display: block; margin-top: 5px; color: #666;">PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Foto Anda dengan ketentuan : *
+                        <h4>Formal</h4>
+                        <h4>Menggunakan Sneli / Kemeja</h4>
+                        <h4>Background Polos</h4>
+                    </label>
+                    <input type="file" name="file_foto" accept=".jpg,.jpeg,.png,.webp,.svg" required>
+                    <small style="display: block; margin-top: 5px; color: #666;">JPG, PNG, WEBP, SVG (Max 5MB)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Kabupaten</label>
+                    <input type="text" name="kab" placeholder="Masukkan nama kabupaten asal Anda">
+                </div>
+                <div class="form-group">
+                    <label>Provinsi *</label>
+                    <input type="text" name="prov" placeholder="Masukkan nama provinsi asal Anda" required>
                 </div>
 
                 <div class="form-group">

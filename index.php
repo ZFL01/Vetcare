@@ -2,6 +2,10 @@
 // Start session at the very beginning to avoid header issues
 require_once __DIR__ . '/includes/DAO_user.php';
 require_once __DIR__ . '/includes/DAO_dokter.php';
+require_once __DIR__ . '/src/config/config.php';
+require_once __DIR__ . '/includes/DAO_Article.php';
+require_once __DIR__ . '/includes/DAO_others.php';
+require_once __DIR__ . '/includes/userService.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

@@ -9,9 +9,6 @@
  * 
  */
 $pageTitle = "Profil Dokter - VetCare";
-require_once __DIR__ . '/../header-dokter.php';
-require_once __DIR__ . '/../includes/DAO_dokter.php';
-require_once __DIR__ . '/../includes/DAO_artikel.php';
 
 // Require login
 requireLogin(true, 'profil');
@@ -40,7 +37,7 @@ if (isset($_POST['update_profile'])) {
 
     // Handle SIP file upload
     if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] == 0) {
-        $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR);
+        $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR, 'sip_');
         if ($upload_result['success']) {
             // Delete old file if exists
             if ($profil->getSIP() && file_exists(DOCUMENTS_DIR . $profil->getSIP())) {
@@ -52,7 +49,7 @@ if (isset($_POST['update_profile'])) {
 
     // Handle STRV file upload
     if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] == 0) {
-        $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR);
+        $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR, 'strv_');
         if ($upload_result['success']) {
             // Delete old file if exists
             if ($profil->getSIP() && file_exists(DOCUMENTS_DIR . $profil->getSIP())) {
@@ -77,6 +74,23 @@ if (isset($_POST['update_profile'])) {
         setFlash('success', 'Profil berhasil diperbarui!');
     } else {
         setFlash('error', $updateSuccess[1]);
+    }
+    header('Location: ' . BASE_URL . 'index.php?route=profil');
+    exit();
+}
+
+if(isset($_POST['update_kategori_submit'])){
+    $kategori = isset($_POST['kategori_ids']) ? $_POST['kategori_ids'] : [];
+    $dataKateg = [];
+    
+    foreach($kategori as $k){
+        $dataKateg[]= new DTO_kateg((int)$k);
+    }
+    $updateKategori = DAO_dokter::setKategDokter(true, $profil->getId(), $dataKateg);
+    if($updateKategori){
+        setFlash('success', 'Spesialisasi berhasil diperbarui!');
+    } else {
+        setFlash('error', 'Gagal memperbarui Spesialisasi!');
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
@@ -170,7 +184,7 @@ $flash = getFlash();
     <!-- Profile Header -->
     <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
         <div class="text-center">
-            <img src="<?php echo BASE_URL; ?>public/images/dokter/<?php echo $profil->getFoto() ?: 'default-profile.webp'; ?>"
+            <img src="<?php echo URL_FOTO . 'dokter-profil/' . ($profil->getFoto() ?: 'default-profile.webp'); ?>"
                 alt="Profile Photo" class="w-32 h-32 rounded-full object-cover border-4 border-primary mx-auto mb-6">
             <h1 class="text-3xl font-bold text-gray-800 mb-2"><?php echo htmlspecialchars($profil->getNama()); ?></h1>
             <p class="text-lg text-gray-600">
@@ -233,7 +247,7 @@ $flash = getFlash();
                 <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center">📸 Foto Profil</h3>
 
                 <div class="text-center mb-6">
-                    <img src="<?php echo BASE_URL; ?>public/images/dokter/<?php echo $profil->getFoto() ?: 'default-profile.webp'; ?>"
+                    <img src="<?php echo URL_FOTO . 'dokter-profil/' . ($profil->getFoto() ?: 'default-profile.webp'); ?>"
                         alt="Current Photo"
                         class="w-24 h-24 rounded-full object-cover border-4 border-primary mx-auto mb-4">
                 </div>
