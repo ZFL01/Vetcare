@@ -33,8 +33,10 @@ class DTO_dokter implements JsonSerializable
     private ?string $exp_strv = null; //admin dan dokter
     private ?string $sip = null; //dokter
     private ?string $exp_sip = null; //admin dan dokter
+    private ?string $pathSIP=null, $pathSTRV=null;
     private ?string $namaKlinik = null; //user dan dokter {single}
-    private ?string $alamat = null; //user, dokter, admin {single}
+    private ?string $kab = null; //user, dokter, admin {single}
+    private ?string $prov = null; //user, dokter, admin {single}
     private ?array $koor = null; //user dan dokter {single}
     private ?string $status=null;//dokter
 
@@ -45,7 +47,8 @@ class DTO_dokter implements JsonSerializable
         private ?int $pengalaman = null, //user, dokter
         private ?float $rate = null, //dokter, user
         private ?array $kategori = null, //dokter, user, admin
-        private ?array $jadwal = null //user, dokter
+        private ?array $jadwal = null, //user, dokter
+        private ?string $harga = null //dokter, user, admin
     ) {}
 
 
@@ -53,8 +56,12 @@ class DTO_dokter implements JsonSerializable
         if (isset($dat['strv'])) { 
         $this->strv = $dat['strv']; 
         }
+        if(isset($dat['kabupaten']) && isset($dat['provinsi'])){
+            $this->kab = $dat['kabupaten'];
+            $this->prov = $dat['provinsi'];
+        }
+
         $this->namaKlinik = $dat['nama_klinik'];
-        $this->alamat = $dat['alamat'];
         $this->koor = isset($dat['lat'], $dat['long'])
             ? [$dat['lat'], $dat['long']] : null;
     }
@@ -68,7 +75,10 @@ class DTO_dokter implements JsonSerializable
         $sip = null,
         $exp_sip = null,
         $foto = null,
-        $pengalaman = null
+        $pengalaman = null,
+        $kab = null,
+        $prov = null,
+        $harga = null
     ) {
         $this->id_dokter = $id;
         $this->nama = $nama;
@@ -79,6 +89,9 @@ class DTO_dokter implements JsonSerializable
         $this->exp_sip = $exp_sip;
         $this->foto = $foto;
         $this->pengalaman = $pengalaman;
+        $this->kab = $kab;
+        $this->prov = $prov;
+        $this->harga = $harga;
     }
 
     function setDoc($sip = null, $expSIP = null, $strv = null, $expSTRV = null)
@@ -88,13 +101,19 @@ class DTO_dokter implements JsonSerializable
         $this->strv = $strv;
         $this->exp_strv = $expSTRV;
     }
+    function setDocPath($pathSIP, $pathSTRV)
+    {
+        $this->pathSIP = $pathSIP;
+        $this->pathSTRV = $pathSTRV;
+    }
     function setTTL($ttl = null)
     {
         $this->ttl = $ttl;
     }
-    function setAlamat($alamat = null)
+    function setAlamat($kab = null, $prov = null)
     {
-        $this->alamat = $alamat;
+        $this->kab = $kab;
+        $this->prov = $prov;
     }
     function setStatus($status) { $this->status = $status; }
 
@@ -126,6 +145,14 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->exp_sip;
     }
+    function getPathSIP()
+    {
+        return $this->pathSIP;
+    }
+    function getPathSTRV()
+    {
+        return $this->pathSTRV;
+    }
     function getFoto()
     {
         return $this->foto;
@@ -150,9 +177,17 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->namaKlinik;
     }
-    function getAlamat()
+     function getKab()
     {
-        return $this->alamat;
+        return $this->kab;
+    }
+    function getProv()
+    {
+        return $this->prov;
+    }
+    function getHarga()
+    {
+        return $this->harga;
     }
     function getKoor()
     {
@@ -170,8 +205,10 @@ class DTO_dokter implements JsonSerializable
             'foto' => $this->foto, 'pengalaman' => $this->pengalaman,
             'rate' => $this->rate, 'kategori' => $this->kategori,
             'jadwal' => $this->jadwal, 'strv' => $this->strv,
-            'klinik' => $this->namaKlinik, 'alamat' => $this->alamat,
-            'koor' => $this->koor
+            'klinik' => $this->namaKlinik, 'kabupaten' => $this->kab,
+            'provinsi' => $this->prov,
+            'koor' => $this->koor,
+            'harga' => $this->harga
         ];
     }
 }
@@ -253,7 +290,8 @@ class DAO_dokter
             $dat['pengalaman'] ?? null,
             $dat['rate'],
             $kateg,
-            $jadwal
+            $jadwal,
+            $dat['harga'] ?? null
         );
         $obj->setDoc(
             $dat['sip'] ?? null,
@@ -263,7 +301,7 @@ class DAO_dokter
         ); //self dokter dan tabel admin
         //visualisasi data
         $obj->setTTL($dat['ttl'] ?? null);
-        $obj->setAlamat($dat['alamat'] ?? null);
+        $obj->setAlamat($dat['kabupaten'] ?? null, $dat['provinsi'] ?? null);
         return $obj;
     }
 
@@ -271,7 +309,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
             from m_dokter where status='aktif'";
 
             $stmt = $conn->prepare($queryDokter);
@@ -344,7 +382,7 @@ class DAO_dokter
             $stmt->execute([$data->getId()]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($hasil == null) {return null;}
-            $data->setDoc($hasil['path_sip'], $data->getExp_SIP(), $hasil['path_strv'], $data->getExp_STRV());
+            $data->setDocPath($hasil['path_sip'], $hasil['path_strv']);
             return true;
         }catch (PDOException $e) {
             error_log("[DAO_dokter::manageDokter] : " . $e->getMessage());
@@ -357,8 +395,7 @@ class DAO_dokter
         $conn = Database::getConnection();
         try {
             $queryDokter = "select d.id_dokter, d.nama_dokter, d.ttl, d.exp_strv,
-            d.exp_sip, l.alamat from m_dokter as d inner join m_lokasipraktik as l
-            on d.id_dokter=l.dokter";
+            d.exp_sip, d.kabupaten, d.provinsi from m_dokter as d";
 
             $stmt = $conn->prepare($queryDokter);
             $stmt->execute();
@@ -423,7 +460,8 @@ class DAO_dokter
             $kateg = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'],
-                $profil['foto'], $profil['pengalaman'], $profil['rate'], $kateg);
+                $profil['foto'], $profil['pengalaman'], $profil['rate'], $kateg, harga:$profil['harga']);
+            $dokter->setAlamat($profil['kabupaten'], $profil['provinsi']);
             $dokter->setDoc($profil['sip'], $profil['exp_sip'], $profil['strv'], $profil['exp_strv']);
             $dokter->setTTL($profil['ttl']);
             $dokter->setStatus($profil['status']);
@@ -466,7 +504,7 @@ class DAO_dokter
     static function getInfoDokter(DTO_dokter $dat) { //single user
         $conn = Database::getConnection();
         try {
-            $query = "select d.strv, loc.alamat, loc.lat, loc.long, loc.nama_klinik
+            $query = "select d.strv, loc.lat, loc.long, loc.nama_klinik
             from m_dokter as d inner join m_lokasipraktik as loc
             on d.id_dokter = loc.dokter where d.id_dokter = ?";
 
@@ -494,8 +532,10 @@ class DAO_dokter
                     nama_dokter, 
                     ttl, 
                     foto, 
-                    pengalaman 
-                  ) VALUES (?, ?, ?, ?, ?)";
+                    pengalaman,
+                    kabupaten,
+                    provinsi 
+                  ) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $sqlDocuments = "insert into m_doc_dokter (id_dokter, path_sip, path_strv) values (?,?,?)";
         $paramDoc = [
             $data->getId(),
@@ -507,9 +547,11 @@ class DAO_dokter
         $params = [
             $data->getId(),          // 1. id_dokter
             $data->getNama(),        // 2. nama_dokter
-            $data->getTTL(),         // 3. ttl
+            date('Y-m-d', strtotime($data->getTTL())),         // 3. ttl
             $data->getFoto(),        // 4. foto
             $data->getPengalaman(),  // 5. pengalaman
+            $data->getKab(), // 6. kabupaten
+            $data->getProv()   // 7. provinsi
         ];
 
         try {
@@ -604,18 +646,18 @@ class DAO_dokter
         $lat = $koor[0];
         $long = $koor[1];
         $conn = Database::getConnection();
-        $sql = "insert into m_lokasipraktik values (" . $data->getId() . ",?,?,?,?)";
+        $sql = "insert into m_lokasipraktik values (" . $data->getId() . ",?,?,?)";
         if ($update) {
             $sql = "update m_lokasipraktik set nama_klinik=?,
-            alamat=?, lat=?, long=? where dokter= " . $data->getId();
+            lat=?, long=? where dokter= " . $data->getId();
         }
         try {
-            if ($data->getNamaKlinik() === null && $data->getAlamat() === null) {
+            if ($data->getNamaKlinik() === null) {
                 $stmt = $conn->prepare("delete from m_lokasipraktik where dokter=?");
                 return $stmt->execute([$data->getId()]);
             }
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$data->getNamaKlinik(), $data->getAlamat(), $lat, $long]);
+            return $stmt->execute([$data->getNamaKlinik(), $lat, $long]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage());
             return false;
@@ -636,12 +678,13 @@ class DAO_dokter
             ]);
         } catch (PDOException $e) {
             error_log("DAO_dokter::updateDocument: " . $e->getMessage());
-            return false;
+            return [false, $e->getMessage()];
         }
     }
+    
     static function updateDokter(int $idDokter, DTO_dokter $data, $status, bool $admin=false){
         $conn = Database::getConnection();
-        $sqlDokter = "update m_dokter set nama_dokter =?, ttl=?, pengalaman=? where id_dokter=?";
+        $sqlDokter = "update m_dokter set nama_dokter =?, ttl=?, pengalaman=?, kabupaten=?, provinsi=?, harga=? where id_dokter=?";
         $sqlAdmin = "update m_dokter set strv=?, exp_strv=?, sip=?, exp_sip=?, status=? where id_dokter=?";
 
         try {
@@ -659,14 +702,17 @@ class DAO_dokter
                 $stmt = $conn->prepare($sqlDokter);
                 return $stmt->execute([
                     $data->getNama(),
-                    $data->getTTL(),
+                    date('Y-m-d', strtotime($data->getTTL())),
                     $data->getPengalaman(),
+                    $data->getKab(),
+                    $data->getProv(),
+                    $data->getHarga(),
                     $idDokter
                 ]);
             }
         } catch (PDOException $e) {
             error_log("DAO_dokter::updateDokter {admin = $admin}: " . $e->getMessage());
-            return false;
+            return [false, $e->getMessage()];
         }
     }
 

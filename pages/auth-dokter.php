@@ -131,9 +131,11 @@ if (isset($_POST['register2'])) {
     $ttl = $_POST['ttl'] ?? '';
     $pengalaman = intval($_POST['pengalaman'] ?? 0);
     $kategori_ids = $_POST['kategori'] ?? [];
+    $kab = clean($_POST['kab'] ?? '');
+    $prov = clean($_POST['prov'] ?? '');
 
-    if (empty($nama) || empty($ttl) || empty($kategori_ids)) {
-        setFlash('error', 'Nama, tanggal lahir, dan kategori harus diisi!');
+    if (empty($nama) || empty($ttl) || empty($kategori_ids) || empty($kab) || empty($prov)) {
+        setFlash('error', 'Semua field harus diisi!');
     } else {
         try {
             // Upload SIP file
@@ -173,17 +175,19 @@ if (isset($_POST['register2'])) {
             }
 
             // Create DTO_dokter object
-            $objDokter = new DTO_dokter($id_user, $nama);
+            $objDokter = new DTO_dokter($id_user);
             $objDokter->upsertDokter(
                 $id_user,
                 $nama,
                 $ttl,
-                'PENDING',  // strv - placeholder, admin akan update
+                $file_strv_name,
                 null,  // exp_strv - nullable, admin akan update
-                'PENDING',  // sip - placeholder, admin akan update
+                $file_sip_name,
                 null,  // exp_sip - nullable, admin akan update
                 $foto_name ?? 'default-profile.jpg',
-                $pengalaman
+                $pengalaman,
+                $kab,
+                $prov,
             );
             $objDokter->setStatus('nonaktif'); // Default status untuk tunggu approval admin
 

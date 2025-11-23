@@ -27,7 +27,7 @@ if ($baseDir === '/' || $baseDir === '\\') {
     $baseUrlPath = $baseDir;
 }
 $baseUrlPath = rtrim($baseUrlPath, '/\\');
-$dynamicBaseUrl = $protocol . $host . $baseUrlPath;
+$dynamicBaseUrl = $protocol . $host . $baseUrlPath . '/';
 
 // Base URL
 define('BASE_URL', $dynamicBaseUrl);
@@ -124,6 +124,12 @@ function clean($data) {
 /**
  * Format tanggal Indonesia
  */
+
+function formatRupiah($angka) {
+    $rupiah = 'Rp' . number_format($angka, 0, ',', '.');
+    return $rupiah;
+}
+
 function formatTanggal($date, $format = 'd M Y') {
     $bulan = [
         1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
