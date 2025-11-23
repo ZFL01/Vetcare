@@ -86,7 +86,7 @@ DROP TABLE IF EXISTS `m_artikel`;
 CREATE TABLE IF NOT EXISTS `m_artikel` (
   `id_artikel` int NOT NULL AUTO_INCREMENT,
   `judul` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `preview` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
+  `preview` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `isi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `referensi` varchar(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `author` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
@@ -187,6 +187,14 @@ CREATE TABLE IF NOT EXISTS `m_hpraktik` (
   CONSTRAINT `FK_dokter` FOREIGN KEY (`id_dokter`) REFERENCES `m_dokter` (`id_dokter`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `m_hpraktik`
+--
+
+INSERT INTO `m_hpraktik` (`id_dokter`, `hari`, `buka`, `tutup`) VALUES
+(1, 'Minggu', '16:45:00', '07:30:00'),
+(1, 'Rabu', '09:00:00', '14:50:00');
+
 -- Membuang data untuk tabel klinikh.m_hpraktik: ~0 rows (lebih kurang)
 
 -- membuang struktur untuk table klinikh.m_kategori
@@ -225,7 +233,7 @@ CREATE TABLE IF NOT EXISTS `m_pengguna` (
   `id_pengguna` int NOT NULL AUTO_INCREMENT,
   `email` varchar(75) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `pass` char(97) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `role` enum('Admin','Dokter','Member') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `role` enum('Admin','Dokter','Member') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT (now()),
   `reset_token` char(6) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `exp_token` timestamp NULL DEFAULT NULL,

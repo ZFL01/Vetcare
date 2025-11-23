@@ -185,8 +185,7 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->prov;
     }
-    function getHarga()
-    {
+    function getHarga(){
         return $this->harga;
     }
     function getKoor()
@@ -309,6 +308,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga";
             $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
             from m_dokter where status='aktif'";
 

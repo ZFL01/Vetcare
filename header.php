@@ -1,6 +1,9 @@
   <?php
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
+
+// Include config to get GOOGLE_MAPS_API_KEY and other constants
+require_once __DIR__ . '/src/config/config.php';
 ?>
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-card">
     <div class="container mx-auto px-4">
