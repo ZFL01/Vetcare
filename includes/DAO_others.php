@@ -1,5 +1,6 @@
 <?php
 include_once 'database.php';
+require_once 'userService.php';
 
 class Location{
 
@@ -10,21 +11,6 @@ class Location{
     function getLocation(){return $this->location;}
     function getId_User(){return $this->id_User;}
     function getTime(){return $this->time;}
-}
-
-function censorEmail(string $email){
-    $atpos = strpos($email, '@');
-    if($atpos <= 2)return $email;
-    
-    $uName = substr($email, 0, $atpos);
-    $domain = substr($email, $atpos);
-    
-    $vis = min(2, strlen($uName)-1);
-    $start = substr($uName, 0, $vis);
-    $mask = (strlen($uName) -1) - $vis;
-    $masked = str_repeat('*', $mask);
-
-    return $start . $masked . $domain;
 }
 
 class DTO_chat{

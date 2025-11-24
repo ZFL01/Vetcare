@@ -3,6 +3,35 @@ require_once 'DAO_user.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+enum index_email:string{
+    case Forgot = 'Forgot Password';
+    case ChangePass = 'Change Password';
+    case Verify = 'Verify Account';
+}
+
+function censorEmail(string $email){
+    $atpos = strpos($email, '@');
+    if($atpos <= 2)return $email;
+    
+    $uName = substr($email, 0, $atpos);
+    $domain = substr($email, $atpos);
+    $uNameLength = strlen($uName);
+    
+    $vis = min(3, $uNameLength-1);
+    if ($vis < 1) {
+        $vis = 1; 
+    }
+    $start = substr($uName, 0, $vis);
+    $end = substr($uName, -2);
+    $mask = $uNameLength - $vis - 2;
+    if($mask < 1){
+        $mask = 1;
+    }
+    $masked = str_repeat('*', $mask);
+
+    return $start . $masked . $end . $domain;
+}
+
 class userService{ //account service
     private static function hashPass(string $pass){
         return password_hash($pass, PASSWORD_ARGON2ID);
@@ -39,7 +68,7 @@ class userService{ //account service
         }else{return [false, "Email atau password salah!"];}
     }
 
-    static function forgetPass(DTO_pengguna $data){
+    static function sendEmail(DTO_pengguna $data, index_email $index){
         $email=$data->getEmail();
         $cek = DAO_pengguna::getUserEmail($email);
         if(!$cek[0]){return $cek;}
@@ -49,24 +78,27 @@ class userService{ //account service
         $update = DAO_pengguna::updateResetToken($email, $token,$expTime);
 
         if(!$update[0]){return $update;}
-        return self::sendEmailverify($email);
+        return self::sendEmailverify($email, $token, $index->value);
     }
 
-    private static function sendEmailverify(string $recipientEmail){
+    private static function sendEmailverify(string $recipientEmail, string $token, string $judul){
         $mail = new PHPMailer(true);
         try{
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'svenhikari@gmail.com';
-            $mail->Password = 'aghu ecip kllk jmro';
+            $mail->Password = 'adgr jymt rqmf qkdv';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port = 465;
 
-            $mail->setFrom('svenhikari@gmail.com', 'reset');
+            $mail->setFrom('svenhikari@gmail.com', $judul);
             $mail->addAddress($recipientEmail);
-            $mail->Subject = 'OTP';
-            $mail->Body = "Kode OTP mu 777";
+            $mail->Subject = $judul;
+            $mail->isHTML(true);
+            $mail->Body = "<h3 style='text-align: center'>Kode OTP mu adalah : <h3> <br><br>";
+            $mail->Body .=" <br><div style='text-align: center'><h1><b>".$token . "</b></h1></div><br><br>";
+            $mail->Body .=" <br>Kode ini hanya berlaku selama 15 menit. <br>Jika Anda tidak merasa melakukan ini, silahkan hubungi Admin";
 
             if($mail->send()){
                 return [true];
@@ -91,9 +123,10 @@ class userService{ //account service
         }
         $hashPass = self::hashPass($data->getPass());
         $success = DAO_pengguna::resetPass($data->getEmail(), $hashPass);
-        if(!$success){return $success;}
+        if(!$success[0]){return $success;}
 
         $data->setNewPass(null);
+        return [true];
     }
 }
 ?>

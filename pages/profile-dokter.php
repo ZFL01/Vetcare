@@ -78,8 +78,7 @@ if (isset($_POST['update_profile'])) {
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
 }
-
-if(isset($_POST['update_kategori_submit'])){
+elseif(isset($_POST['update_kategori_submit'])){
     $kategori = isset($_POST['kategori_ids']) ? $_POST['kategori_ids'] : [];
     $dataKateg = [];
     
@@ -94,6 +93,26 @@ if(isset($_POST['update_kategori_submit'])){
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
+}
+elseif($action === 'verify_pass'){
+    if(empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttpRequest'){
+        http_response_code(403);
+        exit();
+    }
+    $pass = $_POST['password']??'';
+    header('Content-Type: application/json');
+    if(!$pass){
+        echo json_encode(['success'=>false, 'message'=>'Password tidak boleh kosong']);
+        exit();
+    }
+    $currentDokter->setNewPass($pass);
+    if(userService::login($currentDokter)){
+        echo json_encode(['success'=>true, 'message'=>'Anda bisa melanjutkan perubahan Password']);
+        exit();
+    }else{
+        echo json_encode(['success'=>false, 'message'=>'Password salah']);
+        exit();
+    }
 }
 
 // Get statistics
@@ -232,7 +251,7 @@ $flash = getFlash();
             </button>
         </div>
         <?php if ($flash): ?>
-                    <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>">
+                    <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>" style='text-align:center'>
                         <span><?php echo $flash['type'] == 'error' ? '❌' : '✅'; ?></span>
                         <?php echo $flash['message']; ?>
                     </div>
@@ -482,14 +501,13 @@ $flash = getFlash();
 </main>
 
 <!-- Email Verification Modal -->
-<div id="emailVerificationModal" class="modal">
+<div id="passwordVerif" class="modal">
     <div class="modal-content">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">✉️ Verifikasi Email</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">✉️ Verifikasi</h2>
         <form id="emailVerificationForm" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input type="email" id="verifyEmail" value="<?php echo htmlspecialchars($dokter['email']); ?>"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary" readonly>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Masukkan Password Anda</label>
+                <input type="password" id="verifyPass" name="password" required>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Kode Verifikasi</label>
@@ -613,12 +631,6 @@ $flash = getFlash();
 
     // Switch Tabs
     function switchTab(tabName) {
-        // Special handling for jadwal tab - redirect to jadwal page
-        if (tabName === 'jadwal') {
-            window.location.href = '<?php echo BASE_URL; ?>pages/jadwal-dokter.php';
-            return;
-        }
-
         // Hide all content sections
         const contents = ['data-diri', 'jadwal', 'kategori'];
         contents.forEach(content => {
@@ -639,22 +651,52 @@ $flash = getFlash();
     }
 
     // Email Verification Modal
-    function openEmailVerificationModal() {
-        document.getElementById('emailVerificationModal').classList.add('active');
+    function cekPass() {
+        document.getElementById('passwordVerif').classList.add('active');
     }
 
-    function closeEmailVerificationModal() {
-        document.getElementById('emailVerificationModal').classList.remove('active');
-    }
-
-    function sendVerificationCode() {
-        alert('Kode verifikasi telah dikirim ke email Anda!');
+    function closePassVerif() {
+        document.getElementById('passwordVerif').classList.remove('active');
     }
 
     document.getElementById('emailVerificationForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        alert('Email berhasil diverifikasi!');
-        closeEmailVerificationModal();
+        
+        const verifPass = document.getElementById('verifyPass').value;
+
+        if(!verifPass){
+            alert('Masukkan password!');
+            return;
+        }
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifikasi...';
+
+        fetch('?route=profil&action=verify_pass', {
+            method: 'POST',
+            headers{
+            'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                password: verifyPass
+            })
+        }).then(response => response.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Vertifikasi';
+
+            if(data.success){
+                alert(data.message);
+                closePassVerif();
+            }else{
+                alert('Verifikasi gagal:'+data.message);
+            }
+        }).catch(error =>{
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Vertifikasi';
+            console.error('Error:', error);
+            alert('Terjadi kesalahan koneksi');
+        })
     });
 
     // Change Password Modal

@@ -1,4 +1,7 @@
   <?php
+  if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 
@@ -138,7 +141,7 @@ require_once __DIR__ . '/src/config/config.php';
                 </button>
 
                 <div class="px-4 pt-4 border-t border-purple-200 space-y-3">
-                    <?php if (isset($_SESSION['user'])): ?>
+                    <?php if (isset($_SESSION['user'])){ ?>
                         <button onclick="navigateTo('?route=dashboard'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
                             <span class="mr-2">👤</span>
                             Dashboard
@@ -147,16 +150,16 @@ require_once __DIR__ . '/src/config/config.php';
                             <span class="mr-2">🚪</span>
                             Keluar
                         </button>
-                    <?php else: ?>
-                        <button onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
+                    <?php }else{ ?>
+                        <button id='auth' onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
                             <span class="mr-2">👤</span>
                             Masuk
                         </button>
-                        <button onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button id="auth" onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">✨</span>
                             Daftar Sekarang
                         </button>
-                    <?php endif; ?> 
+                    <?php } ?> 
                 </div>
             </nav>
         </div>

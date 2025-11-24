@@ -384,6 +384,7 @@ $flash = getFlash();
         }
 
         .alert {
+            text-align: center;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
