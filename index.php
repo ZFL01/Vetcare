@@ -50,11 +50,6 @@ switch ($route) {
         $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
         $contentFile = 'pages/dashboard_dokter.php';
         break;
-    case 'pilih-kategori':
-        $pageTitle = 'Pilih Kategori Hewan - VetCare';
-        $pageDescription = 'Pilih kategori hewan yang ingin Anda konsultasikan';
-        $contentFile = 'pages/pilih-kategori.php';
-        break;
     case 'pilih-dokter':
         $pageTitle = 'Pilih Dokter - VetCare';
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
@@ -75,6 +70,11 @@ switch ($route) {
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
         break;
+    case 'profil':
+        $pageTitle = 'Profil - VetCare';
+        $pageDescription = 'Lihat dan perbarui informasi profil Anda';
+        $contentFile = 'pages/profile-dokter.php';
+        break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
     case '/':
@@ -91,6 +91,7 @@ switch ($route) {
 // Output content
 if (isset($noHeaderFooter) && $noHeaderFooter) {
     if (file_exists($contentFile)) {
+        error_log($contentFile);
         if(!$ajaxLoad){
             include 'base.php';
         }

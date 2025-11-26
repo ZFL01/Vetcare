@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 6.0.0-dev+20251111.102c4d8cbc
+-- version 6.0.0-dev+20251031.ff9df302b7
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 21, 2025 at 09:50 PM
+-- Generation Time: Nov 23, 2025 at 04:51 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.26
 
@@ -137,6 +137,13 @@ CREATE TABLE `m_doc_dokter` (
   `path_strv` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `m_doc_dokter`
+--
+
+INSERT INTO `m_doc_dokter` (`id_dokter`, `path_sip`, `path_strv`) VALUES
+(25, '2026', '2026');
+
 -- --------------------------------------------------------
 
 --
@@ -163,8 +170,8 @@ CREATE TABLE `m_dokter` (
 --
 
 INSERT INTO `m_dokter` (`id_dokter`, `nama_dokter`, `ttl`, `strv`, `exp_strv`, `sip`, `exp_sip`, `foto`, `pengalaman`, `rate`, `status`, `harga`) VALUES
-(1, 'Slamet', '1995-10-09', '79snkdua', '2025-10-09', 'ra4456112', '2031-10-09', NULL, '2002', 1.00, 'aktif', 999999),
-(25, 'hai', '1999-11-15', '67839jd', '2025-11-29', '6278ejk', '2025-12-06', NULL, '2020', 1.00, 'aktif', 999999);
+(1, 'Slamet', '1995-10-09', '79snkdua', '2025-10-09', 'ra4456112', '2031-10-09', NULL, '2002', 1.00, 'aktif', NULL),
+(25, 'hai', '1999-11-15', '67839jd', '2028-11-15', '6278ejk', '2030-11-15', NULL, '2020', 1.00, 'aktif', NULL);
 
 -- --------------------------------------------------------
 
@@ -178,14 +185,6 @@ CREATE TABLE `m_hpraktik` (
   `buka` time DEFAULT NULL,
   `tutup` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `m_hpraktik`
---
-
-INSERT INTO `m_hpraktik` (`id_dokter`, `hari`, `buka`, `tutup`) VALUES
-(1, 'Minggu', '16:45:00', '07:30:00'),
-(1, 'Rabu', '09:00:00', '14:50:00');
 
 -- --------------------------------------------------------
 
@@ -225,13 +224,6 @@ CREATE TABLE `m_lokasipraktik` (
   `long` decimal(11,8) NOT NULL DEFAULT (0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `m_lokasipraktik`
---
-
-INSERT INTO `m_lokasipraktik` (`dokter`, `nama_klinik`, `alamat`, `lat`, `long`) VALUES
-(1, 'Jati Mulnoyo pet care', 'Jl. slamet indeks 10', 35.74985592, 139.66855280);
-
 -- --------------------------------------------------------
 
 --
@@ -259,8 +251,7 @@ INSERT INTO `m_pengguna` (`id_pengguna`, `email`, `pass`, `role`, `created`, `re
 (25, 'akunbbersama@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$UjNRLlhBYkRPNGlDUXltdA$3dusYKj8nzEfYwSWSZ/bSKaImdBsrX0dBRvDxsK3tRs', 'Dokter', '2025-11-15 04:43:13', NULL, NULL),
 (27, 'akunbaru@ak.com', '$argon2id$v=19$m=65536,t=4,p=1$UmY3TGxMNDhUZWY2a1VsaA$VPXcWLz9mnnULNMMOiJUHEHoUdgStErPA9ovq2p2JK0', 'Dokter', '2025-11-15 05:53:33', NULL, NULL),
 (28, 'ohiyakah@mail.co', '$argon2id$v=19$m=65536,t=4,p=1$YWs3V1VUVHVVMW1zeTAxRQ$5ZExeTBmGfDPVF/MEPSI8MAISXcDqHUGiUedyNX5HTs', 'Member', '2025-11-15 06:06:25', NULL, NULL),
-(29, 'user@user.com', '$argon2id$v=19$m=65536,t=4,p=1$WWF1am9xWjFkS0hlSi5OUQ$oT1jN7/1rLWYiqQf9F+aYm/6vewnQYD0Hz8hWfTj5eo', 'Member', '2025-11-17 11:37:31', NULL, NULL),
-(30, 'darah@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$OHBoSWR4aXJhOG00ZUNJTA$qIUCnhZyklfW7mmYt6I09pwtRhALMAz1P/RUgoQamEc', 'Dokter', '2025-11-18 07:54:06', NULL, NULL);
+(29, 'user@user.com', '$argon2id$v=19$m=65536,t=4,p=1$WWF1am9xWjFkS0hlSi5OUQ$oT1jN7/1rLWYiqQf9F+aYm/6vewnQYD0Hz8hWfTj5eo', 'Member', '2025-11-17 11:37:31', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -457,7 +448,7 @@ ALTER TABLE `m_kategori`
 -- AUTO_INCREMENT for table `m_pengguna`
 --
 ALTER TABLE `m_pengguna`
-  MODIFY `id_pengguna` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id_pengguna` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `m_tag`

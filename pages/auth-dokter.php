@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/userService.php';
 
@@ -28,8 +29,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'cancel_registration') {
 
 $pageTitle = "Login Dokter - VetCare";
 require_once __DIR__ . '/../src/config/config.php';
-
-requireGuest();
 
 $show_login_form = true;
 $show_register1_form = false;
@@ -70,6 +69,7 @@ if (isset($_POST['login'])) {
             $objDokter = DAO_dokter::getProfilDokter($objUser, true);
             if ($objDokter) {
                 $_SESSION['dokter'] = $objDokter;
+                previousPage();
                 setFlash('success', 'Login berhasil! Selamat datang, Dr. ' . $objDokter->getNama());
                 header('Location: ' . BASE_URL . '?route=dashboard-dokter');
                 exit();

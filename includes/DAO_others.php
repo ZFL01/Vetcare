@@ -1,5 +1,50 @@
 <?php
 include_once 'database.php';
+
+class Location{
+
+    function __construct(private ?int $idLocation=null, private ?array $coor=null,
+    private ?array $location=null, private ?int $id_User=null, private ?int $time=null){}
+    function getIdLocation(){return $this->idLocation;}
+    function getCoor(){return $this->coor;}
+    function getLocation(){return $this->location;}
+    function getId_User(){return $this->id_User;}
+    function getTime(){return $this->time;}
+}
+
+function censorEmail(string $email){
+    $atpos = strpos($email, '@');
+    if($atpos <= 2)return $email;
+    
+    $uName = substr($email, 0, $atpos);
+    $domain = substr($email, $atpos);
+    
+    $vis = min(2, strlen($uName)-1);
+    $start = substr($uName, 0, $vis);
+    $mask = (strlen($uName) -1) - $vis;
+    $masked = str_repeat('*', $mask);
+
+    return $start . $masked . $domain;
+}
+
+class DTO_chat{
+    function __construct(
+        private ?int $idChat=null,
+        private ?int $idUser=null,
+        private ?int $idDokter=null,
+        private ?string $email=null,
+        private ?string $namaDokter=null,
+        private ?string $waktuSelesai=null,
+        private ?string $waktuMulai=null,
+        ){}
+    function getIdChat(){return $this->idChat;}
+    function getIdUser(){return $this->idUser;}
+    function getIdDokter(){return $this->idDokter;}
+    function getEmail(){return censorEmail($this->email);}
+    function getNamaDokter(){return $this->namaDokter;}
+    function getWaktuSelesai(){return $this->waktuSelesai;}
+    function getWaktuMulai(){return $this->waktuMulai;}
+}
 class DTO_Tag implements JsonSerializable{
     private ?int $idTag=null;
     private ?string $tag=null;
@@ -23,17 +68,17 @@ class DTO_tanyajawab{
     private string $user, $dokter, $judul, $pertanyaan,
     $jawaban, $status, $dibuat, $tglJawab;   
 
-    function forPreview($idtanya, $user, $judul, $destanya, $dibuat, $status, $tag){
-        $this->idTanya=$idtanya; $this->user=$user;
-        $this->judul=$judul; $this->pertanyaan=$destanya;
+    function forPreview($idtanya, $user, $judul, $destanya, $dibuat, $status, $tag=null){
+        $this->idTanya=$idtanya; $this->judul=$judul; $this->pertanyaan=$destanya;
         $this->dibuat=$dibuat; $this->status=$status; $this->tag=$tag;
+        $this->user=$user;
     }
-    function forShowAnswer($dokter, $jwaban, $publish, $destanya){
-        $this->dokter=$dokter; $this->jawaban=$jwaban; $this->tglJawab=$publish;
+    function forShowAnswer($dokter, $idDokter, $jwaban, $publish, $destanya){
+        $this->dokter=$dokter; $this->idDokter=$idDokter; $this->jawaban=$jwaban; $this->tglJawab=$publish;
         $this->pertanyaan=$destanya;
     }
     function forCreateAsk(DTO_pengguna $user, string $judul, string $deskripsi, int $tag){
-        $this->idUser=$user->getIdUser(); $this->user=$user->getEmail();
+        $this->idUser=$user->getIdUser(); $this->user=censorEmail($user->getEmail());
         $this->judul=$judul; $this->pertanyaan=$deskripsi; $this->Tag=$tag;
     }
     function forAnswering(DTO_dokter $dokter, DTO_tanyajawab $tanya, $isi){
@@ -53,6 +98,47 @@ class DTO_tanyajawab{
     function getCreated(){return $this->dibuat;}
     function getTag(): mixed{return $this->Tag;}
     function getTglJawab(){return $this->tglJawab;}
+}
+
+class DAO_location{
+    static function getAllLocation(){
+        $conn = Database::getConnection();
+        $sql = 'select * from log_location';
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute();
+            $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return [];}
+            $dto = [];
+            foreach($hasil as $dat){
+                $obj=new Location($dat['id'], $dat['koor'], [$dat['kabupaten'], $dat['provinsi']], $dat['id_user'], $dat['timestamp']);
+                $dto[]=$obj;
+            }
+            return $dto;
+        }catch(PDOException $e){
+            error_log("[DAO_location::getAllLocation]: ".$e->getMessage());
+            return [];
+        }
+    }
+    static function insertLocation(Location $loc){
+        $conn=Database::getConnection();
+        $sql="insert into log_location (koor, kabupaten, provinsi, timestamp, id_user) values (?, ?, ?, ?, ?)";
+        $params = [$loc->getCoor(), $loc->getLocation()[0], $loc->getLocation()[1], $loc->getTime(), $loc->getId_User()];
+        $ada = !empty($loc->getIdLocation());
+
+        if($ada){
+            $sql = 'update log_location set id_user=? where id=?';
+            $params = [$loc->getId_User(), $loc->getIdLocation()];
+        }
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute($params);
+            return $ada ? true : $conn->lastInsertId();
+        }catch(PDOException $e){
+            error_log("[DAO_location::insertLocation]: ".$e->getMessage());
+            return false;
+        }
+    }
 }
 
 class DAO_Tag{
@@ -155,19 +241,24 @@ class DAO_Tanya{
         }
     }
 
-    static function showAnswer(DTO_tanyajawab $dat){
+    static function showAnswer(int $dat){
         $conn=Database::getConnection();
-        $sql="select j.nama_dokter, j.isi, j.publish, t.pertanyaan
+        $sql="select t.penanya, t.judul, t.dibuat, t.status, j.id_dokter, j.nama_dokter, j.isi, j.publish, t.pertanyaan
         from jwb_dokter as j join tr_tanya as t on j.id_tanya=t.id_tanya
         where j.id_tanya=?";
         try{
             $stmt=$conn->prepare($sql);
-            $stmt->execute([$dat->getIdTanya()]);
+            $stmt->execute([$dat]);
             $hasil=$stmt->fetch(PDO::FETCH_ASSOC);
             if(empty($hasil)){return false;}
-            $dat->forShowAnswer($hasil['nama_dokter'], $hasil['isi'],
+            
+            $obj = new DTO_tanyajawab();
+            $obj->forPreview($dat, $hasil['penanya'], $hasil['judul'], 
+            $hasil['pertanyaan'], $hasil['dibuat'], $hasil['status']);
+
+            $obj->forShowAnswer($hasil['nama_dokter'], $hasil['id_dokter'], $hasil['isi'],
             $hasil['publish'], $hasil['pertanyaan']);
-            return true;
+            return $obj;
         }catch(PDOException $e){
             error_log("[DAO_others::showAnswer]: ".$e->getMessage());
             return false;
@@ -200,6 +291,74 @@ class DAO_Tanya{
 }
 
 class DAO_chat{
+    static function getAllChats(?int $idUser=null, ?int $idDokter=null){
+        $conn=Database::getConnection();
+        $sql = "";
+        $param = [];
+        if($idUser){
+            $sql="SELECT T1.id_chat, T1.id_dokter, D.nama AS nama_dokter, L.end AS waktu_selesai, T1.paid_at AS waktu_mulai_terbaru
+            FROM tr_transaksi T1
+            JOIN (
+                SELECT dokter_id, MAX(paid_at) AS waktu_terbaru 
+                FROM tr_transaksi 
+                WHERE user_id = ? GROUP BY dokter_id
+            ) T2 ON T1.dokter_id = T2.dokter_id AND T1.paid_at = T2.waktu_terbaru
+            LEFT JOIN log_rating L ON T1.id_chat = L.id_chat
+            JOIN m_dokter D ON T1.id_dokter = D.id_dokter
+            WHERE T1.user_id = ?
+            ORDER BY T1.paid_at DESC;";
+            $param = [$idUser, $idUser];
+        }elseif($idDokter){
+            $sql="SELECT 
+                T1.id_chat, 
+                T1.user_id, 
+                U.email AS user_email,
+                L.end AS waktu_selesai, 
+                T1.paid_at AS waktu_mulai_terbaru
+            FROM tr_transaksi T1
+            JOIN (
+                SELECT user_id, MAX(paid_at) AS waktu_terbaru 
+                FROM tr_transaksi 
+                WHERE dokter_id = ? GROUP BY user_id
+            ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
+            LEFT JOIN log_rating L ON T1.id_chat = L.id_chat
+            JOIN m_pengguna U ON T1.user_id = U.id_pengguna
+            WHERE T1.dokter_id = ?
+            ORDER BY T1.paid_at DESC;";
+            $param = [$idDokter, $idDokter];
+        }else{
+            return [];
+        }
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute($param);
+            $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return [];}
+            $dto = [];
+            foreach($hasil as $dat){
+                if($idUser){
+                    $obj=new DTO_chat(
+                        $dat['idChat'],
+                        namaDokter: $dat['nama_dokter'],
+                        waktuSelesai: $dat['waktu_selesai'],
+                        waktuMulai: $dat['waktu_mulai_terbaru'],
+                    );
+                }else{
+                    $obj=new DTO_chat(
+                        $dat['idChat'],
+                        email: $dat['email'],
+                        waktuSelesai: $dat['waktu_selesai'],
+                        waktuMulai: $dat['waktu_mulai_terbaru'],
+                    );
+                }
+                $dto[]=$obj;
+            }
+            return $dto;
+        }catch(PDOException $e){
+            error_log("[DAO_chat::getAllChats]: ".$e->getMessage());
+            return [];
+        }
+    }
     static function getRating(int $idDokter){
         $conn=Database::getConnection();
         $sql="select count(*) as total, sum(`liked?`) as suka from log_rating
@@ -220,6 +379,18 @@ class DAO_chat{
         try{
             $stmt=$conn->prepare($sql);
             return $stmt->execute([$idChat, $user->getIdUser(), $dokter->getId(), $liked]);
+        }catch(PDOException $e){
+            error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
+            return false;
+        }
+    }
+
+    static function updateLogMessage($idChat, bool $liked=true){
+        $conn=Database::getConnection();
+        $sql="update log_rating set `end`=now(), `liked?`=? where idChat=?";
+        try{
+            $stmt=$conn->prepare($sql);
+            return $stmt->execute([$liked, $idChat]);
         }catch(PDOException $e){
             error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
             return false;
