@@ -716,18 +716,20 @@ class DAO_dokter
         $sql = "insert into m_lokasipraktik values (" . $data->getId() . ",?,?,?)";
         if ($update) {
             $sql = "update m_lokasipraktik set nama_klinik=?,
-            lat=?, long=? where dokter= " . $data->getId();
+            lat=?, `long`=? where dokter= " . $data->getId();
         }
         try {
             if ($nKlinik === null) {
                 $stmt = $conn->prepare("delete from m_lokasipraktik where dokter=?");
-                return $stmt->execute([$data->getId()]);
+                $hasil= $stmt->execute([$data->getId()]);
+                return [$hasil, 'hapus'];
             }
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$nKlinik, $lat, $long]);
+            $hasil = $stmt->execute([$nKlinik, $lat, $long]);
+            return [$hasil, 'update/insert'];
         } catch (PDOException $e) {
             error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage());
-            return false;
+            return [false, "error saat {$update} : ". $e->getMessage()];
         }
     }
 
