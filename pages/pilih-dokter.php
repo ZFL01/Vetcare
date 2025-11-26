@@ -116,22 +116,12 @@ $assetVersion = time();
   </div>
 </div>
 
-<!-- Include Konsultasi Form Modal -->
-<?php require_once __DIR__ . '/konsultasi-form.php'; ?>
-
 <data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
 <data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
 
-<!-- expose API key to JS (set in src/config/config.php) -->
-<script>
-  window.GOOGLE_MAPS_API_KEY = '<?php echo GOOGLE_MAPS_API_KEY; ?>';
-  // Set base path for API calls
-  window.API_BASE_URL = '/Vetcare/controller/';
-</script>
-<script src="<?php echo htmlspecialchars('/Vetcare/controller/doctor_map.js?v=' . $assetVersion); ?>"></script>
-<script src="<?php echo htmlspecialchars('/Vetcare/controller/pilih_dokter.js?v=' . $assetVersion); ?>"></script>
+<script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
 
-<style>  
+<style>
   .shadow-card {
     box-shadow: 0 10px 30px rgba(150, 100, 200, 0.08);
   }
@@ -143,8 +133,12 @@ $assetVersion = time();
 
   /* Styling untuk radio kategori - menggunakan Tailwind peer utility */
   .category-radio:checked+span {
-    background-color: #9333ea;
-    color: white;
-    border-color: #9333ea;
+<data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
+<data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
+
+<!-- expose API key to JS (set in src/config/config.php) -->
+<script>window.GOOGLE_MAPS_API_KEY = '<?php echo GOOGLE_MAPS_API_KEY; ?>';</script>
+<script src="controller/doctor_map.js?v=<?php echo $assetVersion; ?>"></script>
+<script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
   }
 </style>

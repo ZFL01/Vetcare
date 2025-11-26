@@ -1,11 +1,21 @@
 <?php
 include_once 'database.php';
 
-class DTO_kateg implements JsonSerializable{
-    function __construct(private ?int $id = null, private ?string $namaKateg = null){}
-    function getIdK(){return $this->id;}
-    function getNamaKateg(){return $this->namaKateg;}
-    function jsonSerialize(): mixed {
+class DTO_kateg implements JsonSerializable
+{
+    function __construct(private ?int $id = null, private ?string $namaKateg = null)
+    {
+    }
+    function getIdK()
+    {
+        return $this->id;
+    }
+    function getNamaKateg()
+    {
+        return $this->namaKateg;
+    }
+    function jsonSerialize(): mixed
+    {
         return [
             'id_kategori' => $this->id,
             'nama_kateg' => $this->namaKateg,
@@ -13,9 +23,15 @@ class DTO_kateg implements JsonSerializable{
     }
 }
 
-class DTO_jadwal{
-    function __construct(private ?string $hari = null, private ?string $buka = null, private ?string $tutup = null){}
-    function getHari(){return $this->hari;}
+class DTO_jadwal
+{
+    function __construct(private ?string $hari = null, private ?string $buka = null, private ?string $tutup = null)
+    {
+    }
+    function getHari()
+    {
+        return $this->hari;
+    }
     function getBuka()
     {
         return $this->buka;
@@ -33,12 +49,12 @@ class DTO_dokter implements JsonSerializable
     private ?string $exp_strv = null; //admin dan dokter
     private ?string $sip = null; //dokter
     private ?string $exp_sip = null; //admin dan dokter
-    private ?string $pathSIP=null, $pathSTRV=null;
+    private ?string $pathSIP = null, $pathSTRV = null;
     private ?string $namaKlinik = null; //user dan dokter {single}
     private ?string $kab = null; //user, dokter, admin {single}
     private ?string $prov = null; //user, dokter, admin {single}
     private ?array $koor = null; //user dan dokter {single}
-    private ?string $status=null;//dokter
+    private ?string $status = null;//dokter
 
     function __construct(
         private ?int $id_dokter = null, //validasi
@@ -49,14 +65,16 @@ class DTO_dokter implements JsonSerializable
         private ?array $kategori = null, //dokter, user, admin
         private ?array $jadwal = null, //user, dokter
         private ?string $harga = null //dokter, user, admin
-    ) {}
+    ) {
+    }
 
 
-    function setInfoDokter(array $dat){ //pasien side : ajax
-        if (isset($dat['strv'])) { 
-        $this->strv = $dat['strv']; 
+    function setInfoDokter(array $dat)
+    { //pasien side : ajax
+        if (isset($dat['strv'])) {
+            $this->strv = $dat['strv'];
         }
-        if(isset($dat['kabupaten']) && isset($dat['provinsi'])){
+        if (isset($dat['kabupaten']) && isset($dat['provinsi'])) {
             $this->kab = $dat['kabupaten'];
             $this->prov = $dat['provinsi'];
         }
@@ -115,7 +133,10 @@ class DTO_dokter implements JsonSerializable
         $this->kab = $kab;
         $this->prov = $prov;
     }
-    function setStatus($status) { $this->status = $status; }
+    function setStatus($status)
+    {
+        $this->status = $status;
+    }
 
     function getId()
     {
@@ -177,7 +198,7 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->namaKlinik;
     }
-     function getKab()
+    function getKab()
     {
         return $this->kab;
     }
@@ -185,7 +206,8 @@ class DTO_dokter implements JsonSerializable
     {
         return $this->prov;
     }
-    function getHarga(){
+    function getHarga()
+    {
         return $this->harga;
     }
     function getKoor()
@@ -200,11 +222,16 @@ class DTO_dokter implements JsonSerializable
     function jsonSerialize(): mixed
     {
         return [
-            'id' => $this->id_dokter, 'nama' => $this->nama,
-            'foto' => $this->foto, 'pengalaman' => $this->pengalaman,
-            'rate' => $this->rate, 'kategori' => $this->kategori,
-            'jadwal' => $this->jadwal, 'strv' => $this->strv,
-            'klinik' => $this->namaKlinik, 'kabupaten' => $this->kab,
+            'id' => $this->id_dokter,
+            'nama' => $this->nama,
+            'foto' => $this->foto,
+            'pengalaman' => $this->pengalaman,
+            'rate' => $this->rate,
+            'kategori' => $this->kategori,
+            'jadwal' => $this->jadwal,
+            'strv' => $this->strv,
+            'klinik' => $this->namaKlinik,
+            'kabupaten' => $this->kab,
             'provinsi' => $this->prov,
             'koor' => $this->koor,
             'harga' => $this->harga
@@ -381,10 +408,12 @@ class DAO_dokter
             $stmt = $conn->prepare($sql);
             $stmt->execute([$data->getId()]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($hasil == null) {return null;}
+            if ($hasil == null) {
+                return null;
+            }
             $data->setDocPath($hasil['path_sip'], $hasil['path_strv']);
             return true;
-        }catch (PDOException $e) {
+        } catch (PDOException $e) {
             error_log("[DAO_dokter::manageDokter] : " . $e->getMessage());
             return false;
         }
@@ -441,17 +470,23 @@ class DAO_dokter
         }
     }
 
-    static function getProfilDokter(DTO_pengguna $data, bool $initiate){//dokter profil
-        $conn=Database::getConnection();
-        try{
-            $sql="select * from m_dokter where id_dokter=?";
-            $stmt=$conn->prepare($sql);$stmt->execute([$data->getIdUser()]);
-            $profil=$stmt->fetch(PDO::FETCH_ASSOC);
-            if($profil==null){return false;}
-            
-            $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate:$profil['rate']);
-            if($initiate){return $dokter;}
-            
+    static function getProfilDokter(DTO_pengguna $data, bool $initiate)
+    {//dokter profil
+        $conn = Database::getConnection();
+        try {
+            $sql = "select * from m_dokter where id_dokter=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$data->getIdUser()]);
+            $profil = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($profil == null) {
+                return false;
+            }
+
+            $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate: $profil['rate']);
+            if ($initiate) {
+                return $dokter;
+            }
+
 
             $sql = "select k.id_kategori as idK, k.nama_kateg as namaK from m_kategori as k join detail_dokter as dd
             on dd.id_kategori=k.id_kategori where dd.id_dokter=?";
@@ -459,8 +494,15 @@ class DAO_dokter
             $stmt->execute([$data->getIdUser()]);
             $kateg = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'],
-                $profil['foto'], $profil['pengalaman'], $profil['rate'], $kateg, harga:$profil['harga']);
+            $dokter = new DTO_dokter(
+                $profil['id_dokter'],
+                $profil['nama_dokter'],
+                $profil['foto'],
+                $profil['pengalaman'],
+                $profil['rate'],
+                $kateg,
+                harga: $profil['harga']
+            );
             $dokter->setAlamat($profil['kabupaten'], $profil['provinsi']);
             $dokter->setDoc($profil['sip'], $profil['exp_sip'], $profil['strv'], $profil['exp_strv']);
             $dokter->setTTL($profil['ttl']);
@@ -472,13 +514,15 @@ class DAO_dokter
         }
     }
 
-    static function getAlamat(DTO_dokter $dat) {
+    static function getAlamat(DTO_dokter $dat)
+    {
         $conn = Database::getConnection();
         try {
             $sql = "select * from m_lokasipraktik where dokter=?";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$dat->getId()]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$hasil){return false;}
             $dat->setInfoDokter($hasil);
             return true;
         } catch (PDOException $e) {
@@ -487,21 +531,34 @@ class DAO_dokter
         }
     }
 
-    static function getJadwal(DTO_dokter $dat) {
+    static function getJadwal(DTO_dokter $dat)
+    {
         $conn = Database::getConnection();
+        $jadwal = [];
         try {
-            $sql = "select * from m_hpraktik where id_dokter=?";
+            $sql = "select * from m_hpraktik where id_dokter=? order by hari asc, buka asc";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$dat->getId()]);
             $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $hasil;
+            if (empty($hasil)) {
+                return [];
+            }
+
+            foreach ($hasil as $row) {
+                $hari = $row['hari'];
+                $obj = new DTO_jadwal($hari, $row['buka'], $row['tutup']);
+
+                $jadwal[$hari][] = $obj;
+            }
+            return $jadwal;
         } catch (PDOException $e) {
             error_log('[DAO_dokter::getJadwal]: ' . $e->getMessage());
-            return [false];
+            return [];
         }
     }
 
-    static function getInfoDokter(DTO_dokter $dat) { //single user
+    static function getInfoDokter(DTO_dokter $dat)
+    { //single user
         $conn = Database::getConnection();
         try {
             $query = "select d.strv, loc.lat, loc.long, loc.nama_klinik
@@ -564,14 +621,14 @@ class DAO_dokter
 
             // Panggil fungsi set kategori
             $detDok = self::setKategDokter(false, $data->getId(), $datKateg);
-           
+
             $conn->commit();
             return $detDok && $mDokter && $stmtDoc;
         } catch (PDOException $e) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::insertDokter :".$e->getMessage());
+            error_log("DAO_dokter::insertDokter :" . $e->getMessage());
             return false;
         }
     }
@@ -583,7 +640,9 @@ class DAO_dokter
         $sql = "insert into detail_dokter values (?,?)";
         $sqlDel = "delete from detail_dokter where id_dokter =?";
         try {
-            if($update){$conn->beginTransaction();}
+            if ($update) {
+                $conn->beginTransaction();
+            }
             if ($update) {
                 $stmt = $conn->prepare($sqlDel);
                 $stmt->execute([$idDokter]);
@@ -593,7 +652,9 @@ class DAO_dokter
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($params);
             }
-            if($update){$conn->commit();}
+            if ($update) {
+                $conn->commit();
+            }
             return true;
         } catch (PDOException $e) {
             if ($conn->inTransaction()) {
@@ -604,38 +665,47 @@ class DAO_dokter
         }
     }
 
-    static function setJadwal(bool $update, int $idDokter, array $hari, array $buka, array $tutup)
+    static function setJadwal(int $idDokter, array $jdwlterstruktur)
     {
         $conn = Database::getConnection();
-        $query = "insert into m_hpraktik values (?,?,?,?)";
-        $queryDel = "delete from m_hpraktik where id_dokter=?";
-        $status = null;
+        $queryInsert = "INSERT INTO m_hpraktik (id_dokter, hari, buka, tutup) VALUES (?, ?, ?, ?)";
+        $queryDelete = "DELETE FROM m_hpraktik WHERE id_dokter = ?";
+
         try {
             $conn->beginTransaction();
-            if ($update) {
-                $stmt = $conn->prepare($queryDel);
-                $status = $stmt->execute([$idDokter]);
-                if (!$status) {
-                    $conn->rollBack();
-                    return false;
+
+            // 1. Hapus semua jadwal lama dokter ini
+            $stmtDel = $conn->prepare($queryDelete);
+            if (!$stmtDel->execute([$idDokter])) {
+                $conn->rollBack();
+                return false;
+            }
+
+            error_log("DEBUG: jdwlterstruktur diterima = " . print_r($jdwlterstruktur, true));
+
+            // 2. Loop dan Sisipkan Sesi Baru
+            $stmtInsert = $conn->prepare($queryInsert);
+            foreach ($jdwlterstruktur as $dayName => $sessions) {
+                error_log("DEBUG: dayName diterima = {$dayName}");
+                foreach ($sessions as $session) {
+                    $buka = $session['buka'];
+                    $tutup = $session['tutup'];
+
+                    error_log("DEBUG:hari {$dayName} buka = {$buka}, tutup = {$tutup}");
+                    if (!$stmtInsert->execute([$idDokter, $dayName, $buka, $tutup])) {
+                        $conn->rollBack();
+                        return false;
+                    }
                 }
             }
 
-            foreach ($hari as $key => $day) {
-                $stmt = $conn->prepare($query);
-                $status = $stmt->execute([$idDokter, $day, $buka[$key], $tutup[$key]]);
-                if (!$status) {
-                    $conn->rollBack();
-                    return false;
-                }
-            }
             $conn->commit();
             return true;
         } catch (PDOException $e) {
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::setJadwal {$update} :" . $e->getMessage());
+            error_log("DAO_dokter::setJadwalStructured Error: " . $e->getMessage());
             return false;
         }
     }
@@ -666,7 +736,8 @@ class DAO_dokter
 
     //update
 
-    static function updateDocument(DTO_dokter $data){
+    static function updateDocument(DTO_dokter $data)
+    {
         $conn = Database::getConnection();
         $sql = "update m_doc_dokter set path_sip=?, path_strv=? where id_dokter=?";
         try {
@@ -681,8 +752,9 @@ class DAO_dokter
             return [false, $e->getMessage()];
         }
     }
-    
-    static function updateDokter(int $idDokter, DTO_dokter $data, $status, bool $admin=false){
+
+    static function updateDokter(int $idDokter, DTO_dokter $data, $status, bool $admin = false)
+    {
         $conn = Database::getConnection();
         $sqlDokter = "update m_dokter set nama_dokter =?, ttl=?, pengalaman=?, kabupaten=?, provinsi=?, harga=? where id_dokter=?";
         $sqlAdmin = "update m_dokter set strv=?, exp_strv=?, sip=?, exp_sip=?, status=? where id_dokter=?";
@@ -778,12 +850,12 @@ class DAO_dokter
                 foreach ($kategs as $k) {
                     // allow matching by name (case-insensitive) or numeric id
                     if (is_numeric($kategori)) {
-                        if ((string)$k === (string)$kategori) {
+                        if ((string) $k === (string) $kategori) {
                             $matchKateg = true;
                             break;
                         }
                     }
-                    if (stripos((string)$k, $kategori) !== false) {
+                    if (stripos((string) $k, $kategori) !== false) {
                         $matchKateg = true;
                         break;
                     }
