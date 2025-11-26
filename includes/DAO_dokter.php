@@ -710,11 +710,8 @@ class DAO_dokter
         }
     }
 
-    static function setLokasi(bool $update, DTO_dokter $data)
+    static function setLokasi(bool $update, DTO_dokter $data, $nKlinik, $lat, $long)
     {
-        $koor = $data->getKoor();
-        $lat = $koor[0];
-        $long = $koor[1];
         $conn = Database::getConnection();
         $sql = "insert into m_lokasipraktik values (" . $data->getId() . ",?,?,?)";
         if ($update) {
@@ -722,12 +719,12 @@ class DAO_dokter
             lat=?, long=? where dokter= " . $data->getId();
         }
         try {
-            if ($data->getNamaKlinik() === null) {
+            if ($nKlinik === null) {
                 $stmt = $conn->prepare("delete from m_lokasipraktik where dokter=?");
                 return $stmt->execute([$data->getId()]);
             }
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([$data->getNamaKlinik(), $lat, $long]);
+            return $stmt->execute([$nKlinik, $lat, $long]);
         } catch (PDOException $e) {
             error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage());
             return false;

@@ -2,11 +2,7 @@
 
 /**
  * File: pages/profile-dokter.php
- * Halaman profil dokter
- * Tidak terima upload foto
- * Tambahkan field harga
- * Kelola file
- * 
+ * lokasi
  */
 $pageTitle = "Profil Dokter - VetCare";
 
@@ -89,6 +85,21 @@ elseif(isset($_POST['update_kategori_submit'])){
         setFlash('success', 'Spesialisasi berhasil diperbarui!');
     } else {
         setFlash('error', 'Gagal memperbarui Spesialisasi!');
+    }
+    header('Location: ' . BASE_URL . 'index.php?route=profil');
+    exit();
+}elseif(isset($_POST['update_tempat_submit'])){
+    $nama = isset($_POST['nama_klinik']) ? $_POST['nama_klinik']: '';
+    $lat = $_POST['latitude'] ?? '';
+    $long = $_POST['longitude']??'';
+
+    $isupdate = $profil->getKoor() ? true : false;
+    $hasil = DAO_dokter::setLokasi($isupdate, $profil, $nama, $lat, $long);
+
+    if($hasil){
+        setFlash('success', 'Lokasi berhasil diperbarui');
+    }else{
+        setFlash('error', 'Gagal memperbarui lokasi');
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
@@ -196,7 +207,6 @@ elseif($action === 'change_pass'){
 // Get statistics
 $flash = getFlash();
 include 'base.php';
-include_once 'header.php';
     ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -209,6 +219,7 @@ include_once 'header.php';
         rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/css/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/assets/leaflet/leaflet.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/assets/control-geocoder/Control.Geocoder.css">
 
 <style>
     .modal {
@@ -699,17 +710,21 @@ include_once 'header.php';
                                     value="<?php echo $profil->getNamaKlinik()?: ''; ?>"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                                     required>
+                                </div>
                             </div>
+                            <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2 mt-4">Tandai Lokasi Klinik di Peta:</label>
-                            <div id="map-klinik" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #ccc;"></div>
+                            <br><p6 style="text-align: center; font-size: 12px;">Klik dua kali untuk menandai titik di peta</p6></label>
+                            
+                            <div id="map-klinik" style="height: 500px; width: 100%; border-radius: 8px; border: 1px solid #961414ff;"></div>
                             <div>
                                 <input type="hidden" name="latitude" id="input-latitude" value="<?php echo htmlspecialchars($lat); ?>">
                                 <input type="hidden" name="longitude" id="input-longitude" value="<?php echo htmlspecialchars($long); ?>">
                             </div>
-                        </div>
+                            </div>
                     </div>
                     <div class="pt-4 border-t border-gray-200">
-                        <button type="submit" name="update_tempat_klinik_submit"
+                        <button type="submit" name="update_tempat_submit"
                             class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-secondary transition-colors">
                             💾 Update Tempat Klinik
                         </button>
@@ -778,10 +793,10 @@ include_once 'header.php';
     </div>
 </div>
 </html>
-<?php include_once 'footer.php'; ?>
 
+<script src="<?php echo BASE_URL?>public/assets/leaflet/leaflet.js"></script>
+<script src="<?php echo BASE_URL?>public/assets/control-geocoder/Control.Geocoder.js"></script>
 <script>
-    src="<?php echo BASE_URL?>public/assets/leaflet/leaflet.js"
     let map = null;
 
 
@@ -828,7 +843,10 @@ include_once 'header.php';
             cancelEdit();
         }
         if (tabName === 'tempat-klinik' && map){
-            map.invalidateSize();
+            if(map){
+                map.invalidateSize();
+            }else{
+            }
         }
     }
 
@@ -1121,6 +1139,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const defaultLat = -6.2088; // Koordinat default ( Jakarta)
     const defaultLng = 106.8456;
 
+    // Mendapatkan elemen wadah peta
+    const mapContainer = document.getElementById('map-klinik');
+
     if(!initLat && savedProvinsi){
         let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
     
@@ -1145,10 +1166,11 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeMap(initLat, initLng);
     }
 
-    function initializeMap(lat, lng){
-        const inputLat = document.getElementById('input-latitude');
-        const inputLng = document.getElementById('input-longitude');
-    
+let marker;
+function initializeMap(lat, lng){
+
+    const inputLat = document.getElementById('input-latitude');
+    const inputLng = document.getElementById('input-longitude');
 
     // --- INISIALISASI PETA ---
     map = L.map('map-klinik').setView([lat, lng], 13); // Zoom level 13
@@ -1159,26 +1181,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }).addTo(map);
 
     // --- INISIALISASI MARKER (PIN) ---
-    const marker = L.marker([lat, lng], {
+    marker = L.marker([lat, lng], {
         draggable: true // 🎯 Kunci: Membuat marker dapat digeser
     }).addTo(map);
 
     inputLat.value = lat.toFixed(6); // Simpan hingga 6 desimal
     inputLng.value = lng.toFixed(6);
 
+    const geocoder = L.Control.Geocoder.nominatim();
+    const control = L.Control.geocoder({
+        geocoder: geocoder,
+        placeholder: 'Cari Alamat, Jalan, atau Nama Klinik...',
+        position: 'topleft', 
+        defaultMarkGeocode: false 
+    }).addTo(map);
+
+    control.on('markgeocode', function(e) {
+        const bbox = e.geocode.bbox;
+        const center = e.geocode.center;
+        
+        map.fitBounds(bbox); 
+        marker.setLatLng(center);
+        
+        inputLat.value = center.lat.toFixed(6);
+        inputLng.value = center.lng.toFixed(6);
+    });
+
     // --- EVENT LISTENER UNTUK DRAG MARKER ---
     marker.on('dragend', function(e) {
         const position = marker.getLatLng();
+
+        let lat =(position.lat);
+        let lng = (position.lng);
+
+        if (!isNaN(lat)&&!isNaN(lng)) {
+        inputLat.value = lat.toFixed(6);
+        inputLng.value = lng.toFixed(6);
+    } else {
+        console.error("Koordinat tidak valid setelah drag.");
+        console.log('tipe lat : ', typeof position.lat);
+        // Opsional: Set value ke kosong jika koordinat hilang
+        inputLat.value = '';
+        inputLng.value = '';
+    }
+
         inputLat.value = position.lat.toFixed(6);
-        inputLng.value = position.lon.toFixed(6);
+        inputLng.value = position.lng.toFixed(6);
     });
     
     // Opsional: Double-click di peta untuk memindahkan marker (user experience lebih baik)
     map.on('dblclick', function(e) {
         marker.setLatLng(e.latlng);
         inputLat.value = e.latlng.lat.toFixed(6);
-        inputLng.value = e.latlng.lon.toFixed(6);
-    })
+        inputLng.value = e.latlng.lng.toFixed(6);
+    });
 }
 });
 </script>
