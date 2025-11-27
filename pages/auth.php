@@ -1,6 +1,5 @@
 <?php
 // Authentication page with database integration
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/userService.php';

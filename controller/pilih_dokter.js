@@ -327,7 +327,17 @@ function filterAndDisplayDokters() {
 
   resultCount.textContent = filteredDokters.length;
   console.log('[FILTER] About to render', filteredDokters.length, 'dokters');
-  
+  // Sort so currently available doctors appear first
+  try {
+    filteredDokters.sort((a, b) => {
+      const avA = a.available_now ? 1 : 0;
+      const avB = b.available_now ? 1 : 0;
+      return (avB - avA);
+    });
+  } catch (e) {
+    console.warn('Could not sort by availability', e);
+  }
+
   renderDokters(filteredDokters);
 
   if (filteredDokters.length === 0) {
@@ -394,6 +404,11 @@ function renderDokters(dokters) {
               <div class="flex-1">
                 <h3 class="text-xl font-bold text-gray-900">${escapeHtml(displayName)}</h3> 
                 <p class="text-sm text-gray-600"> Spesialis ${escapeHtml(kategoriList || 'Spesialisasi belum diatur')}</p>
+                ${typeof dokter.available_now !== 'undefined' ? `<div class="mt-2 text-sm">` +
+                  (dokter.available_now ? 
+                    `<span class="inline-block px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">● Tersedia sekarang</span>`
+                    : `<span class="inline-block px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">${escapeHtml(dokter.status_text || 'Tutup hari ini')}</span>`) +
+                  `</div>` : ''}
                 <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
                   <span class="flex items-center gap-1"><span class="text-yellow-400">⭐</span>${escapeHtml(String(rate))}</span>
                   <span>•</span>
@@ -405,10 +420,18 @@ function renderDokters(dokters) {
             
 
             <div class="space-y-4 text-sm">
+              ${dokter.available_now && dokter.current_slot ? `
               <div class="flex items-start gap-3">
                 <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">🕘</div>
-                <div class="font-medium text-gray-800">Jadwal Hari Ini: ${escapeHtml(jadwalHariIni)}</div>
+                <div class="font-medium text-gray-800">Jadwal Saat Ini: ${escapeHtml(dokter.current_slot.buka.substring(0, 5))} - ${escapeHtml(dokter.current_slot.tutup.substring(0, 5))}</div>
               </div>
+              ` : ''}
+              ${!dokter.available_now && dokter.next_slot ? `
+              <div class="flex items-start gap-3">
+                <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">🕘</div>
+                <div class="font-medium text-gray-800">Tersedia kembali: ${escapeHtml(dokter.next_slot.buka.substring(0, 5))} - ${escapeHtml(dokter.next_slot.tutup.substring(0, 5))}</div>
+              </div>
+              ` : ''}
               <div class="flex items-start gap-3">
                 <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">📍</div>
                 <div>

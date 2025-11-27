@@ -214,61 +214,6 @@
                         </div>
                     </div>
                 </a>
-
-                <!-- Dokter Ternak -->
-                <a href="?route=pilih-dokter-ternak" class="group service-card animate-slide-up" style="animation-delay: 0.3s">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
-                        <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
-
-                        <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
-                                <span class="text-5xl filter drop-shadow-lg">🐄</span>
-                                <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
-                            </div>
-
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
-                                Dokter Ternak
-                            </h3>
-
-                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Layanan kesehatan khusus untuk ternak dan hewan produktif. Konsultasi nutrisi dan pencegahan penyakit.
-                            </p>
-
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Dokter Hewan Kecil -->
-                <a href="?route=pilih-dokter&kategori=Hewan%20Kecil" class="group service-card animate-slide-up" style="animation-delay: 0.4s">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
-                        <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
-
-                        <!-- Badge -->
-                        <div class="absolute top-4 right-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            Favorit
-                        </div>
-
-                        <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
-                                <span class="text-5xl filter drop-shadow-lg">🐱</span>
-                                <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
-                            </div>
-
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
-                                Dokter Hewan Kecil
-                            </h3>
-
-                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Perawatan spesialis untuk kucing, anjing, dan hewan peliharaan kecil. Vaksinasi, grooming, dan emergency care.
-                            </p>
-
-                        </div>
-                    </div>
-                </a>
             </div>
         </div>
     </section>

@@ -23,7 +23,7 @@
         </div>
 
         <!-- Chat Messages (flex-1 to fill available space) -->
-        <div class="flex-1 overflow-y-auto pb-28" id="chat-messages">
+        <div class="flex-1 overflow-y-auto pb-40" id="chat-messages">
             <div class="text-center text-gray-500 py-8">
                 <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -33,9 +33,9 @@
         </div>
 
         <!-- Chat Input (fixed at bottom; stays visible while messages scroll) -->
-        <div class="fixed left-0 right-0 bottom-6 px-4 pointer-events-none">
-            <div class="mx-auto max-w-3xl pointer-events-auto">
-                <div class="border-t border-gray-200 pt-4 bg-transparent rounded-lg">
+        <div id="chat-input-bar" class="px-4 z-40" style="position:fixed;left:0;right:0;bottom:1rem;">
+            <div class="mx-auto max-w-3xl">
+                <div class="border-t border-gray-200 pt-4 bg-white rounded-t-lg shadow">
                     <!-- Quick questions (moved above input) -->
                     <div class="mb-3 flex flex-wrap gap-2">
                         <button class="px-3 py-1 text-sm border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors quick-question" data-question="Anjing saya muntah-muntah, apa yang harus saya lakukan?">Anjing saya muntah-muntah</button>
@@ -60,6 +60,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const chatInputBar = document.getElementById('chat-input-bar');
     const doctorOptions = document.querySelectorAll('.doctor-option');
     const chatDoctorName = document.getElementById('chat-doctor-name');
     const chatDoctorSpecialty = document.getElementById('chat-doctor-specialty');
@@ -69,6 +70,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickQuestions = document.querySelectorAll('.quick-question');
 
     let selectedDoctor = null;
+
+    function kategoriToText(kat) {
+        if (!kat) return '';
+        if (Array.isArray(kat)) {
+            return kat.map(k => {
+                if (typeof k === 'string') return k;
+                return k.nama_kateg || k.namaK || k.nama || '';
+            }).filter(Boolean).join(', ');
+        }
+        if (typeof kat === 'string') return kat;
+        return kat.nama_kateg || kat.namaK || kat.nama || '';
+    }
 
     // Ensure we have konsultasi data or a dokter_id in query string; otherwise redirect to selection
     let __konsultasiFromStorage = null;
@@ -85,8 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '?route=pilih-dokter';
         return;
     }
-    if (!__konsultasiFromStorage && __dokterIdParam) {
-        // remember chosen dokter id so we can fetch details later
+    if (__dokterIdParam) {
         window.__chosenDokterId = __dokterIdParam;
     }
 
@@ -248,9 +260,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // show summary box
             appendSystemBox(data);
 
-            // Set doctor name if available
             if (data.dokter_nama) {
                 chatDoctorName.textContent = data.dokter_nama;
+            }
+            if ((!data.dokter_nama || !chatDoctorSpecialty.textContent || chatDoctorSpecialty.textContent === '-') && window.__chosenDokterId) {
+                const apiUrl2 = (typeof window.API_BASE_URL !== 'undefined' && window.API_BASE_URL) ? (window.API_BASE_URL + '/controller/pilih_dokter_controller.php?api=true') : 'controller/pilih_dokter_controller.php?api=true';
+                fetch(apiUrl2).then(res => res.json()).then(list => {
+                    const doc2 = list.find(d => String(d.id) === String(window.__chosenDokterId));
+                    if (doc2) {
+                        chatDoctorName.textContent = doc2.nama || chatDoctorName.textContent || 'Dokter';
+                        const spes2 = kategoriToText(doc2.kategori);
+                        chatDoctorSpecialty.textContent = spes2 || chatDoctorSpecialty.textContent || '';
+                    }
+                }).catch(() => {});
             }
 
             // Prefill input with keluhan
@@ -274,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const doc = list.find(d => String(d.id) === String(window.__chosenDokterId));
                 if (doc) {
                     chatDoctorName.textContent = doc.nama || 'Dokter';
-                    chatDoctorSpecialty.textContent = doc.kategori || '';
+                    chatDoctorSpecialty.textContent = kategoriToText(doc.kategori);
                     // also show an initial message
                     appendDoctorMessage('Permintaan konsultasi diterima. Mohon tunggu dokter merespons.', doc.nama || 'Dokter');
                 }
@@ -291,6 +313,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } catch (e) {
         // ignore
+    }
+    if (chatInputBar && chatInputBar.parentNode !== document.body) {
+        document.body.appendChild(chatInputBar);
     }
 });
 </script>

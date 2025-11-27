@@ -38,20 +38,105 @@ $daysMap = [
 ];
 $hariIni = $daysMap[(int)date('w')];
 
-// Filter dokter that have schedule for today
-$dokterHariIni = array_filter($listDokter, function($dokter) use ($hariIni) {
-    $jadwal = $dokter->getJadwal();
-    // Only show if they have schedule entry for today AND the array is not empty
-    return is_array($jadwal) && isset($jadwal[$hariIni]) && !empty($jadwal[$hariIni]);
-});
+// Get current time once for availability checking
+$now = date('H:i:s');
 
-// Use filtered list (if empty, will show empty state in frontend)
-$listDokter = array_values($dokterHariIni);
+// Enrich ALL dokters with availability info
+// Tampilkan dokter yang punya jadwal hari ini (online atau akan buka)
+// JANGAN tampilkan dokter dengan status "Tutup hari ini"
+$enrichedDokters = [];
+
+foreach ($listDokter as $dok) {
+    $jadwal = $dok->getJadwal();
+    
+    // Check if doctor has schedule for today
+    $hariEntry = (is_array($jadwal) && isset($jadwal[$hariIni])) ? $jadwal[$hariIni] : [];
+    
+    // Skip dokter yang tidak punya jadwal hari ini
+    if (empty($hariEntry)) {
+        continue;
+    }
+    
+    // Check if currently within any time slot
+    $currentSlot = null;
+    $availableNow = false;
+    $nextSlot = null;
+    
+    foreach ($hariEntry as $range) {
+        $buka = isset($range['buka']) ? date('H:i:s', strtotime($range['buka'])) : null;
+        $tutup = isset($range['tutup']) ? date('H:i:s', strtotime($range['tutup'])) : null;
+        if (!$buka || !$tutup) continue;
+
+        // Handle jam yang melewati tengah malam (e.g., 15:00 - 00:00 means 15:00 - 24:00)
+        // Jika tutup < buka, berarti slot melewati tengah malam
+        if ($tutup < $buka) {
+            // Slot melewati midnight: buka - 24:00 atau 00:00 - tutup hari berikutnya
+            // Sekarang dokter available jika: now >= buka OR now < tutup
+            if ($now >= $buka || $now < $tutup) {
+                $currentSlot = ['buka' => $buka, 'tutup' => $tutup];
+                $availableNow = true;
+                break;
+            }
+        } else {
+            // Normal slot dalam satu hari
+            if ($now >= $buka && $now < $tutup) {
+                $currentSlot = ['buka' => $buka, 'tutup' => $tutup];
+                $availableNow = true;
+                break;
+            }
+        }
+    }
+
+    // Find next slot (if not currently available)
+    if (!$availableNow) {
+        foreach ($hariEntry as $range) {
+            $buka = isset($range['buka']) ? date('H:i:s', strtotime($range['buka'])) : null;
+            $tutup = isset($range['tutup']) ? date('H:i:s', strtotime($range['tutup'])) : null;
+            if (!$buka || !$tutup) continue;
+
+            // Handle jam yang melewati tengah malam
+            if ($tutup < $buka) {
+                // Slot melewati midnight: cek apakah now < buka (belum mulai), jika ya ini adalah next slot
+                if ($now < $buka) {
+                    $nextSlot = ['buka' => $buka, 'tutup' => $tutup];
+                    break;
+                }
+                // Jika now >= buka, maka next slot adalah yang berikutnya (skip ini)
+            } else {
+                // Normal slot: find the first slot yang starts after now
+                if ($buka > $now) {
+                    $nextSlot = ['buka' => $buka, 'tutup' => $tutup];
+                    break;
+                }
+            }
+        }
+    }
+
+    // Convert DTO to array and inject availability fields
+    $dokArr = $dok->jsonSerialize();
+    $dokArr['available_now'] = $availableNow;
+    $dokArr['current_slot'] = $currentSlot;
+    $dokArr['next_slot'] = $nextSlot;
+    
+    if ($availableNow) {
+        $dokArr['status_text'] = 'Tersedia sekarang';
+    } else if ($nextSlot) {
+        $dokArr['status_text'] = 'Tersedia kembali ' . substr($nextSlot['buka'], 0, 5);
+    } else {
+        // Tidak ada slot available hari ini (semua sudah tutup)
+        $dokArr['status_text'] = 'Tutup hari ini';
+    }
+
+    $enrichedDokters[] = $dokArr;
+}
+
+// Use enriched list
+$listDokter = $enrichedDokters;
 
 if (isset($_GET['api']) && $_GET['api'] === 'true') {
     header('Content-Type: application/json');
     echo json_encode($listDokter);
-    exit; 
+    exit;
 }
 // Convert kategori untuk JavaScript
 $kategoriForJS = htmlspecialchars($kategori ?: '', ENT_QUOTES, 'UTF-8');
