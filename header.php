@@ -1,7 +1,4 @@
   <?php
-  if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 
@@ -74,7 +71,6 @@ require_once __DIR__ . '/src/config/config.php';
                         </a>
                     </div>
                 </div>
-
                 <button onclick="scrollToSection('cara-kerja')" class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
                     <span>Cara Kerja</span>
                     <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300"></div>

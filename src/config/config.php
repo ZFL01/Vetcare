@@ -36,10 +36,13 @@ define('BASE_URL', $dynamicBaseUrl);
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
 define('PROFILE_DIR', UPLOAD_DIR . 'dokter-profil/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
-define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
+define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/');
 define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
 define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
+
 define('URL_FOTO', BASE_URL . 'public/img/');
+define('URL_SIP_DOC', BASE_URL . 'public/docs/sip/');
+define('URL_STRV_DOC', BASE_URL . 'public/docs/strv/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
@@ -125,9 +128,15 @@ function clean($data) {
     return $data;
 }
 
-/**
- * Format tanggal Indonesia
- */
+define('HARI_ID', [
+    0 => 'Minggu', 
+    1 => 'Senin',
+    2 => 'Selasa', 
+    3 => 'Rabu', 
+    4 => 'Kamis',
+    5 => 'Jumat',
+    6 => 'Sabtu'
+]);
 
 function formatRupiah($angka) {
     $rupiah = 'Rp' . number_format($angka, 0, ',', '.');
@@ -207,7 +216,7 @@ function uploadImage($file, $directory, $prefix) {
     
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = $prefix . $_SESSION['user']->getIdUser() . '.' . $extension;
+    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $extension;
     $filepath = $directory . $filename;
     
     // Move file
@@ -265,7 +274,7 @@ function uploadDocument($file, $target_dir, $prefix) {
 
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = $prefix . $_SESSION['user']->getIdUser() . '.' . $file_extension;
+    $new_filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists

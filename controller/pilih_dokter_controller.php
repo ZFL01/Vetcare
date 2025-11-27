@@ -12,6 +12,7 @@ $searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 
 // Get all available categories for filter dropdown
 require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../src/config/config.php';
 $all_kategori = DAO_kategori::getAllKategori();
 
 // Get list of doctors - ALWAYS return all dokters for API
@@ -24,7 +25,7 @@ foreach ($listDokter as $dokter) {
 }
 
 // Filter dokter by today's schedule (only if they have any schedule data)
-// Only show doctors who have schedule for today
+// If no schedule exists yet, show all doctors anyway
 date_default_timezone_set('Asia/Jakarta');
 // Map English day names to Indonesian capitalized names (as stored in database)
 $daysMap = [

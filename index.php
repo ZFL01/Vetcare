@@ -16,6 +16,7 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 // Define page variables
 $pageTitle = '';
+$divNotFound = '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
 $pageDescription = '';
 $ajaxLoad = false;
 
@@ -77,7 +78,7 @@ switch ($route) {
     case 'profil':
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
-        $contentFile = 'pages/profile-dokter.php';
+        $contentFile = 'pages/profil-dokter/profile-dokter.php';
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -106,9 +107,13 @@ if (isset($noHeaderFooter) && $noHeaderFooter) {
         }
         include $contentFile;
     } else {
-        echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+        echo $divNotFound;
     }
 } else {
+    if($ajaxLoad){
+        isset($contentFile) && file_exists($contentFile) ? include $contentFile : $divNotFound;
+        exit;
+    }
 // Include base template
 include 'base.php';
     ?>
@@ -119,7 +124,7 @@ include 'base.php';
             if (file_exists($contentFile)) {
                 include $contentFile;
             } else {
-                echo '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
+                echo $divNotFound;
             }
             ?>
         </main>

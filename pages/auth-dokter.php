@@ -142,7 +142,7 @@ if (isset($_POST['register2'])) {
             // Upload SIP file
             $file_sip_name = null;
             if (isset($_FILES['file_sip']) && $_FILES['file_sip']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_sip'], DOCUMENTS_DIR . '/', 'sip_');
+                $upload_result = uploadDocument($_FILES['file_sip'], SIP_DIR . '/', 'sip_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file SIP: ' . $upload_result['error']);
                 }
@@ -152,7 +152,7 @@ if (isset($_POST['register2'])) {
             // Upload STRV file
             $file_strv_name = null;
             if (isset($_FILES['file_strv']) && $_FILES['file_strv']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadDocument($_FILES['file_strv'], DOCUMENTS_DIR . '/', 'strv_');
+                $upload_result = uploadDocument($_FILES['file_strv'], STRV_DIR . '/', 'strv_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload file STRV: ' . $upload_result['error']);
                 }
