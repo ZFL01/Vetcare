@@ -36,7 +36,7 @@ function showLoginForm()
             <div class="text-right">
                 <a href="?route=auth&action=forgot" class="text-purple-600 hover:underline">Lupa Kata Sandi?</a>
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl 
+            <button onclick="getUserLocation()" type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 rounded-xl 
                 hover:from-purple-700 hover:to-blue-600 transition-none shadow-md">
                 Masuk
             </button>
@@ -249,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setFlash('error', 'Gagal memuat profil dokter, silahkan coba lagi nanti');
                     }
                 } elseif ($objUser->getRole() === 'Admin') {
-                    header('Location: ?route=admin-manage-dokter');
+                    header('Location: ?route=admin');
                     exit;
                 }
             }
@@ -386,6 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="<?php echo BASE_URL;?>/public/service.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const expiryTimeInput = document.getElementById('cooldownExpiry');

@@ -1,9 +1,10 @@
 <?php
-session_start();
-require_once 'includes/auth.php';
+require_once '../includes/DAO_user.php';
+require_once '../includes/userService.php';
+require_once '../src/config/config.php';
 
 // Cek jika sudah login, langsung lempar ke dashboard
-if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
+if (isset($_SESSION['user']) && $_SESSION['user']->getRole()==='Admin') {
     header('Location: admin_direct.php');
     exit;
 }
@@ -11,20 +12,35 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-login'])) {
     // Ambil inputan
-    $email = $_POST['email'] ?? ''; 
+    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL); 
     $password = $_POST['password'] ?? '';
     
-    try {
-        if (admin_login($email, $password)) {
+    if(!$email){
+        setFlash('error', 'Email tidak valid!');
+        header('Location: login.php');
+        exit();
+    }
+    $obj = new DTO_pengguna(email:$email, pass:$password);
+    
+    $hasil = userService::login($obj);
+    if($hasil[0]){
+        if($obj->getRole()==='Admin'){
+            $_SESSION['user'] = $obj;
             header('Location: admin_direct.php');
             exit;
-        } else {
-            $error = 'Email atau password salah';
+        }else{
+            setFlash('error', 'Anda tidak punya akses!');
+            header('Location: login.php');
+            exit;
         }
-    } catch (PDOException $e) {
-        $error = 'Database error: ' . $e->getMessage();
+    }else{
+        setFlash('error', $hasil[1]);
+        header('Location: login.php');
+        exit;
     }
 }
+
+$flash = getFlash();
 ?>
 
 <!DOCTYPE html>
@@ -45,13 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-login'])) {
             <p class="text-gray-600 mt-2">Masuk ke dashboard admin</p>
         </div>
         
-        <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                <?= htmlspecialchars($error) ?>
+        <?php if ($flash = getFlash()): ?>
+            <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>">
+                <?php echo $flash['message']; ?>
             </div>
         <?php endif; ?>
         
-<form method="POST">
+        <form method="POST">
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>

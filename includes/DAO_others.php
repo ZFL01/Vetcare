@@ -4,7 +4,7 @@ require_once 'userService.php';
 
 class Location{
 
-    function __construct(private ?int $idLocation=null, private ?array $coor=null,
+    function __construct(private ?int $idLocation=null, private ?string $coor=null,
     private ?array $location=null, private ?int $id_User=null, private ?int $time=null){}
     function getIdLocation(){return $this->idLocation;}
     function getCoor(){return $this->coor;}
@@ -108,8 +108,8 @@ class DAO_location{
     }
     static function insertLocation(Location $loc){
         $conn=Database::getConnection();
-        $sql="insert into log_location (koor, kabupaten, provinsi, timestamp, id_user) values (?, ?, ?, ?, ?)";
-        $params = [$loc->getCoor(), $loc->getLocation()[0], $loc->getLocation()[1], $loc->getTime(), $loc->getId_User()];
+        $sql="insert into log_location (koor, kabupaten, provinsi, id_user) values (?, ?, ?, ?)";
+        $params = [$loc->getCoor(), $loc->getLocation()[0], $loc->getLocation()[1], $loc->getId_User()];
         $ada = !empty($loc->getIdLocation());
 
         if($ada){

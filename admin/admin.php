@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/includes/db.php';
+// require_once __DIR__ . '/includes/db.php';
 
 // Check login
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
     exit;
 }
 
-require_once __DIR__ . '/includes/data.php';
+// require_once __DIR__ . '/includes/data.php';
 ?>
 <?php include __DIR__ . '/includes/header.php'; ?>
 

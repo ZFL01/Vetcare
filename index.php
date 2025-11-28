@@ -20,6 +20,38 @@ $divNotFound = '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bo
 $pageDescription = '';
 $ajaxLoad = false;
 
+switch($action){
+    case 'location':
+        header('Content-Type: application/json');
+        $idLoc = isset($_SESSION['id_location'])? $_SESSION['id_location']:null;
+        $idUser = isset($_SESSION['user'])? $_SESSION['user']->getIdUser():null;
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+        $lat = $data['latitude'];
+        $long = $data['longitude'];
+        $koor = $lat.', '.$long;
+        $kotprov = apiControl::getCityProvince($lat, $long);
+        if(!$kotprov[0]){
+            echo json_encode($response);
+            exit;
+        }
+        if($data !==null){
+            $loc = new Location($idLoc, $koor, [$kotprov[0], $kotprov[1]], $idUser);
+            $status = DAO_location::insertLocation($loc);
+            if(is_string($status)){
+                $_SESSION['id_location'] = $status;
+            }
+            if($status){
+                echo json_encode(['success'=>true, 'message'=>'']);
+            }else{
+                echo json_encode(['success'=>false, 'message'=>'gagal input data']);
+            }
+        }else{
+            echo json_encode(['success'=>false, 'message'=>'data kosong']);
+        }
+        exit;
+}
+
 // Route handling: Tentukan file konten dan jalankan logika controller
 switch ($route) {
     case 'auth':
@@ -60,11 +92,9 @@ switch ($route) {
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
         $contentFile = 'pages/pilih-dokter.php';
         break;
-    case 'admin-manage-dokter':
-        $pageTitle = 'Manajemen Dokter - VetCare Admin';
-        $pageDescription = 'Admin panel untuk verifikasi dan approval dokter';
-        $contentFile = 'pages/admin-manage-dokter.php';
-        break;
+    case 'admin':
+        header('Location: '.BASE_URL.'admin/');
+        exit();
     case 'tanya-jawab':
         $pageTitle = 'Tanya Jawab - VetCare';
         $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
@@ -94,7 +124,7 @@ switch ($route) {
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';
         $pageDescription = 'Halaman yang Anda cari tidak ditemukan';
-        $contentFile = 'pages/404.php';
+        $contentFile = '404.php';
         break;
 }
 

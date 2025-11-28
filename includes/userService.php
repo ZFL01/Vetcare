@@ -129,4 +129,31 @@ class userService{ //account service
         return [true];
     }
 }
+//pk.f36f3d13ab6674ab62602323da859b26
+class apiControl{
+    static function getCityProvince($lat, $lng){
+        $key = LOCATIONIQ_API;
+        $url = "https://us1.locationiq.com/v1/reverse?key={$key}&lat={$lat}&lon={$lng}&format=json&zoom=10";
+        $options = [
+            'http' => ['timeout' => 5]
+        ];
+        $context = stream_context_create($options);
+        $json = @file_get_contents($url, false, $context);
+
+        if ($json === FALSE) {
+        // Gagal mengambil data (timeout, jaringan, atau API key salah)
+            error_log("LocationIQ Request Failed.");
+            return [false, 'Tidak Diketahui'];
+        }
+        $dat = json_decode($json, true);
+        if(isset($dat['address'])){
+            $address = $dat['address'];
+            $city = $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['county'] ?? 'Tidak Diketahui';
+            $province = $address['state'] ?? 'Tidak Diketahui';
+        
+            return [$city, $province];
+        }
+        return [false, 'tidak diketahui'];
+    }
+}
 ?>

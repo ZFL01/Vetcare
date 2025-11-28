@@ -293,4 +293,6 @@ function uploadDocument($file, $target_dir, $prefix) {
     return $result;
 }
 
+define('LOCATIONIQ_API', 'pk.f36f3d13ab6674ab62602323da859b26');
+
 ?>

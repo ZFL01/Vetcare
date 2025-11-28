@@ -1114,19 +1114,43 @@ function determineAndInitializeMap() {
     const defaultLng = 106.8456;
 
     // Tentukan koordinat awal
-    initLat = initLat ? parseFloat(initLat) : defaultLat;
-    initLng = initLng ? parseFloat(initLng) : defaultLng;
+    const hasSavedCoords = initLat && initLng && parseFloat(initLat) !== defaultLat;
 
-    // --- Logika Geocoding Wilayah (Hanya jika koordinat belum ada) ---
-    if (initLat === defaultLat && savedProvinsi) {
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+            (position)=>{
+                const livelat = parseFloat(position.coords.latitude);
+                const livelng = parseFloat(position.coords.longitude);
+                initializeMap(livelat, livelng);
+            },
+            (error)=>{
+                initializeFallback(hasSavedCoords, initLat, initLng,
+                defaultLat, defaultLng, savedProvinsi, savedKabupaten);
+            },
+            {enableHighAccuracy:true, timeout:5000, maximumAge:0}
+        );
+    }else{
+        initializeFallback(hasSavedCoords, initLat, initLng,
+                defaultLat, defaultLng, savedProvinsi, savedKabupaten);
+    }
+}
+
+function initializeFallback(hasSavedCoords, initLat, initLng,
+                defaultLat, defaultLng, savedProvinsi, savedKabupaten){
+
+    if(hasSavedCoords){
+        let finalLat = parseFloat(initLat);
+        let finalLng = parseFloat(initLng);
+        initializeMap(finalLat, finalLng);
+    }else if (savedProvinsi) {
         let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
         const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
         
         fetch(nominatimURL)
             .then(response => response.json())
             .then(data => {
-                let finalLat = initLat;
-                let finalLng = initLng;
+                let finalLat = defaultLat;
+                let finalLng = defaultLng;
                 
                 if (data.length > 0) {
                     const result = data[0];
@@ -1138,11 +1162,11 @@ function determineAndInitializeMap() {
             .catch(error => {
                 console.error('Geocoding wilayah gagal:', error);
                 // Jika gagal, tetap inisialisasi dengan koordinat default/awal
-                initializeMap(initLat, initLng); 
+                initializeMap(defaultLat, defaultLng); 
             });
     } else {
         // Inisialisasi langsung jika koordinat sudah ada
-        initializeMap(initLat, initLng);
+        initializeMap(defaultLat, defaultLng);
     }
 }
 </script>

@@ -328,6 +328,7 @@ class DAO_dokter
         //visualisasi data
         $obj->setTTL($dat['ttl'] ?? null);
         $obj->setAlamat($dat['kabupaten'] ?? null, $dat['provinsi'] ?? null);
+        $obj->setStatus($dat['status'] ?? null);
         return $obj;
     }
 
@@ -335,7 +336,6 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga";
             $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
             from m_dokter where status='aktif'";
 
@@ -400,6 +400,21 @@ class DAO_dokter
         }
     }
 
+    static function allDoktersLocations(){
+        $conn = Database::getConnection();
+        $sql= 'select l.*, d.nama_dokter from m_lokasipraktik as l inner join m_dokter as d on 
+        d.id_dokter=l.dokter';
+        try{
+            $stmt = $conn->prepare($sql);
+            $stmt->execute();
+            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $hasil;
+        }catch(PDOException $e){
+            error_log('[DAO_dokter::allDoktersLocate]: '.$e->getMessage());
+            return false;
+        }
+    }
+
     static function manageDokter(DTO_dokter $data)
     {
         $conn = Database::getConnection();
@@ -424,7 +439,7 @@ class DAO_dokter
         $conn = Database::getConnection();
         try {
             $queryDokter = "select d.id_dokter, d.nama_dokter, d.ttl, d.exp_strv,
-            d.exp_sip, d.kabupaten, d.provinsi from m_dokter as d";
+            d.exp_sip, d.kabupaten, d.provinsi, d.rate, d.status from m_dokter as d order by d.id_dokter desc";
 
             $stmt = $conn->prepare($queryDokter);
             $stmt->execute();
@@ -435,18 +450,14 @@ class DAO_dokter
             }
 
             $groupId = [];
-            $listIdValid = [];
             foreach ($results as $row) {
                 $id = $row['id_dokter'];
                 $groupId[$id] = $row;
                 $groupId[$id]['kateg'] = [];
-                $listIdValid[] = $id;
             }
 
-            $idValid = implode(',', $listIdValid);
-
             $queryKategori = "select dd.id_dokter, k.nama_kateg from m_kategori as k
-            inner join detail_dokter as dd on k.id_kategori=dd.id_kategori where dd.id_dokter in (" . $idValid . ")";
+            inner join detail_dokter as dd on k.id_kategori=dd.id_kategori order by dd.id_dokter desc";
 
             $stmt = $conn->query($queryKategori);
             $hasilKateg = $stmt->fetchAll(PDO::FETCH_ASSOC);
