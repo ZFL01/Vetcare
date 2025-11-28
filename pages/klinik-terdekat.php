@@ -1,5 +1,10 @@
 <?php
 // Klinik Terdekat page - Find nearby clinics
+// Fetch all doctor locations from database
+$locations = DAO_dokter::allDoktersLocations();
+if ($locations === false) {
+    $locations = [];
+}
 ?>
 <div class="pt-32 pb-20">
     <div class="container mx-auto px-4">
@@ -25,206 +30,124 @@
                 </p>
             </div>
 
-            <!-- Search and Filter -->
+            <!-- Location Status -->
             <div class="bg-white rounded-lg shadow-card p-6 mb-8">
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Lokasi Anda</label>
-                        <div class="relative">
-                            <input type="text" placeholder="Masukkan alamat atau kota" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-xl">📍</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Lokasi Anda</h3>
+                            <p class="text-sm text-gray-600" id="user-location-text">Mengambil lokasi...</p>
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Layanan</label>
-                        <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
-                            <option>Semua Layanan</option>
-                            <option>Klinik Umum</option>
-                            <option>Klinik Spesialis</option>
-                            <option>Rumah Sakit Hewan</option>
-                            <option>Apotek Hewan</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mt-6">
-                    <button class="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300">
-                        <span class="mr-2">🔍</span>
-                        Cari Klinik
+                    <button onclick="getUserLocation()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm">
+                        🔄 Perbarui Lokasi
                     </button>
+                </div>
+                <div class="text-xs text-gray-500">
+                    Klik "Perbarui Lokasi" untuk menghitung jarak ke klinik terdekat
                 </div>
             </div>
 
             <!-- Clinic Results -->
-            <div class="space-y-6">
-                <!-- Clinic Card 1 -->
-                <div class="bg-white rounded-lg shadow-card p-6 hover:shadow-hero transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center gap-6">
-                        <div class="flex-shrink-0">
-                            <div class="w-24 h-24 bg-gradient-to-br from-green-100 to-green-50 rounded-lg flex items-center justify-center">
-                                <span class="text-3xl">🏥</span>
-                            </div>
-                        </div>
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                    Daftar Klinik Hewan
+                </h2>
+                <p class="text-gray-600">
+                    Ditemukan <span class="font-semibold text-green-600"><?php echo count($locations); ?></span> klinik
+                </p>
+            </div>
 
-                        <div class="flex-grow">
-                            <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                                <div>
-                                    <h3 class="text-xl font-display font-bold text-gray-800 mb-1">Klinik Hewan Jakarta Pusat</h3>
-                                    <p class="text-gray-600 mb-2">Jl. Sudirman No. 123, Jakarta Pusat</p>
-                                    <div class="flex items-center gap-4 text-sm text-gray-600">
-                                        <span class="flex items-center gap-1">
-                                            <span class="text-yellow-400">⭐</span>
-                                            4.7 (245 ulasan)
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>📍</span>
-                                            2.3 km
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>🕒</span>
-                                            Buka 24 jam
-                                        </span>
+            <div class="space-y-6" id="clinic-list">
+                <?php if (empty($locations)): ?>
+                    <div class="bg-white rounded-lg shadow-card p-12 text-center">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">🏥</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Klinik Terdaftar</h3>
+                        <p class="text-gray-600">Saat ini belum ada klinik yang terdaftar dalam sistem.</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($locations as $index => $location): ?>
+                        <div class="bg-white rounded-xl shadow-card p-6 hover:shadow-xl transition-all duration-300 clinic-card border-l-4 border-purple-500" 
+                             data-lat="<?php echo htmlspecialchars($location['lat']); ?>" 
+                             data-lng="<?php echo htmlspecialchars($location['long']); ?>"
+                             data-name="<?php echo htmlspecialchars($location['nama_klinik']); ?>">
+                            
+                            <div class="flex items-start gap-6">
+                                <!-- Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center shadow-sm">
+                                        <span class="text-3xl">🏥</span>
                                     </div>
                                 </div>
 
-                                <div class="mt-4 md:mt-0">
-                                    <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Buka</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">Klinik Umum</span>
-                                <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">Operasi</span>
-                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm">Vaksinasi</span>
-                            </div>
-
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <button class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300">
-                                    <span class="mr-2">📞</span>
-                                    Hubungi
-                                </button>
-                                <button class="flex-1 border-2 border-green-500 text-green-600 px-6 py-2 rounded-lg font-semibold hover:bg-green-50 transition-all duration-300">
-                                    <span class="mr-2">📍</span>
-                                    Petunjuk Arah
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Clinic Card 2 -->
-                <div class="bg-white rounded-lg shadow-card p-6 hover:shadow-hero transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center gap-6">
-                        <div class="flex-shrink-0">
-                            <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg flex items-center justify-center">
-                                <span class="text-3xl">🏥</span>
-                            </div>
-                        </div>
-
-                        <div class="flex-grow">
-                            <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                                <div>
-                                    <h3 class="text-xl font-display font-bold text-gray-800 mb-1">RSH Jakarta Selatan</h3>
-                                    <p class="text-gray-600 mb-2">Jl. Gatot Subroto No. 456, Jakarta Selatan</p>
-                                    <div class="flex items-center gap-4 text-sm text-gray-600">
-                                        <span class="flex items-center gap-1">
-                                            <span class="text-yellow-400">⭐</span>
-                                            4.9 (189 ulasan)
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>📍</span>
-                                            4.1 km
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>🕒</span>
-                                            08:00 - 20:00
+                                <!-- Content -->
+                                <div class="flex-grow">
+                                    <!-- Header -->
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 class="text-xl font-bold text-gray-800 mb-1">
+                                                <?php echo htmlspecialchars($location['nama_klinik']); ?>
+                                            </h3>
+                                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                    </svg>
+                                                    <span class="font-medium"><?php echo htmlspecialchars($location['nama_dokter']); ?></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                                            ● Tersedia
                                         </span>
                                     </div>
-                                </div>
 
-                                <div class="mt-4 md:mt-0">
-                                    <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Buka</span>
-                                </div>
-                            </div>
+                                    <!-- Info Grid -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                        <!-- Distance -->
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                                <span class="text-base">📍</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Jarak</p>
+                                                <p class="font-semibold text-gray-800 distance-text" data-index="<?php echo $index; ?>">Menghitung...</p>
+                                            </div>
+                                        </div>
 
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm">Rumah Sakit</span>
-                                <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">ICU</span>
-                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm">Emergency</span>
-                            </div>
-
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <button class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300">
-                                    <span class="mr-2">📞</span>
-                                    Hubungi
-                                </button>
-                                <button class="flex-1 border-2 border-blue-500 text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300">
-                                    <span class="mr-2">📍</span>
-                                    Petunjuk Arah
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Clinic Card 3 -->
-                <div class="bg-white rounded-lg shadow-card p-6 hover:shadow-hero transition-all duration-300">
-                    <div class="flex flex-col md:flex-row md:items-center gap-6">
-                        <div class="flex-shrink-0">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex items-center justify-center">
-                                <span class="text-3xl">🏥</span>
-                            </div>
-                        </div>
-
-                        <div class="flex-grow">
-                            <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                                <div>
-                                    <h3 class="text-xl font-display font-bold text-gray-800 mb-1">Klinik Hewan Menteng</h3>
-                                    <p class="text-gray-600 mb-2">Jl. Teuku Umar No. 789, Jakarta Pusat</p>
-                                    <div class="flex items-center gap-4 text-sm text-gray-600">
-                                        <span class="flex items-center gap-1">
-                                            <span class="text-yellow-400">⭐</span>
-                                            4.6 (156 ulasan)
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>📍</span>
-                                            3.7 km
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <span>🕒</span>
-                                            09:00 - 18:00
-                                        </span>
+                                        <!-- Coordinates -->
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                                <span class="text-base">🗺️</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Koordinat</p>
+                                                <p class="font-mono text-xs text-gray-700">
+                                                    <?php echo number_format($location['lat'], 4); ?>, <?php echo number_format($location['long'], 4); ?>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <!-- Action Button -->
+                                    <button onclick="openGoogleMaps(<?php echo $location['lat']; ?>, <?php echo $location['long']; ?>)" 
+                                            class="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        <span>Petunjuk Arah ke Klinik</span>
+                                    </button>
                                 </div>
-
-                                <div class="mt-4 md:mt-0">
-                                    <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">Tutup</span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">Klinik Umum</span>
-                                <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm">Grooming</span>
-                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm">Vaksinasi</span>
-                            </div>
-
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <button class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-300">
-                                    <span class="mr-2">📞</span>
-                                    Hubungi
-                                </button>
-                                <button class="flex-1 border-2 border-purple-500 text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-all duration-300">
-                                    <span class="mr-2">📍</span>
-                                    Petunjuk Arah
-                                </button>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
             <!-- Emergency Section -->
@@ -233,17 +156,111 @@
                     Butuh Bantuan Darurat?
                 </h3>
                 <p class="mb-6 opacity-90">
-                    Untuk kasus darurat, hubungi hotline kami 24/7
+                    Untuk kasus darurat, hubungi dokter kami secara online
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="tel:+6281122334455" class="inline-block bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                        📞 +62 811-2233-4455
-                    </a>
-                    <a href="?route=tanya-dokter" class="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-red-600 transition-colors">
+                    <button onclick="navigateTo('?route=pilih-dokter')" class="inline-block bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                         🩺 Konsultasi Online
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+let userLat = null;
+let userLng = null;
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
+}
+
+// Update distances for all clinics
+function updateDistances() {
+    if (userLat === null || userLng === null) {
+        return;
+    }
+
+    const clinicCards = document.querySelectorAll('.clinic-card');
+    const clinicsWithDistance = [];
+
+    clinicCards.forEach((card, index) => {
+        const clinicLat = parseFloat(card.dataset.lat);
+        const clinicLng = parseFloat(card.dataset.lng);
+        const distance = calculateDistance(userLat, userLng, clinicLat, clinicLng);
+        
+        const distanceText = card.querySelector('.distance-text');
+        if (distance < 1) {
+            distanceText.textContent = `${(distance * 1000).toFixed(0)} m`;
+        } else {
+            distanceText.textContent = `${distance.toFixed(1)} km`;
+        }
+
+        clinicsWithDistance.push({
+            card: card,
+            distance: distance
+        });
+    });
+
+    // Sort clinics by distance
+    clinicsWithDistance.sort((a, b) => a.distance - b.distance);
+    
+    // Reorder DOM elements
+    const clinicList = document.getElementById('clinic-list');
+    clinicsWithDistance.forEach(item => {
+        clinicList.appendChild(item.card);
+    });
+}
+
+// Get user's current location
+function getUserLocation() {
+    const locationText = document.getElementById('user-location-text');
+    locationText.textContent = 'Mengambil lokasi...';
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+                locationText.textContent = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+                updateDistances();
+            },
+            (error) => {
+                console.error('Error getting location:', error);
+                locationText.textContent = 'Gagal mengambil lokasi. Klik "Perbarui Lokasi" untuk mencoba lagi.';
+                alert('Tidak dapat mengakses lokasi Anda. Pastikan Anda telah mengizinkan akses lokasi di browser.');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        locationText.textContent = 'Browser tidak mendukung geolocation';
+        alert('Browser Anda tidak mendukung fitur geolocation.');
+    }
+}
+
+// Open Google Maps with directions
+function openGoogleMaps(lat, lng) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    window.open(url, '_blank');
+}
+
+// Auto-get location on page load
+document.addEventListener('DOMContentLoaded', function() {
+    getUserLocation();
+});
+</script>

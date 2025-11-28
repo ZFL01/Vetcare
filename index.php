@@ -118,8 +118,9 @@ switch ($route) {
 
     case 'klinik-terdekat':
         $pageTitle = 'Mencari Klinik Hewan Terdekat - VetCare';
-        $pageDescription = '';
-        $contentFile = 'klinik-terdekat.php';
+        $pageDescription = 'Temukan klinik hewan terdekat dari lokasi Anda';
+        $contentFile = 'pages/klinik-terdekat.php';
+        break;
     // ...
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';

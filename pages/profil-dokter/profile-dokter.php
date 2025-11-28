@@ -1003,6 +1003,9 @@ include 'base.php';
                 }
                 return response.json();
             })
+        }
+
+    function initializeMap(lat, lng) {
     const mapContainer = document.getElementById('map-klinik');
     
     // Cek apakah elemen map-klinik ada di DOM dan Leaflet sudah dimuat
@@ -1074,20 +1077,31 @@ include 'base.php';
     }, 100); 
 
     console.log("Peta berhasil diinisialisasi ulang.");
-}
-function determineAndInitializeMap() {
+    }
+
+    function determineAndInitializeMap() {
     // Variabel PHP yang di-echo hanya tersedia jika tab-lokasi.php sudah dimuat!
     const savedProvinsi = "<?php echo htmlspecialchars($profil->getProv() ?? ''); ?>";
     const savedKabupaten = "<?php echo htmlspecialchars($profil->getKab() ?? ''); ?>";
-    let initLat = document.getElementById('input-latitude').value; // Gunakan let
-    let initLng = document.getElementById('input-longitude').value; // Gunakan let
+    <?php 
+    $koor = $profil->getKoor();
+    $lat = (is_array($koor) && isset($koor[0])) ? $koor[0] :'';
+    $long = (is_array($koor) && isset($koor[1])) ? $koor[1] :'';
+    ?>
+    let initLat = <?php echo $lat? $lat : "document.getElementById('input-latitude').value"; ?>; // Gunakan let
+    let initLng = <?php echo $long? $long : "document.getElementById('input-longitude').value"; ?>; // Gunakan let
+    
+
     const defaultLat = -6.2088; // Koordinat default ( Jakarta)
     const defaultLng = 106.8456;
 
     // Tentukan koordinat awal
     const hasSavedCoords = initLat && initLng && parseFloat(initLat) !== defaultLat;
 
-    if(navigator.geolocation){
+    if(hasSavedCoords){
+        initializeMap(parseFloat(initLat), parseFloat(initLng));
+
+    }else if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition(
             (position)=>{
                 const livelat = parseFloat(position.coords.latitude);
@@ -1104,9 +1118,9 @@ function determineAndInitializeMap() {
         initializeFallback(hasSavedCoords, initLat, initLng,
                 defaultLat, defaultLng, savedProvinsi, savedKabupaten);
     }
-}
+    }
 
-function initializeFallback(hasSavedCoords, initLat, initLng,
+    function initializeFallback(hasSavedCoords, initLat, initLng,
                 defaultLat, defaultLng, savedProvinsi, savedKabupaten){
 
     if(hasSavedCoords){
@@ -1139,5 +1153,5 @@ function initializeFallback(hasSavedCoords, initLat, initLng,
         // Inisialisasi langsung jika koordinat sudah ada
         initializeMap(defaultLat, defaultLng);
     }
-}
+    }
 </script>
