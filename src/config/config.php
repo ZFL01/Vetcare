@@ -216,7 +216,7 @@ function uploadImage($file, $directory, $prefix) {
     
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $extension;
+    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
     
     // Move file

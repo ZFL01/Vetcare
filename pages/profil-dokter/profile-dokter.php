@@ -1003,35 +1003,6 @@ include 'base.php';
                 }
                 return response.json();
             })
-            .then(data => {
-                // 4. Handle Respon Sukses
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-
-                if (data.success) {
-                    alert(data.message || 'Jadwal berhasil diperbarui!');
-                    location.reload();
-                } else {
-                    alert('Gagal menyimpan jadwal: ' + (data.message || 'Terjadi kesalahan server.'));
-                }
-            })
-            .catch(error => {
-                // 5. Handle Error
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-                console.error('Error saat submit jadwal:', error);
-                alert('Terjadi kesalahan koneksi atau server: ' + error.message);
-            });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('scheduleForm').addEventListener('submit', handleSubmitSchedule);
-    });
-
-    //inisialisasi map
-
-
-function initializeMap(lat, lng) {
     const mapContainer = document.getElementById('map-klinik');
     
     // Cek apakah elemen map-klinik ada di DOM dan Leaflet sudah dimuat
