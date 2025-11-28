@@ -233,6 +233,7 @@ function getUserLocation() {
             (position) => {
                 userLat = position.coords.latitude;
                 userLng = position.coords.longitude;
+                console.log(userLat, userLng);
                 locationText.textContent = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
                 updateDistances();
             },
