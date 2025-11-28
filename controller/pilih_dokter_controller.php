@@ -53,10 +53,10 @@ foreach ($listDokter as $dok) {
     // Check if doctor has schedule for today
     $hariEntry = (is_array($jadwal) && isset($jadwal[$hariIni])) ? $jadwal[$hariIni] : [];
     
-    // Skip dokter yang tidak punya jadwal hari ini
-    if (empty($hariEntry)) {
-        continue;
-    }
+    // Skip dokter yang tidak punya jadwal hari ini -> REMOVED to show all doctors
+    // if (empty($hariEntry)) {
+    //     continue;
+    // }
     
     // Check if currently within any time slot
     $currentSlot = null;

@@ -89,9 +89,8 @@ $assetVersion = time();
     <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="closeModal()"></div>
 
     <!-- Modal Panel -->
-        <div
-          class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-[480px] sm:w-full" style="max-width:480px !important;">
-          <div class="bg-white px-6 py-4" style="max-height:80vh; overflow:auto;">
+    <div class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-[480px] sm:w-full" style="max-width:480px !important;">
+      <div class="bg-white px-6 py-4" style="max-height:80vh; overflow:auto;">
         <!-- Header Modal -->
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gray-800">Profile Dokter Hewan</h3>
@@ -106,8 +105,7 @@ $assetVersion = time();
         <div id="modalContent" class="space-y-6">
           <!-- Loading state -->
           <div class="text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600">
-            </div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600"></div>
             <p class="mt-2 text-gray-600">Memuat data dokter...</p>
           </div>
         </div>
@@ -116,9 +114,17 @@ $assetVersion = time();
   </div>
 </div>
 
+<?php 
+// Include konsultasi form modal
+require_once __DIR__ . '/konsultasi-form.php'; 
+?>
+
 <data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
 <data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
 
+<!-- expose API key to JS (set in src/config/config.php) -->
+<script>window.GOOGLE_MAPS_API_KEY = '<?php echo GOOGLE_MAPS_API_KEY; ?>';</script>
+<script src="controller/doctor_map.js?v=<?php echo $assetVersion; ?>"></script>
 <script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
 
 <style>
@@ -133,12 +139,13 @@ $assetVersion = time();
 
   /* Styling untuk radio kategori - menggunakan Tailwind peer utility */
   .category-radio:checked+span {
-<data id="slugToKategori" value="<?php echo htmlspecialchars($slugToKategoriJSON, ENT_QUOTES, 'UTF-8'); ?>"></data>
-<data id="urlKategori" value="<?php echo htmlspecialchars($kategoriForJS, ENT_QUOTES, 'UTF-8'); ?>"></data>
+    background-color: #9333ea;
+    color: white;
+  }
 
-<!-- expose API key to JS (set in src/config/config.php) -->
-<script>window.GOOGLE_MAPS_API_KEY = '<?php echo GOOGLE_MAPS_API_KEY; ?>';</script>
-<script src="controller/doctor_map.js?v=<?php echo $assetVersion; ?>"></script>
-<script src="controller/pilih_dokter.js?v=<?php echo $assetVersion; ?>"></script>
+  .shadow-glow {
+    box-shadow: 0 4px 14px 0 rgba(147, 51, 234, 0.39);
   }
 </style>
+
+<?php require_once __DIR__ . '/../footer.php'; ?>
