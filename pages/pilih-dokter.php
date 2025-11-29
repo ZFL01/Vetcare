@@ -147,5 +147,3 @@ require_once __DIR__ . '/konsultasi-form.php';
     box-shadow: 0 4px 14px 0 rgba(147, 51, 234, 0.39);
   }
 </style>
-
-<?php require_once __DIR__ . '/../footer.php'; ?>

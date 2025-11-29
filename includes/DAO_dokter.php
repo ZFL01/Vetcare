@@ -327,7 +327,6 @@ class DAO_dokter
         ); //self dokter dan tabel admin
         //visualisasi data
         $obj->setTTL($dat['ttl'] ?? null);
-        $obj->setAlamat($dat['kabupaten'] ?? null, $dat['provinsi'] ?? null);
         $obj->setStatus($dat['status'] ?? null);
         return $obj;
     }
@@ -336,7 +335,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga, kabupaten, provinsi
             from m_dokter where status='aktif'";
 
             $stmt = $conn->prepare($queryDokter);
@@ -390,7 +389,11 @@ class DAO_dokter
 
             $DTO_dokter = [];
             foreach ($groupId as $id => $data) {
-                $DTO_dokter[] = self::mapArray($data, $data['kateg'], $data['jadwal']);
+                // Mapping data ke DTO
+                $obj = self::mapArray($data, $data['kateg'], $data['jadwal']);
+                // PENTING: Set Alamat secara eksplisit dari data query
+                $obj->setAlamat($data['kabupaten'] ?? null, $data['provinsi'] ?? null);
+                $DTO_dokter[] = $obj;
             }
             return $DTO_dokter;
 
@@ -400,17 +403,24 @@ class DAO_dokter
         }
     }
 
-    static function allDoktersLocations(){
+    static function allDoktersLocations()
+    {
         $conn = Database::getConnection();
-        $sql= 'select l.*, d.nama_dokter from m_lokasipraktik as l inner join m_dokter as d on 
-        d.id_dokter=l.dokter';
-        try{
+        $sql = 'select 
+                l.*, 
+                d.nama_dokter,
+                d.kabupaten,
+                d.provinsi 
+           from m_lokasipraktik as l 
+           inner join m_dokter as d on d.id_dokter=l.dokter
+           where d.status="aktif"';
+        try {
             $stmt = $conn->prepare($sql);
             $stmt->execute();
             $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $hasil;
-        }catch(PDOException $e){
-            error_log('[DAO_dokter::allDoktersLocate]: '.$e->getMessage());
+        } catch (PDOException $e) {
+            error_log('[DAO_dokter::allDoktersLocations]: ' . $e->getMessage());
             return false;
         }
     }
@@ -533,7 +543,9 @@ class DAO_dokter
             $stmt = $conn->prepare($sql);
             $stmt->execute([$dat->getId()]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(!$hasil){return false;}
+            if (!$hasil) {
+                return false;
+            }
             $dat->setInfoDokter($hasil);
             return true;
         } catch (PDOException $e) {
@@ -732,7 +744,7 @@ class DAO_dokter
         try {
             if ($nKlinik === null) {
                 $stmt = $conn->prepare("delete from m_lokasipraktik where dokter=?");
-                $hasil= $stmt->execute([$data->getId()]);
+                $hasil = $stmt->execute([$data->getId()]);
                 return [$hasil, 'hapus'];
             }
             $stmt = $conn->prepare($sql);
@@ -740,7 +752,7 @@ class DAO_dokter
             return [$hasil, 'update/insert'];
         } catch (PDOException $e) {
             error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage());
-            return [false, "error saat {$update} : ". $e->getMessage()];
+            return [false, "error saat {$update} : " . $e->getMessage()];
         }
     }
 
