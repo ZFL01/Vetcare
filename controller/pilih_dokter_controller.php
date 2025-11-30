@@ -13,6 +13,19 @@ $searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 // Get all available categories for filter dropdown
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../src/config/config.php';
+
+if (isset($_GET['pilih'])) {
+    header('Content-Type: application/json');
+    if($_GET['pilih'] > 0){
+        $dokter = DAO_dokter::getProfilDokter(initiate:true, idDokter: $_GET['pilih']);
+        echo json_encode($dokter);
+        exit;
+    }else{
+        echo json_encode(false);
+        exit;
+    }
+}
+
 $all_kategori = DAO_kategori::getAllKategori();
 
 // Get list of doctors - ALWAYS return all dokters for API
@@ -53,10 +66,10 @@ foreach ($listDokter as $dok) {
     // Check if doctor has schedule for today
     $hariEntry = (is_array($jadwal) && isset($jadwal[$hariIni])) ? $jadwal[$hariIni] : [];
     
-    // Skip dokter yang tidak punya jadwal hari ini
-    if (empty($hariEntry)) {
-        continue;
-    }
+    // Skip dokter yang tidak punya jadwal hari ini -> REMOVED to show all doctors
+    // if (empty($hariEntry)) {
+    //     continue;
+    // }
     
     // Check if currently within any time slot
     $currentSlot = null;

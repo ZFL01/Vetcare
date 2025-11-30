@@ -1,7 +1,8 @@
 {
     "require": {
         "phpmailer/phpmailer": "^7.0",
-        "guzzlehttp/guzzle": "^7.10"
+        "guzzlehttp/guzzle": "^7.10",
+        "mongodb/mongodb": "^2.1"
     },
     "autoload":{
         "psr-4": {

@@ -481,13 +481,14 @@ class DAO_dokter
         }
     }
 
-    static function getProfilDokter(DTO_pengguna $data, bool $initiate)
+    static function getProfilDokter(?DTO_pengguna $data=null, bool $initiate=true, int $idDokter=0)
     {//dokter profil
         $conn = Database::getConnection();
+        $id = $idDokter >0 ? $idDokter : $data->getIdUser();
         try {
             $sql = "select * from m_dokter where id_dokter=?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$data->getIdUser()]);
+            $stmt->execute([$id]);
             $profil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($profil == null) {
                 return false;

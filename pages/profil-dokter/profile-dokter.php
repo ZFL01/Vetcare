@@ -105,7 +105,7 @@ if (isset($_POST['update_profile'])) {
     exit();
 }
 
-if (isset($action) && $action === 'load-tab') {
+if (isset($access) && $access === 'load-tab') {
     $tab = $_GET['tab'] ?? 'profil';
     switch ($tab) {
         case 'jadwal':
@@ -129,7 +129,7 @@ if (isset($action) && $action === 'load-tab') {
     exit();
 }
 
-if ($action === 'verify_pass') {
+if ($access === 'verify_pass') {
     $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
     $bool = empty($head) || strtolower($head) !== 'xmlhttprequest';
     if ($bool) {
@@ -153,7 +153,7 @@ if ($action === 'verify_pass') {
         echo json_encode(['success' => false, 'message' => $hasil[1]]);
         exit();
     }
-} elseif ($action === 'change_pass') {
+} elseif ($access === 'change_pass') {
     if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
         http_response_code(403);
         exit();
@@ -182,7 +182,7 @@ if ($action === 'verify_pass') {
         echo json_encode(['success' => false, 'message' => $hasil[1]]);
         exit();
     }
-} elseif ($action === 'update_full_schedule') {
+} elseif ($access === 'update_full_schedule') {
     header('Content-Type: application/json');
 
     $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
@@ -723,7 +723,7 @@ include 'base.php';
 
 
         // Server endpoint untuk memuat konten tab
-        fetch(`?route=profil&action=load-tab&tab=${tabName}`)
+        fetch(`?route=profil&access=load-tab&tab=${tabName}`)
             .then(response => response.text())
             .then(html => {
                 tabContent.innerHTML = html;
@@ -780,7 +780,7 @@ include 'base.php';
         btnSubm.disabled = true;
         btnSubm.textContent = 'Mengirim.....';
 
-        fetch('?route=profil&action=verify_pass', {
+        fetch('?route=profil&access=verify_pass', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -827,7 +827,7 @@ include 'base.php';
         submitBtn.textContent = 'Menyimpan...';
 
         // ➡️ Ubah endpoint dan body
-        fetch('?route=profil&action=change_pass', {
+        fetch('?route=profil&access=change_pass', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -989,7 +989,7 @@ include 'base.php';
         submitBtn.textContent = 'Menyimpan Jadwal...';
 
         // 3. Konfigurasi Fetch Request
-        fetch('?route=profil&action=update_full_schedule', {
+        fetch('?route=profil&access=update_full_schedule', {
             method: 'POST',
             body: formData,
             headers: {

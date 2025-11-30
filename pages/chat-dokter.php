@@ -226,38 +226,65 @@ document.addEventListener('DOMContentLoaded', function() {
         if (rawKonsultasi) {
             const data = JSON.parse(rawKonsultasi);
             
-            // Set Info Dokter
-            if (data.dokter_nama) chatDoctorName.textContent = data.dokter_nama;
-            
-            // Tampilkan Ringkasan Konsultasi sebagai pesan sistem/awal
-            const summaryHtml = `
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800">
-                    <h5 class="font-semibold mb-2 flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        Ringkasan Konsultasi
-                    </h5>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <span class="text-blue-600/70">Hewan:</span> <span class="font-medium">${escapeHtml(data.nama_hewan)} (${escapeHtml(data.jenis_hewan)})</span>
-                        <span class="text-blue-600/70">Usia:</span> <span class="font-medium">${escapeHtml(data.usia_hewan)}</span>
-                        <span class="text-blue-600/70 col-span-2 mt-1">Keluhan:</span>
-                        <span class="col-span-2 font-medium italic">"${escapeHtml(data.keluhan_gejala)}"</span>
-                    </div>
-                </div>
-            `;
-            
-            // Insert summary before messages
-            const summaryDiv = document.createElement('div');
-            summaryDiv.innerHTML = summaryHtml;
-            chatMessages.appendChild(summaryDiv);
-            
-            // Hapus placeholder
-            const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
-            if (placeholder) placeholder.remove();
+            // Fetch data dokter berdasarkan dokter_id
+            if (data.dokter_id) {
+                const apiUrl = 'controller/pilih_dokter_controller.php?api=true';
+                fetch(apiUrl)
+                    .then(res => res.json())
+                    .then(list => {
+                        const doc = list.find(d => String(d.id) === String(data.dokter_id) || String(d.id_dokter) === String(data.dokter_id));
+                        if (doc) {
+                            const doctorName = doc.nama_dokter || doc.nama || 'Dokter';
+                            chatDoctorName.textContent = doctorName;
+                            
+                            // Set kategori dokter
+                            const getKategori = (k) => {
+                                if (!k) return '-';
+                                if (Array.isArray(k)) {
+                                    if (k.length === 0) return '-';
+                                    return k.map(i => {
+                                        if (typeof i === 'string') return i;
+                                        return i.nama_kateg || i.nama_kategori || i.nama || '';
+                                    }).filter(Boolean).join(', ') || '-';
+                                }
+                                if (typeof k === 'string') return k;
+                                return k.nama_kateg || k.nama_kategori || k.nama || '-';
+                            };
+                            chatDoctorSpecialty.textContent = getKategori(doc.kategori);
+                            
+                            // Tampilkan Ringkasan Konsultasi sebagai pesan sistem/awal
+                            const summaryHtml = `
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800">
+                                    <h5 class="font-semibold mb-2 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                        Ringkasan Konsultasi
+                                    </h5>
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                        <span class="text-blue-600/70">Hewan:</span> <span class="font-medium">${escapeHtml(data.nama_hewan)} (${escapeHtml(data.jenis_hewan)})</span>
+                                        <span class="text-blue-600/70">Usia:</span> <span class="font-medium">${escapeHtml(data.usia_hewan)}</span>
+                                        <span class="text-blue-600/70 col-span-2 mt-1">Keluhan:</span>
+                                        <span class="col-span-2 font-medium italic">"${escapeHtml(data.keluhan_gejala)}"</span>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Insert summary before messages
+                            const summaryDiv = document.createElement('div');
+                            summaryDiv.innerHTML = summaryHtml;
+                            chatMessages.appendChild(summaryDiv);
+                            
+                            // Hapus placeholder
+                            const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
+                            if (placeholder) placeholder.remove();
 
-            // Pesan pembuka dokter
-            setTimeout(() => {
-                appendMessage(`Halo, saya ${data.dokter_nama || 'Dokter'}. Saya sudah membaca keluhan tentang ${escapeHtml(data.nama_hewan)}. Bisa kirimkan foto kondisinya?`, false, data.dokter_nama);
-            }, 500);
+                            // Pesan pembuka dokter
+                            setTimeout(() => {
+                                appendMessage(`Halo, saya ${doctorName}. Saya sudah membaca keluhan tentang ${escapeHtml(data.nama_hewan)}. Bisa kirimkan foto kondisinya?`, false, doctorName);
+                            }, 500);
+                        }
+                    })
+                    .catch(err => console.error("Gagal memuat data dokter", err));
+            }
 
             // Bersihkan session agar tidak muncul terus saat refresh (opsional, tergantung flow)
             // sessionStorage.removeItem('konsultasiData'); 
@@ -272,21 +299,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetch(apiUrl)
                     .then(res => res.json())
                     .then(list => {
-                        const doc = list.find(d => String(d.id) === String(dokterId));
+                        const doc = list.find(d => String(d.id) === String(dokterId) || String(d.id_dokter) === String(dokterId));
                         if (doc) {
-                            chatDoctorName.textContent = doc.nama;
+                            const doctorName = doc.nama_dokter || doc.nama || 'Dokter';
+                            chatDoctorName.textContent = doctorName;
+                            
                             // Helper untuk kategori
                             const getKategori = (k) => {
-                                if (Array.isArray(k)) return k.map(i => i.nama_kateg || i.nama).join(', ');
-                                return k.nama_kateg || k.nama || '-';
+                                if (!k) return '-';
+                                if (Array.isArray(k)) {
+                                    if (k.length === 0) return '-';
+                                    return k.map(i => {
+                                        if (typeof i === 'string') return i;
+                                        return i.nama_kateg || i.nama_kategori || i.nama || '';
+                                    }).filter(Boolean).join(', ') || '-';
+                                }
+                                if (typeof k === 'string') return k;
+                                return k.nama_kateg || k.nama_kategori || k.nama || '-';
                             };
                             chatDoctorSpecialty.textContent = getKategori(doc.kategori);
                             
                             // Pesan pembuka
-                            appendMessage(`Halo, saya ${doc.nama}. Ada yang bisa saya bantu?`, false, doc.nama);
+                            setTimeout(() => {
+                                appendMessage(`Halo, saya ${doctorName}. Ada yang bisa saya bantu?`, false, doctorName);
+                            }, 500);
+                        } else {
+                            chatDoctorName.textContent = "Dokter tidak ditemukan";
+                            chatDoctorSpecialty.textContent = "-";
                         }
                     })
-                    .catch(err => console.error("Gagal memuat data dokter", err));
+                    .catch(err => {
+                        console.error("Gagal memuat data dokter", err);
+                        chatDoctorName.textContent = "Error memuat data";
+                        chatDoctorSpecialty.textContent = "-";
+                    });
             } else {
                 chatDoctorName.textContent = "Pilih Dokter";
                 chatDoctorSpecialty.textContent = "Silakan kembali ke menu Dokter";

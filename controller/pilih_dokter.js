@@ -143,13 +143,6 @@ function initDokters() {
       selectedCategoryName = e.target.value.trim();
       console.log('[KATEGORI CHANGE] selectedCategoryName:', selectedCategoryName);
 
-      // When switching to "Semua Kategori" (empty value), optionally clear search too
-      // Uncomment line below if you want to auto-clear search when clicking "all"
-      // if (!selectedCategoryName) {
-      //   searchKeyword = '';
-      //   searchInput.value = '';
-      // }
-
       const newUrl = selectedCategoryName
         ? '?route=pilih-dokter&kategori=' + encodeURIComponent(selectedCategoryName)
         : '?route=pilih-dokter';
@@ -159,18 +152,6 @@ function initDokters() {
     });
   });
 
-  // const dokterDataElement = document.getElementById('dokterData');
-  // if (dokterDataElement) {
-  //   try {
-  //     const escapedRawData = dokterDataElement.getAttribute('value') || '[]';
-  //     const rawData = unescapeHtml(escapedRawData);
-  //     allDokters = JSON.parse(rawData);
-  //     console.log('Successfully loaded dokters:', allDokters.length);
-  //   } catch (e) {
-  //     console.error('Error parsing initial dokter data:', e);
-  //     allDokters = [];
-  //   }
-  // }
   loadingIndicator.classList.remove('hidden');
   fetch('controller/pilih_dokter_controller.php?api=true')
     .then(response => {
@@ -322,7 +303,7 @@ function showEmptyState() {
 
 /**
  * Merender daftar kartu dokter ke dalam DOM.
-       */
+ */
 function renderDokters(dokters) {
   if (!doktersContainer) return;
 
@@ -355,7 +336,9 @@ function renderDokters(dokters) {
                 ${typeof dokter.available_now !== 'undefined' ? `<div class="mt-2 text-sm">` +
         (dokter.available_now ?
           `<span class="inline-block px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">● Tersedia sekarang</span>`
-          : `<span class="inline-block px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">${escapeHtml(dokter.status_text || 'Tutup hari ini')}</span>`) +
+          : (dokter.status_text && dokter.status_text.includes('Tersedia kembali') ?
+            `<span class="inline-block px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">● ${escapeHtml(dokter.status_text)}</span>`
+            : `<span class="inline-block px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">${escapeHtml(dokter.status_text || 'Tutup hari ini')}</span>`)) +
         `</div>` : ''}
                 <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
                   <span class="flex items-center gap-1"><span class="text-yellow-400">⭐</span>${escapeHtml(String(rate))}</span>
@@ -364,8 +347,6 @@ function renderDokters(dokters) {
                 </div>
               </div>
             </div>
-
-            
 
             <div class="space-y-4 text-sm">
               ${dokter.available_now && dokter.current_slot ? `
@@ -392,7 +373,7 @@ function renderDokters(dokters) {
 
         <div class="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
           <div class="text-purple-600 font-semibold text-lg">Rp ${formatRupiah(harga)}</div>
-          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="window.location.href = '?route=chat&dokter_id=${idForModal}'; event.stopPropagation();">
+          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="window.currentDokterId='${idForModal}'; openKonsultasiModal(); event.stopPropagation();">
             <span class="text-base"></span>
             Chat Sekarang
           </button>
@@ -403,7 +384,6 @@ function renderDokters(dokters) {
 
   doktersContainer.innerHTML = html;
 }
-
 
 /**
  * Menampilkan modal detail dokter.
@@ -491,14 +471,16 @@ function showModal(idDokter) {
         <div class="text-purple-600 font-semibold text-base">Rp ${formatRupiah(harga)}</div>
         <div class="flex gap-3">
           <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
-          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
+          <button onclick="window.currentDokterId='${idDokter}'; openKonsultasiModal()" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
         </div>
       </div>
     </div>
   `;
+  console.log('pilih : ', idDokter);
 
   modalContent.innerHTML = html;
   modalDokter.classList.remove('hidden');
+
   // Initialize map if coordinates present. Prefer Google Maps if API key provided,
   // otherwise fall back to an OpenStreetMap iframe so the user always sees a map.
   if (mapContainerId) {
@@ -525,15 +507,10 @@ function showModal(idDokter) {
   }
 }
 
-
-/**
- * Menutup modal detail dokter.
- */
 function closeModal() {
   if (!modalDokter) return;
   modalDokter.classList.add('hidden');
 }
-
 
 // ==================== STARTUP ====================
 document.addEventListener('DOMContentLoaded', initDokters);
