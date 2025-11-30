@@ -162,7 +162,7 @@ if (isset($_POST['register2'])) {
             // Upload foto profil
             $foto_name = null;
             if (isset($_FILES['file_foto']) && $_FILES['file_foto']['error'] === UPLOAD_ERR_OK) {
-                $upload_result = uploadImage($_FILES['file_foto'], PROFILE_DIR, 'profil_');
+                $upload_result = uploadImage($_FILES['file_foto'], PROFILE_DIR, 'pr_');
                 if (!$upload_result['success']) {
                     throw new Exception('Gagal upload foto: ' . $upload_result['message']);
                 }
@@ -528,8 +528,8 @@ $flash = getFlash();
                 </div>
 
                 <div class="form-group">
-                    <label>Kabupaten</label>
-                    <input type="text" name="kab" placeholder="Masukkan nama kabupaten asal Anda">
+                    <label>Kota</label>
+                    <input type="text" name="kab" placeholder="Masukkan nama Kota/Kabupaten asal Anda">
                 </div>
                 <div class="form-group">
                     <label>Provinsi *</label>

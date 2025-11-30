@@ -336,7 +336,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga
+            $queryDokter = "select id_dokter, nama_dokter, foto, pengalaman, rate, harga, kabupaten, provinsi
             from m_dokter where status='aktif'";
 
             $stmt = $conn->prepare($queryDokter);
@@ -390,7 +390,8 @@ class DAO_dokter
 
             $DTO_dokter = [];
             foreach ($groupId as $id => $data) {
-                $DTO_dokter[] = self::mapArray($data, $data['kateg'], $data['jadwal']);
+                $obj = self::mapArray($data, $data['kateg'], $data['jadwal']);
+                $DTO_dokter[] = $obj;
             }
             return $DTO_dokter;
 
@@ -400,17 +401,24 @@ class DAO_dokter
         }
     }
 
-    static function allDoktersLocations(){
+    static function allDoktersLocations()
+    {
         $conn = Database::getConnection();
-        $sql= 'select l.*, d.nama_dokter from m_lokasipraktik as l inner join m_dokter as d on 
-        d.id_dokter=l.dokter';
-        try{
+        $sql = 'select 
+                l.*, 
+                d.nama_dokter,
+                d.kabupaten,
+                d.provinsi 
+           from m_lokasipraktik as l 
+           inner join m_dokter as d on d.id_dokter=l.dokter
+           where d.status="aktif"';
+        try {
             $stmt = $conn->prepare($sql);
             $stmt->execute();
             $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $hasil;
-        }catch(PDOException $e){
-            error_log('[DAO_dokter::allDoktersLocate]: '.$e->getMessage());
+        } catch (PDOException $e) {
+            error_log('[DAO_dokter::allDoktersLocations]: ' . $e->getMessage());
             return false;
         }
     }
@@ -534,7 +542,9 @@ class DAO_dokter
             $stmt = $conn->prepare($sql);
             $stmt->execute([$dat->getId()]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(!$hasil){return false;}
+            if (!$hasil) {
+                return false;
+            }
             $dat->setInfoDokter($hasil);
             return true;
         } catch (PDOException $e) {
@@ -733,7 +743,7 @@ class DAO_dokter
         try {
             if ($nKlinik === null) {
                 $stmt = $conn->prepare("delete from m_lokasipraktik where dokter=?");
-                $hasil= $stmt->execute([$data->getId()]);
+                $hasil = $stmt->execute([$data->getId()]);
                 return [$hasil, 'hapus'];
             }
             $stmt = $conn->prepare($sql);
@@ -741,7 +751,7 @@ class DAO_dokter
             return [$hasil, 'update/insert'];
         } catch (PDOException $e) {
             error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage());
-            return [false, "error saat {$update} : ". $e->getMessage()];
+            return [false, "error saat {$update} : " . $e->getMessage()];
         }
     }
 
@@ -824,62 +834,5 @@ class DAO_dokter
             return false;
         }
     }
-
-    /**
-     * Simple search/filter helper for doctors.
-     * Falls back to in-memory filtering of `getAllDokter()` results to avoid
-     * complex SQL changes. Accepts a search string and a category name/id.
-     *
-     * @param string $searchTerm
-     * @param string $kategori
-     * @return DTO_dokter[]
-     */
-    static function searchDokter(string $searchTerm = '', string $kategori = ''): array
-    {
-        $all = self::getAllDokter();
-        if (empty($searchTerm) && empty($kategori)) {
-            return $all;
-        }
-
-        $searchTerm = trim($searchTerm);
-        $kategori = trim($kategori);
-
-        $filtered = [];
-        foreach ($all as $dok) {
-            // filter by search term (name)
-            $matchSearch = true;
-            if ($searchTerm !== '') {
-                $name = $dok->getNama() ?? '';
-                $matchSearch = (stripos($name, $searchTerm) !== false);
-            }
-
-            // filter by kategori (category name or id)
-            $matchKateg = true;
-            if ($kategori !== '') {
-                $kategs = $dok->getKategori() ?? [];
-                $matchKateg = false;
-                foreach ($kategs as $k) {
-                    // allow matching by name (case-insensitive) or numeric id
-                    if (is_numeric($kategori)) {
-                        if ((string) $k === (string) $kategori) {
-                            $matchKateg = true;
-                            break;
-                        }
-                    }
-                    if (stripos((string) $k, $kategori) !== false) {
-                        $matchKateg = true;
-                        break;
-                    }
-                }
-            }
-
-            if ($matchSearch && $matchKateg) {
-                $filtered[] = $dok;
-            }
-        }
-
-        return $filtered;
-    }
 }
-
 ?>
