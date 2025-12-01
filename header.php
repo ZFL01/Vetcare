@@ -1,18 +1,22 @@
   <?php
 // Header component converted to PHP
 $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
+
+// Include config to get GOOGLE_MAPS_API_KEY and other constants
+require_once __DIR__ . '/src/config/config.php';
+require_once __DIR__ . '/includes/userService.php';
 ?>
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-card">
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
             <div class="flex items-center gap-3 group cursor-pointer" onclick="navigateTo('?route=')">
-                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                    <span class="text-white text-2xl">🐾</span>
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-glow">
+                    <span class="text-white text-xl md:text-2xl">🐾</span>
                 </div>
-                <span class="text-3xl font-display font-bold text-purple-600 hover:text-purple-700 transition-colors">VetCare</span>
+                <span class="text-2xl md:text-3xl font-display font-bold text-purple-600 hover:text-purple-700 transition-colors">VetCare</span>
             </div>
 
-            <nav class="hidden md:flex items-center gap-10">
+            <nav class="hidden md:flex items-center gap-6 lg:gap-10">
                 <button onclick="scrollToSection('dokter')" class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
                     <span>Dokter</span>
                     <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300"></div>
@@ -68,7 +72,6 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                         </a>
                     </div>
                 </div>
-
                 <button onclick="scrollToSection('cara-kerja')" class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
                     <span>Cara Kerja</span>
                     <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300"></div>
@@ -85,15 +88,75 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                 </button>
             </nav>
 
-            <div class="flex items-center gap-4">
-                <button onclick="navigateTo('?route=auth')" class="hidden md:block hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors">
-                    <span class="mr-2">👤</span>
-                    Masuk
-                </button>
-                <button onclick="navigateTo('?route=auth')" class="hidden sm:flex font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
-                    <span class="mr-2">✨</span>
-                    Daftar Sekarang
-                </button>
+            <div class="flex items-center gap-3 md:gap-4">
+                <?php if (isset($_SESSION['user'])): ?>
+                    <div class="relative hidden md:block" id="user-menu-container">
+                        <button class="flex items-center gap-2 hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors group" onclick="toggleUserMenu()">
+                            <?php 
+                            $userRole = $_SESSION['user']->getRole();
+                            $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
+                            $fotoProfile = null;
+                            
+                            if ($isDokter) {
+                                // Fetch fresh profile to ensure photo is up to date
+                                $freshProfil = DAO_dokter::getProfilDokter($_SESSION['user'], true);
+                                $fotoProfile = $freshProfil ? $freshProfil->getFoto() : null;
+                            }
+                            ?>
+                            
+                            <?php if ($isDokter): ?>
+                                <?php if ($fotoProfile): ?>
+                                    <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-purple-200">
+                                <?php else: ?>
+                                    <img src="<?php echo URL_FOTO . 'dokter-profil/default-profile.webp'; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-purple-200">
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                                    <span class="text-sm">👤</span>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <span class="text-gray-700 group-hover:text-purple-600 transition-colors">
+                                <?php 
+                                if ($_SESSION['user']->getRole() === 'Dokter' && isset($_SESSION['dokter'])) {
+                                    $nama = $_SESSION['dokter']->getNama();
+                                    // Remove 'dr.' or 'Dr.' prefix if present
+                                    $nama = preg_replace('/^dr\.\s*/i', '', $nama);
+                                    echo htmlspecialchars($nama);
+                                } else {
+                                    echo htmlspecialchars(censorEmail($_SESSION['user']->getEmail()));
+                                }
+                                ?>
+                            </span>
+                            <svg class="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div class="absolute top-full right-0 mt-2 w-48 bg-white backdrop-blur-xl border border-gray-200 rounded-xl shadow-hero py-2 z-[100] hidden opacity-0 transform scale-95 transition-all duration-300" id="user-menu">
+                            <?php if ($_SESSION['user']->getRole() === 'Dokter'): ?>
+                                <a href="?route=profil" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                    <span>👨‍⚕️</span>
+                                    Profil Saya
+                                </a>
+                            <?php endif; ?>
+                            <button onclick="logout()" class="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                <span>🚪</span>
+                                Keluar
+                            </button>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <button onclick="navigateTo('?route=auth')" class="hidden md:block hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors">
+                        <span class="mr-2">👤</span>
+                        Masuk
+                    </button>
+                    <button onclick="navigateTo('?route=auth')" class="hidden sm:flex font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <span class="mr-2">✨</span>
+                        Daftar Sekarang
+                    </button>
+                <?php endif; ?>
 
                 <!-- Mobile Menu Button -->
                 <button class="md:hidden p-2 text-gray-700 hover:text-purple-600 transition-colors" onclick="toggleMobileMenu()">
@@ -112,8 +175,11 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                 </button>
 
                 <div class="px-4">
-                    <div class="text-gray-700 font-medium mb-2">Layanan</div>
-                    <div class="pl-4 space-y-2">
+                    <button onclick="toggleMobileSubmenu('mobile-layanan')" class="flex items-center justify-between w-full font-medium text-gray-700 hover:text-purple-600 transition-colors">
+                        Layanan
+                        <svg id="arrow-mobile-layanan" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="mobile-layanan" class="hidden mt-2 space-y-2 pl-4 border-l-2 border-purple-100 ml-1">
                         <a href="?route=konsultasi-dokter" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">🩺 Konsultasi Dokter</a>
                         <a href="?route=tanya-dokter" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">❓ Tanya Dokter</a>
                         <a href="?route=klinik-terdekat" onclick="toggleMobileMenu()" class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">📍 Klinik Terdekat</a>
@@ -135,25 +201,63 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
                 </button>
 
                 <div class="px-4 pt-4 border-t border-purple-200 space-y-3">
-                    <?php if (isset($_SESSION['user'])): ?>
-                        <button onclick="navigateTo('?route=dashboard'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
-                            <span class="mr-2">👤</span>
-                            Dashboard
-                        </button>
+                    <?php if (isset($_SESSION['user'])){ 
+                        $userRole = $_SESSION['user']->getRole();
+                        $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
+                        $fotoProfile = null;
+                        if ($isDokter) {
+                            $fotoProfile = $_SESSION['dokter']->getFoto();
+                        }
+                    ?>
+                        <div class="flex items-center gap-3 mb-4">
+                            <?php if ($isDokter): ?>
+                                <?php if ($fotoProfile): ?>
+                                    <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile" class="w-10 h-10 rounded-full object-cover border border-purple-200">
+                                <?php else: ?>
+                                    <img src="<?php echo URL_FOTO . 'dokter-profil/default-profile.webp'; ?>" alt="Profile" class="w-10 h-10 rounded-full object-cover border border-purple-200">
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-lg">
+                                    <?php echo strtoupper(substr($userRole, 0, 1)); ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-gray-800">
+                                    <?php 
+                                    if ($_SESSION['user']->getRole() === 'Dokter' && isset($_SESSION['dokter'])) {
+                                        $nama = $_SESSION['dokter']->getNama();
+                                        $nama = preg_replace('/^dr\.\s*/i', '', $nama);
+                                        echo htmlspecialchars($nama);
+                                    } else {
+                                        echo htmlspecialchars(censorEmail($_SESSION['user']->getEmail()));
+                                    }
+                                    ?>
+                                </span>
+                                <span class="text-xs text-gray-500"><?php echo $_SESSION['user']->getRole(); ?></span>
+                            </div>
+                        </div>
+
+                        <?php if ($_SESSION['user']->getRole() === 'Dokter'): ?>
+                            <button onclick="navigateTo('?route=profil'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
+                                <span class="mr-2">👨‍⚕️</span>
+                                Profil Saya
+                            </button>
+                        <?php endif; ?>
                         <button onclick="logout(); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">🚪</span>
                             Keluar
                         </button>
-                    <?php else: ?>
-                        <button onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
+                    <?php }else{ ?>
+                        <button id='auth' onclick="navigateTo('?route=auth'); toggleMobileMenu()" class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
                             <span class="mr-2">👤</span>
                             Masuk
                         </button>
-                        <button onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button id="auth" onclick="navigateTo('?route=auth&action=register'); toggleMobileMenu()" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">✨</span>
                             Daftar Sekarang
                         </button>
-                    <?php endif; ?> 
+                    <?php } ?> 
                 </div>
             </nav>
         </div>
@@ -217,6 +321,37 @@ function toggleServicesMenu() {
     }
 }
 
+function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        // Small delay to allow display:block to apply before opacity transition
+        setTimeout(() => {
+            menu.classList.remove('opacity-0', 'scale-95');
+            menu.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    } else {
+        menu.classList.add('opacity-0', 'scale-95');
+        menu.classList.remove('opacity-100', 'scale-100');
+        setTimeout(() => {
+            menu.classList.add('hidden');
+        }, 300);
+    }
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('user-menu');
+    const container = document.getElementById('user-menu-container');
+    if (menu && container && !container.contains(e.target)) {
+        menu.classList.add('opacity-0', 'scale-95');
+        menu.classList.remove('opacity-100', 'scale-100');
+        setTimeout(() => {
+            menu.classList.add('hidden');
+        }, 300);
+    }
+});
+
 // Enhanced dropdown functionality for better UX
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('services-container');
@@ -274,6 +409,18 @@ function toggleMobileMenu() {
     } else {
         menu.classList.add('hidden');
         icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+    }
+}
+
+function toggleMobileSubmenu(id) {
+    const submenu = document.getElementById(id);
+    const arrow = document.getElementById('arrow-' + id);
+    if (submenu.classList.contains('hidden')) {
+        submenu.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        submenu.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
     }
 }
 

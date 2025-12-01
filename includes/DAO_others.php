@@ -1,9 +1,10 @@
 <?php
 include_once 'database.php';
+require_once 'userService.php';
 
 class Location{
 
-    function __construct(private ?int $idLocation=null, private ?array $coor=null,
+    function __construct(private ?int $idLocation=null, private ?string $coor=null,
     private ?array $location=null, private ?int $id_User=null, private ?int $time=null){}
     function getIdLocation(){return $this->idLocation;}
     function getCoor(){return $this->coor;}
@@ -12,29 +13,15 @@ class Location{
     function getTime(){return $this->time;}
 }
 
-function censorEmail(string $email){
-    $atpos = strpos($email, '@');
-    if($atpos <= 2)return $email;
-    
-    $uName = substr($email, 0, $atpos);
-    $domain = substr($email, $atpos);
-    
-    $vis = min(2, strlen($uName)-1);
-    $start = substr($uName, 0, $vis);
-    $mask = (strlen($uName) -1) - $vis;
-    $masked = str_repeat('*', $mask);
-
-    return $start . $masked . $domain;
-}
-
-class DTO_chat{
+class DTO_chat implements JsonSerializable{
     function __construct(
-        private ?int $idChat=null,
+        private ?string $idChat=null,
         private ?int $idUser=null,
         private ?int $idDokter=null,
         private ?string $email=null,
         private ?string $namaDokter=null,
         private ?string $waktuSelesai=null,
+        private ?string $status=null,
         private ?string $waktuMulai=null,
         ){}
     function getIdChat(){return $this->idChat;}
@@ -42,8 +29,15 @@ class DTO_chat{
     function getIdDokter(){return $this->idDokter;}
     function getEmail(){return censorEmail($this->email);}
     function getNamaDokter(){return $this->namaDokter;}
+    function getStatus(){return $this->status;}
     function getWaktuSelesai(){return $this->waktuSelesai;}
     function getWaktuMulai(){return $this->waktuMulai;}
+    function jsonSerialize():mixed{
+        return ['idChat'=>$this->idChat, 'idUser'=>$this->idUser,
+        'idDokter'=>$this->idDokter, 'email'=>censorEmail($this->email), 
+        'namaDokter'=>$this->namaDokter, 'waktuSelesai'=>$this->waktuSelesai,
+        'status'=>$this->status, 'waktuMulai'=>$this->waktuMulai];
+    }
 }
 class DTO_Tag implements JsonSerializable{
     private ?int $idTag=null;
@@ -122,8 +116,8 @@ class DAO_location{
     }
     static function insertLocation(Location $loc){
         $conn=Database::getConnection();
-        $sql="insert into log_location (koor, kabupaten, provinsi, timestamp, id_user) values (?, ?, ?, ?, ?)";
-        $params = [$loc->getCoor(), $loc->getLocation()[0], $loc->getLocation()[1], $loc->getTime(), $loc->getId_User()];
+        $sql="insert into log_location (koor, kabupaten, provinsi, id_user) values (?, ?, ?, ?)";
+        $params = [$loc->getCoor(), $loc->getLocation()[0], $loc->getLocation()[1], $loc->getId_User()];
         $ada = !empty($loc->getIdLocation());
 
         if($ada){
@@ -291,6 +285,7 @@ class DAO_Tanya{
 }
 
 class DAO_chat{
+    private const sesi_durasi = '+12 hours';
     static function getAllChats(?int $idUser=null, ?int $idDokter=null){
         $conn=Database::getConnection();
         $sql = "";
@@ -355,10 +350,75 @@ class DAO_chat{
             }
             return $dto;
         }catch(PDOException $e){
-            error_log("[DAO_chat::getAllChats]: ".$e->getMessage());
+            error_log("[DAO_others::getAllChats]: ".$e->getMessage());
             return [];
         }
     }
+
+    static function findChatRoom($idDokter, $idUser): DTO_chat|null{
+        $conn=Database::getConnection();
+        $sql = 'select t.id_tr, t.user_id, t.dokter_id, l.end from tr_transaksi t inner join
+        log_rating l on l.idChat=t.id_tr where t.user_id=? and t.dokter_id=? and
+        (t.status !="expired" OR t.status !="failed")
+        order by t.id_tr desc';
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute([$idUser, $idDokter]);
+            $hasil=$stmt->fetch(PDO::FETCH_ASSOC);
+            if(empty($hasil)){
+                return null;}else{
+                $obj=new DTO_chat(
+                    $hasil['id_tr'],
+                    $hasil['user_id'],
+                    $hasil['dokter_id'],
+                    waktuSelesai:$hasil['end']
+                );
+            }
+            return $obj;
+        }catch(PDOException $e){
+            error_log("[DAO_others::findChatRoom]: ".$e->getMessage());
+            return null;
+        }
+    }
+
+    static function thisChatRoom($idChat, $idUser, $idDokter=null){
+        $conn=Database::getConnection();
+        $sql='select d.nama_dokter, u.email, t.created, t.status, t.user_id, t.dokter_id from tr_transaksi as t
+        inner join m_dokter as d on t.dokter_id=d.id_dokter
+        inner join m_pengguna as u on t.user_id=u.id_pengguna where t.id_tr=?';
+        try{
+            $stmt=$conn->prepare($sql);
+            $stmt->execute([$idChat]);
+            $hasil=$stmt->fetch(PDO::FETCH_ASSOC);
+            if(empty($hasil)){return null;}else{
+
+                if($hasil['user_id'] != $idUser){
+                    return null;
+                }
+                if($idDokter !==null && $hasil['dokter_id'] != $idDokter){
+                    return null;
+                }
+
+                $created = $hasil['created'];
+                $selesai = strtotime($created . self::sesi_durasi);
+                $end = date('Y-m-d H:i:s', $selesai);
+
+                $obj=new DTO_chat(
+                    $idChat,
+                    $hasil['user_id'], $hasil['dokter_id'],
+                    email: $hasil['email'],
+                    namaDokter: $hasil['nama_dokter'],
+                    status: $hasil['status'],
+                    waktuSelesai: $end, waktuMulai:$created
+                );
+            }
+            return $obj;
+        }catch(PDOException $e){
+            error_log("[DAO_others::thisChatRoom]: ".$e->getMessage());
+            return null;
+        }
+    }
+
     static function getRating(int $idDokter){
         $conn=Database::getConnection();
         $sql="select count(*) as total, sum(`liked?`) as suka from log_rating
@@ -369,18 +429,31 @@ class DAO_chat{
             $hasil=$stmt->fetchAll(PDO::FETCH_ASSOC);
             return $hasil;
         }catch(PDOException $e){
-            error_log("[DAO_chat::getLogChat]: ".$e->getMessage());
+            error_log("[DAO_others::getRating]: ".$e->getMessage());
             return [];
         }
     }
-    static function insertLogMessage($idChat, DTO_pengguna $user, DTO_dokter $dokter, bool $liked=true){
+    static function registChatRoom($idChat, $user, $dokter, $created){
+        $start = $created;
+        $end = date('Y-m-d H:i:s', strtotime($created . self::sesi_durasi));
+
         $conn=Database::getConnection();
-        $sql="insert into log_rating (idChat, id_pengguna, id_dokter, `liked?`) values (?,?,?,?)";
+        $conn->beginTransaction();
+        $sql="insert into tr_transaksi (id_tr, user_id, dokter_id, created) values (?,?,?,?)";
+        $sql2="insert into log_rating (idChat, end) values (?,?)";
         try{
             $stmt=$conn->prepare($sql);
-            return $stmt->execute([$idChat, $user->getIdUser(), $dokter->getId(), $liked]);
+            $hasil= $stmt->execute([$idChat, $user, $dokter, $start]);
+            if($hasil){
+                $stmt2=$conn->prepare($sql2);
+                $hasil2=$stmt2->execute([$idChat, $end]);
+            }
+            if($hasil && $hasil2){
+                $conn->commit();
+                return true;
+            }
         }catch(PDOException $e){
-            error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
+            error_log("[DAO_others::registChatRoom]: ".$e->getMessage());
             return false;
         }
     }
@@ -392,7 +465,7 @@ class DAO_chat{
             $stmt=$conn->prepare($sql);
             return $stmt->execute([$liked, $idChat]);
         }catch(PDOException $e){
-            error_log("[DAO_chat::updateMessage]: ".$e->getMessage());
+            error_log("[DAO_others::updateLogMessage]: ".$e->getMessage());
             return false;
         }
     }

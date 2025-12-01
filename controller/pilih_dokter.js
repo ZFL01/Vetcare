@@ -143,13 +143,6 @@ function initDokters() {
       selectedCategoryName = e.target.value.trim();
       console.log('[KATEGORI CHANGE] selectedCategoryName:', selectedCategoryName);
 
-      // When switching to "Semua Kategori" (empty value), optionally clear search too
-      // Uncomment line below if you want to auto-clear search when clicking "all"
-      // if (!selectedCategoryName) {
-      //   searchKeyword = '';
-      //   searchInput.value = '';
-      // }
-
       const newUrl = selectedCategoryName
         ? '?route=pilih-dokter&kategori=' + encodeURIComponent(selectedCategoryName)
         : '?route=pilih-dokter';
@@ -159,18 +152,6 @@ function initDokters() {
     });
   });
 
-  // const dokterDataElement = document.getElementById('dokterData');
-  // if (dokterDataElement) {
-  //   try {
-  //     const escapedRawData = dokterDataElement.getAttribute('value') || '[]';
-  //     const rawData = unescapeHtml(escapedRawData);
-  //     allDokters = JSON.parse(rawData);
-  //     console.log('Successfully loaded dokters:', allDokters.length);
-  //   } catch (e) {
-  //     console.error('Error parsing initial dokter data:', e);
-  //     allDokters = [];
-  //   }
-  // }
   loadingIndicator.classList.remove('hidden');
   fetch('controller/pilih_dokter_controller.php?api=true')
     .then(response => {
@@ -245,27 +226,19 @@ function filterAndDisplayDokters() {
     return;
   }
   loadingIndicator.classList.add('hidden');
+
   let filteredDokters = allDokters;
-  if (filteredDokters.length === 0) {
-    showEmptyState();
-    return;
-  }
 
-  console.log('[FILTER] Start with allDokters.length:', allDokters.length);
-  console.log('[FILTER] selectedCategoryName:', selectedCategoryName, 'searchKeyword:', searchKeyword);
-
-  // Filter by kategori (jika dipilih)
+  // 1. Filter Kategori
   if (selectedCategoryName) {
     const categoryLower = selectedCategoryName.toLowerCase();
     filteredDokters = filteredDokters.filter(doc => {
       const kategs = getDokKategs(doc);
-      const match = kategs.some(k => k.toLowerCase() === categoryLower);
-      return match;
+      return kategs.some(k => k.toLowerCase() === categoryLower);
     });
-    console.log('[FILTER] After kategori filter:', filteredDokters.length);
   }
 
-  // Filter by search keyword (jika ada)
+  // 2. Filter Search
   if (searchKeyword) {
     const keywordLower = searchKeyword.toLowerCase();
     filteredDokters = filteredDokters.filter(doc => {
@@ -273,24 +246,44 @@ function filterAndDisplayDokters() {
       const namaMatch = name.includes(keywordLower);
       const kategs = getDokKategs(doc);
       const kategoriMatch = kategs.some(k => k.toLowerCase().includes(keywordLower));
-      const result = namaMatch || kategoriMatch;
-      if (result) {
-        console.log('[SEARCH MATCH]', getDokName(doc), 'name match:', namaMatch, 'kateg match:', kategoriMatch);
-      }
-      return result;
+      return namaMatch || kategoriMatch;
     });
-    console.log('[FILTER] After search filter:', filteredDokters.length);
   }
 
+  // --- 3. SORTING LOGIC (PERBAIKAN DISINI) ---
+  // Urutan: Hijau (Buka) -> Kuning (Akan Buka) -> Kelabu (Tutup)
+  filteredDokters.sort((a, b) => {
+    // Cek status Available Now (Hijau)
+    const aOpen = a.available_now === true;
+    const bOpen = b.available_now === true;
+
+    if (aOpen && !bOpen) return -1; // a naik
+    if (!aOpen && bOpen) return 1;  // b naik
+
+    // Cek status "Kembali" / Waiting (Kuning)
+    const aWait = a.status_text && a.status_text.toLowerCase().includes('kembali');
+    const bWait = b.status_text && b.status_text.toLowerCase().includes('kembali');
+
+    if (aWait && !bWait) return -1;
+    if (!aWait && bWait) return 1;
+
+    return 0; // Sama kuat
+  });
+  // -------------------------------------------
+
   resultCount.textContent = filteredDokters.length;
-  renderDokters(filteredDokters);
 
   if (filteredDokters.length === 0) {
-    showEmptyState();
+    doktersContainer.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    return;
   } else {
     doktersContainer.classList.remove('hidden');
     emptyState.classList.add('hidden');
   }
+
+  // Render ke HTML
+  renderDokters(filteredDokters);
 }
 
 /**
@@ -315,60 +308,123 @@ function renderDokters(dokters) {
   if (!doktersContainer) return;
 
   const html = dokters.map(dokter => {
-    const kategs = getDokKategs(dokter);
-    const kategoriList = kategs.join(', ');
-    const pengalaman = typeof dokter.pengalaman === 'number' ? dokter.pengalaman : (dokter.pengalaman ?? 0);
-    const namaKlinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
-    const alamat = dokter.alamat || '';
+    // --- 1. DATA PREPARATION ---
     const idForModal = getDokId(dokter);
-    const displayName = getDokName(dokter) || 'Dokter';
-    const foto = dokter.foto || dokter.urlFoto || null;
-    const rate = dokter.rate ?? '-';
-    const jadwalHariIni = formatJadwalHariIni(dokter.jadwal);
-    const harga = dokter.harga;
+    const nama = escapeHtml(getDokName(dokter) || 'Dokter');
 
+    // Kategori
+    const kategs = getDokKategs(dokter);
+    const kategoriList = escapeHtml(kategs.join(', ') || 'Umum');
+    sessionStorage.setItem('listKategDokter', JSON.stringify(kategoriList));
+
+    // Pengalaman
+    const tahunSekarang = new Date().getFullYear();
+    const tahunMulai = parseInt(dokter.pengalaman) || tahunSekarang;
+    const lamaPraktik = tahunSekarang - tahunMulai;
+    const teksPengalaman = lamaPraktik > 0 ? `${lamaPraktik} tahun` : 'Baru';
+
+    // Rating
+    let rateVal = parseFloat(dokter.rate || 0);
+    if (rateVal <= 1 && rateVal > 0) rateVal = rateVal * 5;
+    const displayRate = rateVal.toFixed(1);
+
+    // Lokasi
+    const namaKlinik = escapeHtml(dokter.klinik || dokter.namaKlinik || 'Klinik belum diatur');
+    const kab = dokter.kabupaten || dokter.kab || '';
+    const prov = dokter.provinsi || dokter.prov || '';
+    let alamatFull = 'Indonesia';
+    if (kab || prov) {
+      alamatFull = [kab, prov].filter(Boolean).join(', ');
+    }
+
+    // Foto Profile
+    const fotoFilename = dokter.foto || dokter.urlFoto;
+    let imgHtml;
+    if (fotoFilename) {
+      imgHtml = `
+        <img 
+          src="public/img/dokter-profil/${escapeHtml(fotoFilename)}" 
+          alt="${nama}" 
+          class="w-full h-full object-cover"
+          onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-3xl\'>👨‍⚕️</div>';"
+        />`;
+    } else {
+      imgHtml = `<div class="w-full h-full flex items-center justify-center text-purple-600 text-3xl font-bold bg-purple-50">${nama.charAt(0)}</div>`;
+    }
+
+    // --- 2. LOGIKA WARNA STATUS (3 WARNA) ---
+    const statusText = escapeHtml(dokter.status_text || 'Tutup hari ini');
+    const isAvailable = dokter.available_now === true;
+
+    let statusClass = '';
+
+    if (isAvailable) {
+      // HIJAU (Tersedia Sekarang)
+      statusClass = 'text-green-700 bg-green-100 border-green-200';
+    } else if (statusText.toLowerCase().includes('kembali')) {
+      // KUNING (Tersedia Nanti/Waiting)
+      statusClass = 'text-yellow-700 bg-yellow-100 border-yellow-200';
+    } else {
+      // KELABU (Tutup)
+      statusClass = 'text-gray-500 bg-gray-100 border-gray-200';
+    }
+
+    const harga = formatRupiah(dokter.harga);
+
+    // --- 3. HTML STRUCTURE ---
     return `
-      <div class="bg-white rounded-2xl shadow-card p-6 border border-gray-100 w-full flex flex-col justify-between min-h-0 cursor-pointer" onclick="showModal(${idForModal})">
-        <div>
-            <div class="flex items-center gap-4 mb-4">
-              <div class="flex-shrink-0">
-                ${foto
-        ? `<img src="${escapeHtml(foto)}" alt="Foto Dokter" class="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-md"/>`
-        : `<div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-3xl text-white">👩‍⚕️</div>`
-      }
-              </div>
-              <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">${escapeHtml(displayName)}</h3> 
-                <p class="text-sm text-gray-600"> Spesialis ${escapeHtml(kategoriList || 'Spesialisasi belum diatur')}</p>
-                <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
-                  <span class="flex items-center gap-1"><span class="text-yellow-400">⭐</span>${escapeHtml(String(rate))}</span>
-                  <span>•</span>
-                  <span>${escapeHtml(String(pengalaman))} tahun</span>
-                </div>
-              </div>
+      <div 
+        onclick="showModal(${idForModal})"
+        class="bg-white rounded-2xl p-6 shadow-card hover:shadow-xl transition-all duration-300 group cursor-pointer relative flex flex-col h-full border border-gray-100">
+        
+        <div class="flex gap-6 mb-4">
+          
+          <div class="flex-shrink-0">
+            <div class="w-20 h-20 rounded-full overflow-hidden ring-4 ring-gray-50 group-hover:ring-purple-100 transition-all shadow-sm">
+              ${imgHtml}
+            </div>
+          </div>
+
+          <div class="flex-1 min-w-0 flex flex-col gap-1">
+            <h3 class="font-bold text-gray-900 text-xl truncate leading-tight group-hover:text-purple-700 transition-colors">
+              ${nama}
+            </h3>
+            <p class="text-sm text-purple-600 font-medium truncate">${kategoriList}</p>
+            
+            <div class="mt-1">
+                 <span class="inline-block px-3 py-1 text-xs font-bold rounded-lg border ${statusClass}">
+                   ${statusText}
+                 </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-1 space-y-3 mb-6">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="flex items-center gap-1 font-bold text-yellow-500 bg-yellow-50 px-2 py-0.5 rounded-md">
+                ⭐ ${displayRate}
+              </span>
+              <span class="flex items-center gap-1 font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md">
+                💼 ${teksPengalaman}
+              </span>
             </div>
 
-            
-
-            <div class="space-y-4 text-sm">
-              <div class="flex items-start gap-3">
-                <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">🕘</div>
-                <div class="font-medium text-gray-800">Jadwal Hari Ini: ${escapeHtml(jadwalHariIni)}</div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="w-6 h-6 flex-shrink-0 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 text-base">📍</div>
-                <div>
-                  <div class="font-medium text-gray-800">${escapeHtml(namaKlinik || 'Klinik belum diatur')}</div>
-                  <div class="text-gray-500">${escapeHtml(alamat || 'Alamat tidak tersedia')}</div>
-                </div>
-              </div>
+            <div class="text-sm text-gray-500 border-t border-dashed border-gray-100 pt-3">
+               <div class="font-bold text-gray-700 flex items-center gap-1.5 mb-0.5">
+                 <span class="text-red-400">📍</span> ${namaKlinik}
+               </div>
+               <div class="truncate text-gray-400 ml-5 text-xs">${escapeHtml(alamatFull)}</div>
             </div>
         </div>
 
-        <div class="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
-          <div class="text-purple-600 font-semibold text-lg">Rp ${formatRupiah(harga)}</div>
-          <button class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow" onclick="window.location.href = '?route=chat&dokter_id=${idForModal}'; event.stopPropagation();">
-            <span class="text-base"></span>
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
+          <div class="flex flex-col">
+             <span class="text-purple-700 font-bold text-xl">Rp ${harga}</span>
+          </div>
+          
+          <button 
+            onclick="event.stopPropagation(); window.currentDokterId=${idForModal}; openKonsultasiModal()"
+            class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-purple-200 transition-transform active:scale-95 transform hover:-translate-y-0.5">
             Chat Sekarang
           </button>
         </div>
@@ -379,136 +435,168 @@ function renderDokters(dokters) {
   doktersContainer.innerHTML = html;
 }
 
-
 /**
- * Menampilkan modal detail dokter.
+ * Menampilkan Modal Detail Dokter dengan FETCH API
  */
-function showModal(idDokter) {
+async function showModal(idDokter) {
   if (!modalDokter || !modalContent) return;
 
+  // 1. Ambil data dasar dari Array Javascript (Data yang sudah ada)
   const dokter = allDokters.find(d => (d.id ?? d.id_dokter) === idDokter);
   if (!dokter) return;
 
-  const foto = dokter.foto || dokter.urlFoto || null;
-  const nama = getDokName(dokter);
-  const kategs = getDokKategs(dokter).join(', ');
-  const klinik = dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || '';
-  const alamat = dokter.alamat || '';
-  const harga = dokter.harga ?? dokter.price ?? null;
+  // Render Layout Dasar (Langsung muncul)
+  const nama = escapeHtml(getDokName(dokter));
+  const kategs = escapeHtml(getDokKategs(dokter).join(', ') || 'Umum');
+  const harga = formatRupiah(dokter.harga);
 
-  // Build full jadwal HTML
+  // Rating & Pengalaman
+  const tahunSekarang = new Date().getFullYear();
+  const tahunMulai = parseInt(dokter.pengalaman) || tahunSekarang;
+  const lamaPraktik = tahunSekarang - tahunMulai;
+  const teksPengalaman = lamaPraktik > 0 ? `${lamaPraktik} tahun` : 'Baru';
+
+  let rateVal = parseFloat(dokter.rate || 0);
+  if (rateVal <= 1 && rateVal > 0) rateVal = rateVal * 5;
+  const displayRate = rateVal.toFixed(1);
+
+  // Foto
+  const fotoFilename = dokter.foto || dokter.urlFoto;
+  const fotoUrl = fotoFilename ? `public/img/dokter-profil/${fotoFilename}` : null;
+
+  // Jadwal (Sudah ada di data dasar, jadi langsung render)
   let jadwalHtml = '';
-  if (dokter.jadwal && typeof dokter.jadwal === 'object') {
-    const hariKeys = Object.keys(dokter.jadwal);
-    if (hariKeys.length === 0) {
-      jadwalHtml = '<div class="text-xs text-gray-600">Jadwal tidak tersedia</div>';
-    } else {
-      jadwalHtml = '<div class="space-y-1">';
-      hariKeys.forEach(h => {
-        const slots = dokter.jadwal[h] || [];
-        const slotsText = (Array.isArray(slots) && slots.length > 0)
-          ? slots.map(s => `${s.buka} - ${s.tutup}`).join(' / ')
-          : 'Tidak praktik';
-        jadwalHtml += `
-          <div class="flex items-start justify-between px-2 py-1 text-xs">
-            <div class="font-medium text-gray-700">${escapeHtml(h)}</div>
-            <div class="text-gray-600">${escapeHtml(slotsText)}</div>
-          </div>`;
-      });
-      jadwalHtml += '</div>';
+  if (dokter.jadwal && typeof dokter.jadwal === 'object' && Object.keys(dokter.jadwal).length > 0) {
+    jadwalHtml = '<div class="space-y-3 mt-2">';
+    for (const [hari, slots] of Object.entries(dokter.jadwal)) {
+      const slotStr = Array.isArray(slots)
+        ? slots.map(s => {
+          const b = s.buka ? s.buka.substring(0, 5) : '';
+          const t = s.tutup ? s.tutup.substring(0, 5) : '';
+          return `${b} - ${t}`;
+        }).join(', ')
+        : '';
+
+      jadwalHtml += `
+            <div class="flex justify-between text-sm border-b border-gray-100 pb-2 last:border-0">
+                <span class="font-medium text-gray-700 w-24">${hari}</span>
+                <span class="text-gray-600 text-right flex-1">${slotStr}</span>
+            </div>`;
     }
+    jadwalHtml += '</div>';
   } else {
-    jadwalHtml = '<div class="text-xs text-gray-600">Jadwal tidak tersedia</div>';
+    jadwalHtml = '<div class="text-sm text-gray-400 italic py-2">Jadwal praktik belum diatur.</div>';
   }
 
-  // Map / koordinat
-  let mapHtml = '';
-  let mapContainerId = null;
-  if (dokter.koor && Array.isArray(dokter.koor) && dokter.koor.length === 2) {
-    const lat = dokter.koor[0];
-    const lng = dokter.koor[1];
-    mapContainerId = 'doctor-map-' + idDokter;
-    mapHtml = `
-      <div class="mt-3">
-        <div id="${mapContainerId}" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid #eee"></div>
-      </div>`;
-  }
+  const mapContainerId = 'doctor-map-modal-' + idDokter;
 
+  // 2. Render HTML (Lokasi & Map kita set LOADING dulu)
   const html = `
-    <div class="flex flex-col gap-3">
-      <div class="flex items-start gap-3">
+    <div class="flex flex-col h-full">
+      <div class="flex items-start gap-4 mb-6">
         <div class="flex-shrink-0">
-          ${foto ? `<img src="${escapeHtml(foto)}" alt="Foto Dokter" class="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-md"/>` : `<div class="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center text-2xl">👩‍⚕️</div>`}
+            ${fotoUrl
+      ? `<img src="${escapeHtml(fotoUrl)}" class="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md" onerror="this.src='https://via.placeholder.com/150?text=Dokter'"/>`
+      : `<div class="w-20 h-20 rounded-full bg-purple-50 flex items-center justify-center text-3xl font-bold text-purple-600 shadow-sm">${nama.charAt(0)}</div>`}
         </div>
-        <div class="flex-1">
-          <h2 class="text-base font-bold text-gray-800">${escapeHtml(nama)}</h2>
-          <p class="text-xs text-purple-600">${escapeHtml(kategs || 'Spesialisasi belum diatur')}</p>
-          <div class="mt-1 text-xs text-gray-500 font-medium">
-            ⭐ ${dokter.rate || 0} (${dokter.pengalaman || 0} tahun)
+        <div class="pt-1">
+           <h2 class="text-xl font-bold text-gray-900 leading-tight mb-1">${nama}</h2>
+           <p class="text-sm text-purple-600 font-bold mb-2">${kategs}</p>
+           <div class="flex items-center gap-2 text-sm text-gray-500">
+             <span class="flex items-center gap-1 text-yellow-500 font-bold">⭐ ${displayRate}</span>
+             <span class="text-gray-300">|</span>
+             <span>(${teksPengalaman})</span> 
+           </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+          <div><div class='w-full flex items-center justify-center'>
+            <h3 class="text-sm font-bold text-purple-700 mb-1">Jadwal Praktik Mingguan</h3></div>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                ${jadwalHtml}
+            </div>
           </div>
-        </div>
+
+          <div><div class='w-full flex items-center justify-center'>
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-2">
+               📍 Lokasi Praktik
+            </h3></div>
+            <p class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-2">
+               Nama Klinik
+               <p id="modal-klinik-name" class="text-sm text-gray-600 font-medium mb-3 ml-1 animate-pulse">Memuat lokasi...</p>
+            </p>
+            
+            <div id="${mapContainerId}" class="w-full h-64 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 relative shadow-inner">
+                 <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-xs flex-col gap-2">
+                    <div class="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Mengambil Peta...</span>
+                 </div>
+            </div>
+          </div>
       </div>
 
-      <div class="p-0 bg-transparent">
-        <p class="text-xs font-medium text-purple-700 mb-2">Jadwal Praktik</p>
-        ${jadwalHtml}
-      </div>
-
-      <div>
-        <p class="text-xs font-medium text-gray-700 mb-2">📍 Lokasi Praktik</p>
-        <p class="text-xs text-gray-700 font-medium">${escapeHtml(klinik)}</p>
-        <p class="text-xs text-gray-600">${escapeHtml(alamat)}</p>
-      </div>
-
-      ${mapHtml}
-
-      <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
-        <div class="text-purple-600 font-semibold text-base">Rp ${formatRupiah(harga)}</div>
+      <div class="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between gap-4 sticky bottom-0 bg-white">
+        <span class="text-2xl font-bold text-purple-700">Rp ${harga}</span>
         <div class="flex gap-3">
-          <button onclick="document.getElementById('modalDokter').classList.add('hidden')" class="px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Tutup</button>
-          <button onclick="window.location.href='?route=chat&dokter_id=${idDokter}'" class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Chat</button>
+             <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
+                Tutup
+             </button>
+             <button onclick="window.currentDokterId=${idDokter}; openKonsultasiModal()" class="px-8 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
+                Chat
+             </button>
         </div>
       </div>
     </div>
   `;
+  console.log('pilih : ', idDokter);
 
   modalContent.innerHTML = html;
   modalDokter.classList.remove('hidden');
-  // Initialize map if coordinates present. Prefer Google Maps if API key provided,
-  // otherwise fall back to an OpenStreetMap iframe so the user always sees a map.
-  if (mapContainerId) {
-    const coords = dokter.koor;
+
+  // 3. FETCH DATA DETAIL (ASYNCHRONOUS)
+  try {
+    const response = await fetch(`controller/pilih_dokter_controller.php?action=get_detail&id=${idDokter}`);
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      const detail = result.data;
+      const klinikName = detail.klinik || detail.namaKlinik || detail.nama_klinik || 'Klinik belum diatur';
+
+      // Update Nama Klinik
+      const klinikEl = document.getElementById('modal-klinik-name');
+      if (klinikEl) {
+        klinikEl.textContent = klinikName;
+        klinikEl.classList.remove('animate-pulse');
+      }
+
+      // Update Map
+      if (detail.koor && Array.isArray(detail.koor)) {
+        const lat = Number(detail.koor[0]);
+        const lng = Number(detail.koor[1]);
+        const container = document.getElementById(mapContainerId);
+
+        if (container) {
+          const bbox = `${lng - 0.005}%2C${lat - 0.005}%2C${lng + 0.005}%2C${lat + 0.005}`;
+          container.innerHTML = `<iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}" style="border:0"></iframe>`;
+        }
+      } else {
+        const container = document.getElementById(mapContainerId);
+        if (container) container.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs bg-gray-50 text-center px-4">Lokasi peta belum diatur oleh dokter</div>';
+      }
+
+    }
+  } catch (error) {
+    console.error('Gagal mengambil detail dokter:', error);
     const container = document.getElementById(mapContainerId);
-    const hasGmapsKey = !!(window.GOOGLE_MAPS_API_KEY && window.GOOGLE_MAPS_API_KEY.trim());
-
-    function renderOsmFallback(lat, lng, targetEl) {
-      // Use an OSM static iframe (no API key required)
-      const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(Number(lng)-0.01)}%2C${encodeURIComponent(Number(lat)-0.01)}%2C${encodeURIComponent(Number(lng)+0.01)}%2C${encodeURIComponent(Number(lat)+0.01)}&layer=mapnik&marker=${encodeURIComponent(Number(lat))}%2C${encodeURIComponent(Number(lng))}`;
-      targetEl.innerHTML = `<iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="${src}" style="border:0;border-radius:12px"></iframe>`;
-    }
-
-    if (hasGmapsKey && window.VetcareMap && typeof window.VetcareMap.initDoctorMap === 'function') {
-      window.VetcareMap.initDoctorMap(mapContainerId, Number(coords[0]), Number(coords[1]))
-        .catch(err => {
-          console.warn('Map init failed:', err.message || err);
-          try { renderOsmFallback(coords[0], coords[1], container); } catch(e){}
-        });
-    } else {
-      // No Google Maps key / API available -> render OSM fallback
-      try { renderOsmFallback(coords[0], coords[1], container); } catch(e){}
-    }
+    if (container) container.innerHTML = '<div class="w-full h-full flex items-center justify-center text-red-400 text-xs bg-red-50">Gagal memuat peta</div>';
   }
 }
 
-
-/**
- * Menutup modal detail dokter.
- */
 function closeModal() {
   if (!modalDokter) return;
   modalDokter.classList.add('hidden');
 }
-
 
 // ==================== STARTUP ====================
 document.addEventListener('DOMContentLoaded', initDokters);

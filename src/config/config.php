@@ -27,18 +27,22 @@ if ($baseDir === '/' || $baseDir === '\\') {
     $baseUrlPath = $baseDir;
 }
 $baseUrlPath = rtrim($baseUrlPath, '/\\');
-$dynamicBaseUrl = $protocol . $host . $baseUrlPath;
+$dynamicBaseUrl = $protocol . $host . $baseUrlPath . '/';
 
 // Base URL
 define('BASE_URL', $dynamicBaseUrl);
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
-define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
+define('PROFILE_DIR', UPLOAD_DIR . 'dokter-profil/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
-define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
+define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/');
 define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
 define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
+
+define('URL_FOTO', BASE_URL . 'public/img/');
+define('URL_SIP_DOC', BASE_URL . 'public/docs/sip/');
+define('URL_STRV_DOC', BASE_URL . 'public/docs/strv/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
@@ -124,9 +128,21 @@ function clean($data) {
     return $data;
 }
 
-/**
- * Format tanggal Indonesia
- */
+define('HARI_ID', [
+    0 => 'Minggu', 
+    1 => 'Senin',
+    2 => 'Selasa', 
+    3 => 'Rabu', 
+    4 => 'Kamis',
+    5 => 'Jumat',
+    6 => 'Sabtu'
+]);
+
+function formatRupiah($angka) {
+    $rupiah = 'Rp' . number_format($angka, 0, ',', '.');
+    return $rupiah;
+}
+
 function formatTanggal($date, $format = 'd M Y') {
     $bulan = [
         1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -179,7 +195,7 @@ function timeAgo($datetime) {
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory) {
+function uploadImage($file, $directory, $prefix) {
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
     }
@@ -200,7 +216,7 @@ function uploadImage($file, $directory) {
     
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'doc_' . uniqid() . '_' . time() . '.' . $extension;
+    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
     
     // Move file
@@ -222,7 +238,7 @@ function deleteImage($filename, $directory) {
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix = 'doc_') {
+function uploadDocument($file, $target_dir, $prefix) {
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
     // Check if file is uploaded
@@ -258,7 +274,7 @@ function uploadDocument($file, $target_dir, $prefix = 'doc_') {
 
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = uniqid($prefix, true) . '.' . $file_extension;
+    $new_filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists
@@ -276,5 +292,9 @@ function uploadDocument($file, $target_dir, $prefix = 'doc_') {
 
     return $result;
 }
+
+define('LOCATIONIQ_API', 'pk.f36f3d13ab6674ab62602323da859b26');
+define('MONGODB_URI', "mongodb+srv://klinikH:QZ6Bqc8HAH5LPa7g@cluster0.rgxz9ub.mongodb.net/?appName=Cluster0");
+define('MONGODB_DBNAME', 'klinikH');
 
 ?>
