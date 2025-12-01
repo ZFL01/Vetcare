@@ -523,6 +523,9 @@ class DAO_dokter
                 $kateg,
                 harga: $profil['harga']
             );
+            if($idDokter > 0 && $initiate ===false){
+                return $dokter;
+            }
             $dokter->setAlamat($profil['kabupaten'], $profil['provinsi']);
             $dokter->setDoc($profil['sip'], $profil['exp_sip'], $profil['strv'], $profil['exp_strv']);
             $dokter->setTTL($profil['ttl']);

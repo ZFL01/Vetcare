@@ -235,6 +235,7 @@ $user = $_SESSION['user']->getIdUser();
           id_chat: idChat,
           id_user: idUser,
           id_dokter: window.currentDokterId,
+          formKonsul : Konsuldata
         })
       }).then(response => {
         if (!response.ok) {

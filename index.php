@@ -73,11 +73,11 @@ if ($action) {
             break;
 
         case 'sendMessage':
-            if (isset($data['chatId'], $data['senderId'], $data['senderRole'], $data['content'])) {
+            if (isset($data['chat_id'], $data['sender_id'], $data['sender_role'], $data['content'])) {
                 $result = DAO_MongoDB_Chat::insertMessage(
-                    $data['chatId'],
-                    $data['senderId'],
-                    $data['senderRole'],
+                    $data['chat_id'],
+                    $data['sender_id'],
+                    $data['sender_role'],
                     $data['content']
                 );
                 if ($result === true) {
@@ -87,12 +87,15 @@ if ($action) {
                     $response['message'] = 'Gagal menyimpan pesan: ' . $result;
                     $httpCode = 500;
                 }
+            }else{
+                $response['message'] = 'Data tidak lengkap.';
+                $httpCode = 400;
             }
             break;
 
         case 'getMessages':
-            $chatId = $_GET['chatId'] ?? null;
-            $since = $_GET['since'] ?? (new DateTime('1970-01-01'))->format(DateTime::ISO8601); // Default awal waktu
+            $chatId = $_GET['chat_id'] ?? null;
+            $since = $_GET['since'] ?? 0; // Default awal waktu
 
             if ($chatId) {
                 $messagesOrError = DAO_MongoDB_Chat::getNewMessages($chatId, $since);
@@ -110,7 +113,7 @@ if ($action) {
                     $httpCode = 500;
                 }
             } else {
-                $response['message'] = 'Chat ID diperlukan untuk Polling.';
+                $response['message'] = 'Chat ID tidak ditemukan Polling.';
                 $httpCode = 400;
             }
             break;
@@ -175,7 +178,7 @@ switch ($route) {
     case 'chat':
         $pageTitle = 'Chat dengan Dokter - VetCare';
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
-        $contentFile = 'chat-api-service/initchat.php';
+        $contentFile = 'pages/chat-dokter.php';
         break;
     case 'profil':
         $pageTitle = 'Profil - VetCare';

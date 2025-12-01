@@ -315,6 +315,7 @@ function renderDokters(dokters) {
     // Kategori
     const kategs = getDokKategs(dokter);
     const kategoriList = escapeHtml(kategs.join(', ') || 'Umum');
+    sessionStorage.setItem('listKategDokter', JSON.stringify(kategoriList));
 
     // Pengalaman
     const tahunSekarang = new Date().getFullYear();

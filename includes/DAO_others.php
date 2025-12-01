@@ -13,7 +13,7 @@ class Location{
     function getTime(){return $this->time;}
 }
 
-class DTO_chat{
+class DTO_chat implements JsonSerializable{
     function __construct(
         private ?string $idChat=null,
         private ?int $idUser=null,
@@ -32,6 +32,12 @@ class DTO_chat{
     function getStatus(){return $this->status;}
     function getWaktuSelesai(){return $this->waktuSelesai;}
     function getWaktuMulai(){return $this->waktuMulai;}
+    function jsonSerialize():mixed{
+        return ['idChat'=>$this->idChat, 'idUser'=>$this->idUser,
+        'idDokter'=>$this->idDokter, 'email'=>censorEmail($this->email), 
+        'namaDokter'=>$this->namaDokter, 'waktuSelesai'=>$this->waktuSelesai,
+        'status'=>$this->status, 'waktuMulai'=>$this->waktuMulai];
+    }
 }
 class DTO_Tag implements JsonSerializable{
     private ?int $idTag=null;
@@ -375,9 +381,9 @@ class DAO_chat{
         }
     }
 
-    static function thisChatRoom($idChat){
+    static function thisChatRoom($idChat, $idUser, $idDokter=null){
         $conn=Database::getConnection();
-        $sql='select d.nama_dokter, u.email, t.created from tr_transaksi as t
+        $sql='select d.nama_dokter, u.email, t.created, t.status, t.user_id, t.dokter_id from tr_transaksi as t
         inner join m_dokter as d on t.dokter_id=d.id_dokter
         inner join m_pengguna as u on t.user_id=u.id_pengguna where t.id_tr=?';
         try{
@@ -385,17 +391,25 @@ class DAO_chat{
             $stmt->execute([$idChat]);
             $hasil=$stmt->fetch(PDO::FETCH_ASSOC);
             if(empty($hasil)){return null;}else{
+
+                if($hasil['user_id'] != $idUser){
+                    return null;
+                }
+                if($idDokter !==null && $hasil['dokter_id'] != $idDokter){
+                    return null;
+                }
+
                 $created = $hasil['created'];
                 $selesai = strtotime($created . self::sesi_durasi);
                 $end = date('Y-m-d H:i:s', $selesai);
 
                 $obj=new DTO_chat(
-                    $hasil['id_tr'],
-                    $hasil['user_id'],
-                    $hasil['dokter_id'],
-                    $hasil['email'],
-                    $hasil['nama_dokter'],
-                    $end, waktuMulai:$created
+                    $idChat,
+                    $hasil['user_id'], $hasil['dokter_id'],
+                    email: $hasil['email'],
+                    namaDokter: $hasil['nama_dokter'],
+                    status: $hasil['status'],
+                    waktuSelesai: $end, waktuMulai:$created
                 );
             }
             return $obj;

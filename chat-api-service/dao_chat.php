@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use MongoDB\Client;
-use MongoDB\BSON\ObjectId;
 
 class DAO_MongoDB_Chat{
     private static ?Client $client = null;
@@ -30,11 +29,9 @@ class DAO_MongoDB_Chat{
         }
         try{
             $chatsCollection = $db->selectCollection('chats');
-            $chatObjId = new ObjectId($chatId);
-            $senderObjId = new ObjectId($senderId);
 
             $newMessage = [
-                'senderId'=> $senderObjId,
+                'senderId'=> $senderId,
                 'senderRole'=> $senderRole,
                 'content'=>$content,
                 'timestamp'=> new MongoDB\BSON\UTCDateTime(),
@@ -42,7 +39,7 @@ class DAO_MongoDB_Chat{
             ];
 
             $updateRes = $chatsCollection->updateOne(
-                ['_id'=>$chatObjId],
+                ['_id'=>$chatId],
                 [
                     '$push'=>['messages'=>$newMessage],
                     '$set'=>['updatedAt'=>new MongoDB\BSON\UTCDateTime()]
@@ -61,7 +58,7 @@ class DAO_MongoDB_Chat{
         }
     }
 
-    static function getNewMessages(string $chatId, string $sinceTimeStamp){
+    static function getNewMessages(string $chatId, int $sinceTimeStamp){
         $db = self::getDb();
         if($db ===null){
             return 'Koneksi gagal';
@@ -69,13 +66,13 @@ class DAO_MongoDB_Chat{
 
         try{
             $chatsCollection = $db->selectCollection('chats');
-            $chatObjId = new ObjectId($chatId);
 
-            $since = new DateTime($sinceTimeStamp);
+            $since = new DateTime();
+            $since->setTimestamp($sinceTimeStamp);
             $sinceBsonDate = new MongoDB\BSON\UTCDateTime($since->getTimestamp()*1000);
 
             $pipeline = [
-                ['$match' => ['_id' => $chatObjId]],
+                ['$match' => ['_id' => $chatId]],
                 ['$unwind' => '$messages'],
                 ['$match' => ['messages.timestamp' => ['$gt' => $sinceBsonDate]]],
                 ['$sort' => ['messages.timestamp' => 1]],
@@ -113,7 +110,7 @@ class DAO_MongoDB_Chat{
         try{
             $chatsCollection = $db->selectCollection('chats');
             // Mencari berdasarkan kolom 'mysqlId' yang akan kita buat di createChatRoom
-            $document = $chatsCollection->findOne(['mysqlId' => $mysqlChatId]);
+            $document = $chatsCollection->findOne(['_id' => $mysqlChatId]);
             return $document;
         }catch(Exception $e){
             error_log("MongoDB findChatRoom Error: " . $e->getMessage());
@@ -131,7 +128,7 @@ class DAO_MongoDB_Chat{
 
             $document = [
                 // Simpan ID dari MySQL agar dapat dicari oleh findChatRoom
-                'mysqlId' => $mysqlChatId, 
+                '_id' => $mysqlChatId, 
                 // Inisialisasi array pesan kosong
                 'messages' => [],
                 'createdAt' => new MongoDB\BSON\UTCDateTime(),
@@ -152,6 +149,31 @@ class DAO_MongoDB_Chat{
         }catch(Exception $e){
             error_log("General Chat Error: " . $e->getMessage());
             return "Terjadi kesalahan umum: " . $e->getMessage();
+        }
+    }
+
+    static function insertConsultationForm(string $chatId, array $formData){
+        $db = self::getDb();
+        if($db===null){
+            return 'Koneksi gagal';
+        }
+        try{
+            $formsCollection = $db->selectCollection('Konsultasi_forms');
+            $document = [
+                '_id'=> $chatId,
+                'chatId' => $chatId,
+                'timestamp'=> new MongoDB\BSON\UTCDateTime(),
+                'formData'=> $formData,
+            ];
+            $result = $formsCollection->insertOne($document);
+            if($result->getInsertedCount() === 1){
+                return true;
+            }else{
+                return 'Gagal menyimpan formulir.';
+            }
+        }catch(\Exception $e){
+            error_log("MongoDB Form Insert Error: " . $e->getMessage());
+            return "Gagal menyimpan formulir: " . $e->getMessage();
         }
     }
 }

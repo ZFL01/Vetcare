@@ -50,7 +50,7 @@ require_once __DIR__ . '/../src/config/config.php';
 if (isset($_GET['pilih'])) {
     header('Content-Type: application/json');
     if($_GET['pilih'] > 0){
-        $dokter = DAO_dokter::getProfilDokter(initiate:true, idDokter: $_GET['pilih']);
+        $dokter = DAO_dokter::getProfilDokter(initiate:false, idDokter: $_GET['pilih']);
         echo json_encode($dokter);
         exit;
     }else{
