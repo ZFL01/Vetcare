@@ -706,17 +706,13 @@ class DAO_dokter
                 return false;
             }
 
-            error_log("DEBUG: jdwlterstruktur diterima = " . print_r($jdwlterstruktur, true));
-
             // 2. Loop dan Sisipkan Sesi Baru
             $stmtInsert = $conn->prepare($queryInsert);
             foreach ($jdwlterstruktur as $dayName => $sessions) {
-                error_log("DEBUG: dayName diterima = {$dayName}");
                 foreach ($sessions as $session) {
                     $buka = $session['buka'];
                     $tutup = $session['tutup'];
 
-                    error_log("DEBUG:hari {$dayName} buka = {$buka}, tutup = {$tutup}");
                     if (!$stmtInsert->execute([$idDokter, $dayName, $buka, $tutup])) {
                         $conn->rollBack();
                         return false;
