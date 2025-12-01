@@ -184,6 +184,10 @@ switch ($route) {
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
         $contentFile = 'pages/dokter/profile-dokter.php';
+        if(isset($_POST['action'])){
+            $noHeaderFooter=true;
+            $ajaxLoad=true;
+        }
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
