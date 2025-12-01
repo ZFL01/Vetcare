@@ -183,7 +183,7 @@ switch ($route) {
     case 'profil':
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
-        $contentFile = 'pages/profil-dokter/profile-dokter.php';
+        $contentFile = 'pages/dokter/profile-dokter.php';
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
