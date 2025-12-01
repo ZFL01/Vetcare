@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../header.php';
 require_once __DIR__ . '/../controller/pilih_dokter_controller.php';
 $assetVersion = time();
 ?>

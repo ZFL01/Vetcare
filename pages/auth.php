@@ -229,7 +229,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
-                    previousPage();
                     header('Location: index.php');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {

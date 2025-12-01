@@ -54,16 +54,16 @@ if (isset($_POST['update_profile'])) {
         }
     }
 
-    $profil->upsertDokter($profil->getId(), $nama_lengkap, $ttl, pengalaman: $pengalaman, kab: $kab, prov: $prov, harga: $harga);
+    $profil->upsertDokter($profil->getId(), $nama_lengkap, $ttl, pengalaman:$pengalaman, kab:$kab, prov:$prov, harga:$harga);
     $updateSuccess = DAO_dokter::updateDokter($profil->getId(), $profil, $profil->getStatus());
 
-    if (isset($data['sip']) || isset($data['strv'])) {
-        $profil->setDocPath(isset($data['sip']) ? $data['sip'] : null, isset($data['strv']) ? $data['strv'] : null);
+    if(isset($data['sip']) || isset($data['strv'])){
+        $profil->setDocPath(isset($data['sip']) ? $data['sip']:null, isset($data['strv']) ? $data['strv']:null);
         $updateDoc = DAO_dokter::updateDocument($profil);
     }
 
     if ($updateSuccess[0]) {
-        if (!$updateDoc[0]) {
+        if(!$updateDoc[0]){
             setFlash('error', 'Gagal memperbarui dokumen! Namun, Profil berhasil diperbarui!');
         }
         setFlash('success', 'Profil berhasil diperbarui!');
@@ -72,144 +72,120 @@ if (isset($_POST['update_profile'])) {
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
-} elseif (isset($_POST['update_kategori_submit'])) {
+}
+elseif(isset($_POST['update_kategori_submit'])){
     $kategori = isset($_POST['kategori_ids']) ? $_POST['kategori_ids'] : [];
     $dataKateg = [];
-
-    foreach ($kategori as $k) {
-        $dataKateg[] = new DTO_kateg((int) $k);
+    
+    foreach($kategori as $k){
+        $dataKateg[]= new DTO_kateg((int)$k);
     }
     $updateKategori = DAO_dokter::setKategDokter(true, $profil->getId(), $dataKateg);
-    if ($updateKategori) {
+    if($updateKategori){
         setFlash('success', 'Spesialisasi berhasil diperbarui!');
     } else {
         setFlash('error', 'Gagal memperbarui Spesialisasi!');
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
-} elseif (isset($_POST['update_tempat_submit'])) {
-    $nama = isset($_POST['nama_klinik']) ? $_POST['nama_klinik'] : '';
+}elseif(isset($_POST['update_tempat_submit'])){
+    $nama = isset($_POST['nama_klinik']) ? $_POST['nama_klinik']: '';
     $lat = $_POST['latitude'] ?? '';
-    $long = $_POST['longitude'] ?? '';
+    $long = $_POST['longitude']??'';
 
-    $isupdate = $_SESSION['update_lokasi'];
-    error_log($isupdate? 'iya':'tidak');
+    $isupdate = $profil->getKoor() ? true : false;
     $hasil = DAO_dokter::setLokasi($isupdate, $profil, $nama, $lat, $long);
 
-    if ($hasil[0]) {
+    if($hasil){
         setFlash('success', 'Lokasi berhasil diperbarui');
-    } else {
-        setFlash('error', $hasil[1]);
+    }else{
+        setFlash('error', 'Gagal memperbarui lokasi');
     }
     header('Location: ' . BASE_URL . 'index.php?route=profil');
     exit();
 }
-
-if (isset($action) && $action === 'load-tab') {
-    $tab = $_GET['tab'] ?? 'profil';
-    switch ($tab) {
-        case 'jadwal':
-            $allDaysMap = HARI_ID;
-            $dokterJadwal = DAO_dokter::getJadwal($profil);
-            include 'tab-jadwal.php';
-            break;
-        case 'tempat-klinik':
-            $dataLokasi = DAO_dokter::getAlamat($profil);
-            $_SESSION['update_lokasi']= $profil->getKoor() ? true:false;
-            include 'tab-lokasi.php';
-            break;
-        case 'kategori':
-            $allK = DAO_kategori::getAllKategori();
-            include 'tab-kategori.php';
-            break;
-        case 'profil':
-            include 'tab-profil.php';
-            break;
-    }
-    exit();
-}
-
-if ($action === 'verify_pass') {
+elseif($action === 'verify_pass'){
     $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
     $bool = empty($head) || strtolower($head) !== 'xmlhttprequest';
-    if ($bool) {
+    if($bool){
         http_response_code(403);
         exit();
     }
-    $pass = $_POST['password'] ?? '';
+    $pass = $_POST['password']??'';
     header('Content-Type: application/json');
 
-    if (!$pass) {
-        echo json_encode(['success' => false, 'message' => 'Password tidak boleh kosong']);
+    if(!$pass){
+        echo json_encode(['success'=>false, 'message'=>'Password tidak boleh kosong']);
         exit();
     }
     $currentDokter->setNewPass($pass);
     $hasil = userService::login($currentDokter);
-    if ($hasil[0]) {
-        $_SESSION['can_change_pass'] = true;
-        echo json_encode(['success' => true, 'message' => 'Anda bisa melanjutkan perubahan Password']);
+    if($hasil[0]){
+        $_SESSION['can_change_pass']=true;
+        echo json_encode(['success'=>true, 'message'=>'Anda bisa melanjutkan perubahan Password']);
         exit();
-    } else {
-        echo json_encode(['success' => false, 'message' => $hasil[1]]);
+    }else{
+        echo json_encode(['success'=>false, 'message'=>$hasil[1]]);
         exit();
     }
-} elseif ($action === 'change_pass') {
-    if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
+}
+elseif($action === 'change_pass'){
+    if(empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest'){
         http_response_code(403);
         exit();
-    } elseif (!isset($_SESSION['can_change_pass']) || !$_SESSION['can_change_pass']) {
+    }elseif(!isset($_SESSION['can_change_pass'])||!$_SESSION['can_change_pass']){
         setFlash('error', 'Anda harus verifikasi password terlebih dahulu!');
         header('Location: ' . BASE_URL . 'index.php?route=profil');
         exit();
     }
     $newPassword = $_POST['new_password'] ?? '';
-    $currentUser = $_SESSION['user'] ?? null;
+    $currentUser = $_SESSION['user'] ?? null; 
     header('Content-Type: application/json');
-    if (strlen($newPassword) < 8) {
-        echo json_encode(['success' => false, 'message' => 'Password minimal 8 karakter']);
+    if(strlen($newPassword) < 8){
+        echo json_encode(['success'=>false, 'message'=>'Password minimal 8 karakter']);
         exit();
     }
     $currentUser->setNewPass($newPassword);
     $hasil = userService::changePass($currentUser);
-    if ($hasil[0]) {
+    if($hasil[0]){
         unset($_SESSION['can_change_pass']);
         echo json_encode([
-            'success' => true,
+            'success' => true, 
             'message' => 'Password berhasil diubah!'
         ]);
         exit();
-    } else {
-        echo json_encode(['success' => false, 'message' => $hasil[1]]);
+    }else{
+        echo json_encode(['success'=>false, 'message'=>$hasil[1]]);
         exit();
     }
-} elseif ($action === 'update_full_schedule') {
+}elseif ($action === 'update_full_schedule') {
     header('Content-Type: application/json');
-
+    
     $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
-    if (empty($head) || strtolower($head) !== 'xmlhttprequest') {
+    if(empty($head) || strtolower($head) !== 'xmlhttprequest'){
         http_response_code(403);
         exit();
     }
 
-    $scheduleData = $_POST['schedule'] ?? [];
+    $scheduleData = $_POST['schedule'] ?? []; 
     $finalSchedule = [];
     $idDokter = $profil->getId();
     $savedCount = 0;
 
     foreach ($scheduleData as $dayIndex => $slots) {
-        if (!is_numeric($dayIndex) || !array_key_exists((int) $dayIndex, HARI_ID)) {
-            continue;
+        if (!is_numeric($dayIndex) || !array_key_exists((int)$dayIndex, HARI_ID)) {
+        continue;
         }
         if (!is_array($slots) || empty($slots)) {
-            continue;
+            continue; 
         }
         foreach ($slots as $slotId => $slot) {
             $buka = $slot['buka'] ?? null;
             $tutup = $slot['tutup'] ?? null;
-
+            
             if ($buka && $tutup) {
-                $dayName = HARI_ID[$dayIndex];
-
+                $dayName = HARI_ID[$dayIndex]; 
+                
                 $finalSchedule[$dayName][] = [
                     'buka' => $buka,
                     'tutup' => $tutup
@@ -219,7 +195,7 @@ if ($action === 'verify_pass') {
         }
     }
     $status = DAO_dokter::setJadwal($idDokter, $finalSchedule);
-
+    
     if ($status) {
         echo json_encode(['success' => true, 'message' => "Jadwal berhasil diperbarui. Total $savedCount sesi disimpan."]);
     } else {
@@ -231,7 +207,7 @@ if ($action === 'verify_pass') {
 // Get statistics
 $flash = getFlash();
 include 'base.php';
-?>
+    ?>
 <!DOCTYPE html>
 <html lang="id">
 
@@ -245,85 +221,84 @@ include 'base.php';
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/assets/leaflet/leaflet.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/assets/control-geocoder/Control.Geocoder.css">
 
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s;
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        max-width: 400px;
+        width: 90%;
+        animation: slideUp 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
         }
 
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
         }
 
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 400px;
-            width: 90%;
-            animation: slideUp 0.3s;
+        to {
+            transform: translateY(0);
+            opacity: 1;
         }
+    }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
+    .tab-btn {
+        transition: all 0.3s ease;
+    }
 
-            to {
-                opacity: 1;
-            }
-        }
+    .tab-btn.active {
+        background-color: #10b981;
+        color: white;
+    }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
+    .file-upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
 
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    .file-upload-area:hover {
+        border-color: #10b981;
+        background-color: #f0fdf4;
+    }
 
-        .tab-btn {
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn.active {
-            background-color: #10b981;
-            color: white;
-        }
-
-        .file-upload-area {
-            border: 2px dashed #d1d5db;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .file-upload-area:hover {
-            border-color: #10b981;
-            background-color: #f0fdf4;
-        }
-
-        .file-upload-area.has-file {
-            border-color: #10b981;
-            background-color: #f0fdf4;
-        }
-    </style>
-</head>
+    .file-upload-area.has-file {
+        border-color: #10b981;
+        background-color: #f0fdf4;
+    }
+</style></head>
 
 <!-- Main Content -->
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -355,37 +330,39 @@ include 'base.php';
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 text-center">
             <div class="text-3xl font-bold text-primary mb-2"><?php echo $profil->getStatus(); ?></div>
-            <div class="text-gray-600">
-                <?php echo $profil->getStatus() == 'nonaktif' ? 'Silahkan update dokumen Anda' : 'Status'; ?></div>
+            <div class="text-gray-600"><?php echo $profil->getStatus() == 'nonaktif' ? 'Silahkan update dokumen Anda' : 'Status';?></div>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
     <div class="bg-white rounded-xl shadow-sm p-4 mb-8">
         <div class="flex flex-wrap gap-3 justify-center">
-            <button class="tab-btn active px-6 py-2 rounded-lg font-medium bg-primary text-white" data-tab="profil">
+            <button onclick="switchTab('data-diri')"
+                class="tab-btn active px-6 py-2 rounded-lg font-medium bg-primary text-white" id="tab-data-diri">
                 📋 Data Diri
             </button>
-            <button class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
-                data-tab="jadwal">
+            <button onclick="switchTab('jadwal')"
+                class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                id="tab-jadwal">
                 📅 Jadwal
             </button>
-            <button class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
-                data-tab="kategori">
+            <button onclick="switchTab('kategori')"
+                class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                id="tab-kategori">
                 📊 kategori
             </button>
-            <button class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
-                data-tab="tempat-klinik">
+            <button onclick="switchTab('tempat-klinik')"
+                class="tab-btn px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
+                id="tab-tempat-klinik">
                 Tempat Klinik
             </button>
         </div>
         <?php if ($flash): ?>
-            <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>"
-                style='text-align:center'>
-                <span><?php echo $flash['type'] == 'error' ? '❌' : '✅'; ?></span>
-                <?php echo $flash['message']; ?>
-            </div>
-        <?php endif; ?>
+                    <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>" style='text-align:center'>
+                        <span><?php echo $flash['type'] == 'error' ? '❌' : '✅'; ?></span>
+                        <?php echo $flash['message']; ?>
+                    </div>
+                <?php endif; ?>
     </div>
 
     <!-- Profile Content -->
@@ -520,16 +497,15 @@ include 'base.php';
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Pengalaman (Tahun
-                                    Mulai)</label>
-                                <input type="number" name="pengalaman"
-                                    value="<?php echo date('Y', $profil->getPengalaman()); ?>" min="1900"
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pengalaman (Tahun Mulai)</label>
+                                <input type="number" name="pengalaman" value="<?php echo date('Y', $profil->getPengalaman()); ?>"
+                                    min="1900"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">harga Persesi
-                                    Konsultasi</label>
-                                <input type="number" name="harga" value="<?php echo $profil->getHarga(); ?>" min="0"
+                                <label class="block text-sm font-medium text-gray-700 mb-2">harga Persesi Konsultasi</label>
+                                <input type="number" name="harga" value="<?php echo $profil->getHarga(); ?>"
+                                    min="0"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                             </div>
                         </div>
@@ -580,7 +556,181 @@ include 'base.php';
         </div>
 
         <!-- Other Tabs Content (Hidden by default) -->
-        <div id="tabContent" class="lg:col-span-2">
+         <!-- Ini_Jadwal -->
+        <div class="lg:col-span-2 hidden" id="content-jadwal">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-2xl font-semibold text-gray-800 mb-6 text-center">📅 Sesuaikan Jadwal Praktik</h3>
+                
+                <form id="scheduleForm" method="POST" action=""> 
+                    <input type="hidden" name="action" value="update_full_schedule">
+                    
+                    <div id="scheduleContainer" class="space-y-6">
+                        
+                        <?php
+                        $allDaysMap = HARI_ID;
+                        $dokterJadwal = DAO_dokter::getJadwal($profil);
+
+                        foreach ($allDaysMap as $dayIndex => $dayName):
+                            $isScheduled = isset($dokterJadwal[$dayName]);
+                            $sesiList = $isScheduled ? $dokterJadwal[$dayName] : [];
+                        ?>
+                        
+                        <div class="border rounded-xl p-4 <?= $isScheduled ? 'border-purple-400 bg-purple-50' : 'border-gray-300' ?>" 
+                            data-day-index="<?= $dayIndex ?>" data-day-name="<?= $dayName ?>">
+                            
+                            <div class="flex justify-between items-center mb-3 border-b pb-2">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        name="days_active[]" 
+                                        value="<?= $dayIndex ?>"
+                                        <?= $isScheduled ? 'checked' : '' ?>
+                                        class="h-5 w-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 day-toggle"
+                                    >
+                                    <span class="ml-3 text-xl font-bold text-gray-800"><?= htmlspecialchars($dayName) ?></span>
+                                </label>
+                                <button type="button" 
+                                    class="text-sm py-1 px-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition" 
+                                    onclick="addSlot(this, '<?= $dayIndex ?>')">
+                                    + Tambah Sesi
+                                </button>
+                            </div>
+
+                            <div class="space-y-2 schedule-slots-list" id="slots-<?= $dayIndex ?>">
+
+                                <?php 
+                                // Loop 2: Tampilkan Sesi yang Sudah Ada
+                                foreach ($sesiList as $i => $sesi):
+                                    // Indeks $i digunakan untuk array name di JS
+                                ?>
+                                <div class="grid grid-cols-4 gap-2 items-center slot-row" data-slot-id="<?= $i ?>">
+                                    <span class="col-span-1">Buka</span>
+                                    <input type="time" 
+                                        name="schedule[<?= $dayIndex ?>][<?= $i ?>][buka]" 
+                                        value="<?= $sesi->getBuka() ?>" 
+                                        required
+                                        class="col-span-1 border border-gray-300 rounded-lg p-2 text-sm focus:ring-purple-500 focus:border-purple-500">
+                                    
+                                    <span class="col-span-1">Tutup</span>
+                                    <input type="time" 
+                                        name="schedule[<?= $dayIndex ?>][<?= $i ?>][tutup]" 
+                                        value="<?= $sesi->getTutup() ?>" 
+                                        required
+                                        class="col-span-1 border border-gray-300 rounded-lg p-2 text-sm focus:ring-purple-500 focus:border-purple-500">
+                                    
+                                    <button type="button" 
+                                        class="col-span-2 text-sm text-red-600 hover:text-red-800 flex items-center justify-start gap-1"
+                                        onclick="removeSlot(this)">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4"></path></svg>
+                                        Hapus
+                                    </button>
+                                </div>
+                                <?php endforeach; ?>
+                                
+                            </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="pt-6 border-t border-gray-200 mt-6">
+                        <button type="submit" name="update_jadwal_submit"
+                            class="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition-colors">
+                            💾 Simpan Semua Jadwal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Ini_Kategori -->
+        <div class="lg:col-span-2 hidden" id="content-kategori">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-center items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center">
+                        <span class="mr-2">📊</span> kategori
+                    </h3>
+                </div>
+                <form method="POST" action="" class="space-y-6">
+                    <input type="hidden" name="action" value="update_kategori">
+                    <div class="space-y-4">
+                        <label class="block text-lg font-medium text-gray-800 mb-3">Pilih Spesialisasi Anda:</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <?php
+                            $allK = DAO_kategori::getAllKategori();
+                            $profilKategori = $profil->getKategori();
+                            $profilKategoriIds = array_column($profilKategori, 'idK');
+
+                            foreach ($allK as $kItem):
+                                $curId = $kItem->getIdK();
+                                $isChecked = in_array($curId, $profilKategoriIds) ? 'checked': '';
+                                ?>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="kategori_ids[]" value="<?php echo $curId; ?>"
+                                        <?php echo $isChecked; ?>
+                                        class="h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary">
+                                    <span
+                                        class="ml-2 text-gray-700"><?php echo htmlspecialchars($kItem->getNamaKateg()); ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4">Centang kategori yang sesuai dengan spesialisasi praktik
+                            Anda.</p>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200">
+                        <button type="submit" name="update_kategori_submit"
+                            class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-secondary transition-colors">
+                            💾 Update Kategori
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Ini_Tempat-Klinik -->
+        <div class="lg:col-span-2 hidden" id="content-tempat-klinik">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-center items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center">
+                        <span class="mr-2">📍</span> Tempat Klinik
+                    </h3>
+                </div>
+                <?php 
+                $status = DAO_dokter::getAlamat($profil);
+                $koor = $profil->getKoor();
+                $lat = (is_array($koor) && isset($koor[0])) ? $koor[0] :'';
+                $long = (is_array($koor) && isset($koor[1])) ? $koor[1] :'';
+                ?>
+                <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
+                    <div class="space-y-4">
+                        <label style="text-align: center;" class="block text-lg font-medium text-gray-800 mb-3">Lokasi Klinik Anda (Opsional):
+                        <br><p6 style="text-align: center; font-size: 12px;">Ini akan ditampilkan di laman info profil Anda pada client-side (membutuhkan izin lokasi)</p6></label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Klinik *</label>
+                                <input type="text" name="nama_klinik"
+                                    value="<?php echo $profil->getNamaKlinik()?: ''; ?>"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    required>
+                                </div>
+                            </div>
+                            <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2 mt-4">Tandai Lokasi Klinik di Peta:</label>
+                            <br><p6 style="text-align: center; font-size: 12px;">Klik dua kali untuk menandai titik di peta</p6></label>
+                            
+                            <div id="map-klinik" style="height: 500px; width: 100%; border-radius: 8px; border: 1px solid #961414ff;"></div>
+                            <div>
+                                <input type="hidden" name="latitude" id="input-latitude" value="<?php echo htmlspecialchars($lat); ?>">
+                                <input type="hidden" name="longitude" id="input-longitude" value="<?php echo htmlspecialchars($long); ?>">
+                            </div>
+                            </div>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200">
+                        <button type="submit" name="update_tempat_submit"
+                            class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-secondary transition-colors">
+                            💾 Update Tempat Klinik
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </main>
@@ -591,10 +741,10 @@ include 'base.php';
         <h2 style="text-align: center;" class="text-2xl font-bold text-gray-800 mb-6">✉️ Verifikasi</h2>
         <form id="PassVerificationForm" class="space-y-4">
             <div>
-                <label style="text-align: center;" class="block text-sm font-medium text-gray-700 mb-2">Masukkan
-                    Password Anda</label>
+                <label style="text-align: center;" class="block text-sm font-medium text-gray-700 mb-2">Masukkan Password Anda</label>
                 <input type="password" id="verifyPass" placeholder="Masukkan password"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary" required>
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                    required>
             </div>
             <div class="flex gap-3">
                 <button type="submit"
@@ -642,24 +792,12 @@ include 'base.php';
         </div>
     </div>
 </div>
-
 </html>
 
-<script src="<?php echo BASE_URL ?>public/assets/leaflet/leaflet.js"></script>
-<script src="<?php echo BASE_URL ?>public/assets/control-geocoder/Control.Geocoder.js"></script>
+<script src="<?php echo BASE_URL?>public/assets/leaflet/leaflet.js"></script>
+<script src="<?php echo BASE_URL?>public/assets/control-geocoder/Control.Geocoder.js"></script>
 <script>
-
     let map = null;
-    let marker = null; 
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.tab-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const tabName = this.getAttribute('data-tab');
-                loadTabContent(tabName);
-            });
-        });
-    });
 
 
     // Toggle Edit Mode - Hanya toggle tanpa ubah tombol
@@ -685,66 +823,30 @@ include 'base.php';
     }
 
     // Switch Tabs
-    function loadTabContent(tabName) {
-        const tabContent = document.getElementById('tabContent');
-        const profileCardWrapper = document.getElementById('profileCardWrapper');
-        const contentDataDiri = document.getElementById('content-data-diri');
+    function switchTab(tabName) {
 
-        // 1. Update Tampilan Tombol
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active', 'bg-primary', 'text-white');
-            btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+        // Hide all content sections
+        const contents = ['data-diri', 'jadwal', 'kategori', 'tempat-klinik'];
+        contents.forEach(content => {
+            document.getElementById('content-' + content).classList.add('hidden');
+            document.getElementById('tab-' + content).classList.remove('active', 'bg-primary', 'text-white');
+            document.getElementById('tab-' + content).classList.add('bg-gray-200', 'text-gray-700');
         });
 
-        const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('active', 'bg-primary', 'text-white');
-            activeBtn.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+        // Show selected content
+        document.getElementById('content-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-' + tabName).classList.add('active', 'bg-primary', 'text-white');
+        document.getElementById('tab-' + tabName).classList.remove('bg-gray-200', 'text-gray-700');
+
+        // Reset edit mode saat pindah tab
+        if (tabName === 'data-diri') {
+            cancelEdit();
         }
-
-        // 2. Tampilkan/Sembunyikan Konten Data Diri
-        if (tabName === 'profil') {
-            // Tampilkan 'Data Diri' yang sudah ada di HTML
-            contentDataDiri.classList.remove('hidden');
-            profileCardWrapper.classList.remove('hidden');
-            tabContent.innerHTML = ''; // Kosongkan div 'Other Tabs Content'
-            // Kembalikan tombol edit ke tampilan awal jika ada di tab profil
-            cancelEdit('readonlyView', 'editForm', 'editButton');
-            return;
-        } else {
-            // Sembunyikan 'Data Diri'
-            contentDataDiri.classList.add('hidden');
-            profileCardWrapper.classList.add('hidden');
-        }
-        
-        // 3. Muat Konten Tab Lain via AJAX
-        tabContent.innerHTML = '<div class="text-center p-8">Memuat...</div>'; // Loading indicator
-
-
-
-        // Server endpoint untuk memuat konten tab
-        fetch(`?route=profil&action=load-tab&tab=${tabName}`)
-            .then(response => response.text())
-            .then(html => {
-                tabContent.innerHTML = html;
-
-                initializeTabScripts(tabName);
-            })
-            .catch(error => {
-                tabContent.innerHTML = `<div class="text-center p-8 text-red-600">❌ Error: ${error.message}</div>`;
-                console.error(error);
-            });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-
-
-        loadTabContent('profil');
-    });
-
-    function initializeTabScripts(tabName) {
-        if (tabName === 'tempat-klinik') {
-            determineAndInitializeMap();
+        if (tabName === 'tempat-klinik' && map){
+            if(map){
+                map.invalidateSize();
+            }else{
+            }
         }
     }
 
@@ -769,45 +871,45 @@ include 'base.php';
         document.getElementById('changePasswordForm').reset();
     }
 
-    function handleVerifyPass(e) {
-        e.preventDefault();
-        const verifPass = document.getElementById('verifyPass').value;
-        if (!verifPass) {
-            alert('Masukkan Password Anda!');
-            return;
-        }
-        const btnSubm = e.target.querySelector('button[type="submit"]');
-        btnSubm.disabled = true;
-        btnSubm.textContent = 'Mengirim.....';
-
-        fetch('?route=profil&action=verify_pass', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({
-                password: verifPass
-            })
-        }).then(response => response.json()).then(data => {
-            btnSubm.disabled = false;
-            btnSubm.textContent = 'Memverifikasi...';
-
-            if (data.success) {
-                alert(data.message);
-                closePassVerif();
-                openChangePasswordModal();
-            } else {
-                alert('verifikasi gagal: ' + data.message);
+        function handleVerifyPass(e) {
+            e.preventDefault();
+            const verifPass = document.getElementById('verifyPass').value;
+            if(!verifPass){
+                alert('Masukkan Password Anda!');
+                return;
             }
-        }).catch(error => {
-            btnSubm.disabled = false;
-            btnSubm.textContent = 'Verifikasi';
-            alert('Terjadi kesalahan: ' + error.message);
-        })
-    }
+            const btnSubm = e.target.querySelector('button[type="submit"]');
+            btnSubm.disabled = true;
+            btnSubm.textContent = 'Mengirim.....';
 
-    function handleChangePassword(e) {
+            fetch('?route=profil&action=verify_pass', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    password: verifPass
+                })
+            }).then(response => response.json()).then(data=>{
+                btnSubm.disabled = false;
+                btnSubm.textContent = 'Memverifikasi...';
+
+                if(data.success){
+                    alert(data.message);
+                    closePassVerif();
+                    openChangePasswordModal();
+                }else{
+                    alert('verifikasi gagal: '+data.message);
+                }
+            }).catch(error=>{
+                btnSubm.disabled = false;
+                btnSubm.textContent = 'Verifikasi';
+                alert('Terjadi kesalahan: '+error.message);
+            })
+        }
+
+        function handleChangePassword(e){
         e.preventDefault();
         const newPass = document.getElementById('newPassword').value;
         const confirmPass = document.getElementById('confirmPassword').value;
@@ -827,53 +929,53 @@ include 'base.php';
         submitBtn.textContent = 'Menyimpan...';
 
         // ➡️ Ubah endpoint dan body
-        fetch('?route=profil&action=change_pass', {
+        fetch('?route=profil&action=change_pass', { 
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded', 
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: new URLSearchParams({
                 new_password: newPass
             })
         })
-            .then(response => response.json())
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Simpan Password';
+        .then(response => response.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Simpan Password';
 
-                if (data.success) {
-                    alert('Password berhasil diubah!');
-                    closeChangePasswordModal();
-                    location.reload();
-                } else {
-                    alert('Gagal mengubah password: ' + data.message);
-                }
-            })
-            .catch(error => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '💾 Simpan Password';
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat mengubah password');
-            });
+            if (data.success) {
+                alert('Password berhasil diubah!');
+                closeChangePasswordModal();
+                location.reload();
+            } else {
+                alert('Gagal mengubah password: ' + data.message);
+            }
+        })
+        .catch(error => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '💾 Simpan Password';
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengubah password');
+        });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('PassVerificationForm').addEventListener('submit', handleVerifyPass);
-        document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
+document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('PassVerificationForm').addEventListener('submit', handleVerifyPass);
+    document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
 
-        window.onclick = function (event) {
-            const verifModal = document.getElementById('passwordVerif');
-            const passwordModal = document.getElementById('changePasswordModal');
+    window.onclick = function (event) {
+        const verifModal = document.getElementById('passwordVerif');
+        const passwordModal = document.getElementById('changePasswordModal');
 
-            if (event.target === verifModal) {
-                closePassVerif();
-            }
-            if (event.target === passwordModal) {
-                closeChangePasswordModal();
-            }
+        if (event.target === verifModal) {
+            closePassVerif();
         }
-    });
+        if (event.target === passwordModal) {
+            closeChangePasswordModal();
+        }
+    }
+});
 
     // File upload handlers
     document.getElementById('file_sip').addEventListener('change', function (e) {
@@ -918,12 +1020,12 @@ include 'base.php';
         }
     });
 
-    let slotCounter = 100;
+    let slotCounter = 100; 
 
     function addSlot(button, dayIndex) {
         const slotsList = document.getElementById(`slots-${dayIndex}`);
         const newSlotId = slotCounter++;
-
+        
         const newSlotHtml = `
             <div class="grid grid-cols-4 gap-2 items-center slot-row" data-slot-id="${newSlotId}">
             <span class="col-span-1">Buka</span>    
@@ -958,65 +1060,114 @@ include 'base.php';
             row.remove();
         }
     }
-
+    
     document.querySelectorAll('.day-toggle').forEach(toggle => {
-        toggle.addEventListener('change', function () {
+        toggle.addEventListener('change', function() {
             const dayIndex = this.value;
             const slotsList = document.getElementById(`slots-${dayIndex}`);
             if (!this.checked) {
                 slotsList.innerHTML = `<p class="text-sm text-gray-500 italic">Jadwal dinonaktifkan. Centang untuk menambah sesi.</p>`;
             } else {
-                if (slotsList.children.length <= 1) {
-                    slotsList.innerHTML = '';
-                    addSlot(this, dayIndex);
+                if (slotsList.children.length <= 1) { 
+                     slotsList.innerHTML = ''; 
+                     addSlot(this, dayIndex);
                 }
             }
         });
     });
-
-    function handleSubmitSchedule(e) {
-        e.preventDefault();
-
-        const form = e.target;
-        const submitBtn = form.querySelector('button[type="submit"]');
-
-        // 1. Kumpulkan Data Formulir
-        const formData = new FormData(form);
-
-        // 2. Tampilkan Loading dan Nonaktifkan Tombol
-        submitBtn.disabled = true;
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Menyimpan Jadwal...';
-
-        // 3. Konfigurasi Fetch Request
-        fetch('?route=profil&action=update_full_schedule', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => {
-                // Cek status code (terutama 200 OK atau error)
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json();
-            })
-        }
-
-    function initializeMap(lat, lng) {
-    const mapContainer = document.getElementById('map-klinik');
     
-    // Cek apakah elemen map-klinik ada di DOM dan Leaflet sudah dimuat
-    if (!mapContainer || typeof L === 'undefined') {
-        console.warn("Element map-klinik tidak ditemukan atau Leaflet belum dimuat.");
-        return; 
+    function handleSubmitSchedule(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // 1. Kumpulkan Data Formulir
+    const formData = new FormData(form);
+    
+    // 2. Tampilkan Loading dan Nonaktifkan Tombol
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Menyimpan Jadwal...';
+    
+    // 3. Konfigurasi Fetch Request
+    fetch('?route=profil&action=update_full_schedule', { 
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        // Cek status code (terutama 200 OK atau error)
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // 4. Handle Respon Sukses
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        
+        if (data.success) {
+            alert(data.message || 'Jadwal berhasil diperbarui!');
+            location.reload(); 
+        } else {
+            alert('Gagal menyimpan jadwal: ' + (data.message || 'Terjadi kesalahan server.'));
+        }
+    })
+    .catch(error => {
+        // 5. Handle Error
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        console.error('Error saat submit jadwal:', error);
+        alert('Terjadi kesalahan koneksi atau server: ' + error.message);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('scheduleForm').addEventListener('submit', handleSubmitSchedule);
+});
+
+//ini lokasi peta
+document.addEventListener('DOMContentLoaded', function() {
+    const savedProvinsi = "<?php echo htmlspecialchars($profil->getProv() ?? ''); ?>";
+    const savedKabupaten = "<?php echo htmlspecialchars($profil->getKab() ?? ''); ?>";
+    const initLat = '<?php echo $profil->getKoor()[0] ?? ''; ?>';
+    const initLng = '<?php echo $profil->getKoor()[1] ?? ''; ?>';
+    const defaultLat = -6.2088; // Koordinat default ( Jakarta)
+    const defaultLng = 106.8456;
+
+    // Mendapatkan elemen wadah peta
+    const mapContainer = document.getElementById('map-klinik');
+
+    if(!initLat && savedProvinsi){
+        let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
+    
+        const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+        fetch(nominatimURL)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const result = data[0];
+                    initialLat = parseFloat(result.lat);
+                    initialLng = parseFloat(result.lon);
+                    initializeMap(initialLat, initialLng);
+                } else {
+                    initializeMap(initialLat, initialLng);
+                }
+            })
+            .catch(error => {
+                console.error('Geocoding wilayah gagal:', error);
+                initializeMap(initialLat, initialLng);
+            });
+    }else{
+            initializeMap(initLat, initLng);
     }
-    if (map && map.remove) {
-        map.remove();
-        map = null;
-    }
+
+let marker;
+function initializeMap(lat, lng){
 
     const inputLat = document.getElementById('input-latitude');
     const inputLng = document.getElementById('input-longitude');
@@ -1030,128 +1181,60 @@ include 'base.php';
     }).addTo(map);
 
     // --- INISIALISASI MARKER (PIN) ---
-    marker = L.marker([lat, lng], { // Gunakan variabel global 'marker'
+    marker = L.marker([lat, lng], {
         draggable: true // 🎯 Kunci: Membuat marker dapat digeser
     }).addTo(map);
 
     inputLat.value = lat.toFixed(6); // Simpan hingga 6 desimal
     inputLng.value = lng.toFixed(6);
 
-    // --- INISIALISASI GEOCODER ---
     const geocoder = L.Control.Geocoder.nominatim();
     const control = L.Control.geocoder({
         geocoder: geocoder,
         placeholder: 'Cari Alamat, Jalan, atau Nama Klinik...',
-        position: 'topleft',
-        defaultMarkGeocode: false
+        position: 'topleft', 
+        defaultMarkGeocode: false 
     }).addTo(map);
 
-    // --- EVENT LISTENER GEOCODER ---
-    control.on('markgeocode', function (e) {
+    control.on('markgeocode', function(e) {
         const bbox = e.geocode.bbox;
         const center = e.geocode.center;
-
-        map.fitBounds(bbox);
+        
+        map.fitBounds(bbox); 
         marker.setLatLng(center);
-
+        
         inputLat.value = center.lat.toFixed(6);
         inputLng.value = center.lng.toFixed(6);
     });
 
     // --- EVENT LISTENER UNTUK DRAG MARKER ---
-    marker.on('dragend', function (e) {
+    marker.on('dragend', function(e) {
         const position = marker.getLatLng();
+
+        let lat =(position.lat);
+        let lng = (position.lng);
+
+        if (!isNaN(lat)&&!isNaN(lng)) {
+        inputLat.value = lat.toFixed(6);
+        inputLng.value = lng.toFixed(6);
+    } else {
+        console.error("Koordinat tidak valid setelah drag.");
+        console.log('tipe lat : ', typeof position.lat);
+        // Opsional: Set value ke kosong jika koordinat hilang
+        inputLat.value = '';
+        inputLng.value = '';
+    }
 
         inputLat.value = position.lat.toFixed(6);
         inputLng.value = position.lng.toFixed(6);
     });
-
-    // --- EVENT LISTENER DOUBLE-CLICK ---
-    map.on('dblclick', function (e) {
+    
+    // Opsional: Double-click di peta untuk memindahkan marker (user experience lebih baik)
+    map.on('dblclick', function(e) {
         marker.setLatLng(e.latlng);
         inputLat.value = e.latlng.lat.toFixed(6);
         inputLng.value = e.latlng.lng.toFixed(6);
     });
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100); 
-
-    console.log("Peta berhasil diinisialisasi ulang.");
-    }
-
-    function determineAndInitializeMap() {
-    // Variabel PHP yang di-echo hanya tersedia jika tab-lokasi.php sudah dimuat!
-    const savedProvinsi = "<?php echo htmlspecialchars($profil->getProv() ?? ''); ?>";
-    const savedKabupaten = "<?php echo htmlspecialchars($profil->getKab() ?? ''); ?>";
-    <?php 
-    $koor = $profil->getKoor();
-    $lat = (is_array($koor) && isset($koor[0])) ? $koor[0] :'';
-    $long = (is_array($koor) && isset($koor[1])) ? $koor[1] :'';
-    ?>
-    let initLat = <?php echo $lat? $lat : "document.getElementById('input-latitude').value"; ?>; // Gunakan let
-    let initLng = <?php echo $long? $long : "document.getElementById('input-longitude').value"; ?>; // Gunakan let
-    
-
-    const defaultLat = -6.2088; // Koordinat default ( Jakarta)
-    const defaultLng = 106.8456;
-
-    // Tentukan koordinat awal
-    const hasSavedCoords = initLat && initLng && parseFloat(initLat) !== defaultLat;
-
-    if(hasSavedCoords){
-        initializeMap(parseFloat(initLat), parseFloat(initLng));
-
-    }else if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(
-            (position)=>{
-                const livelat = parseFloat(position.coords.latitude);
-                const livelng = parseFloat(position.coords.longitude);
-                initializeMap(livelat, livelng);
-            },
-            (error)=>{
-                initializeFallback(hasSavedCoords, initLat, initLng,
-                defaultLat, defaultLng, savedProvinsi, savedKabupaten);
-            },
-            {enableHighAccuracy:true, timeout:5000, maximumAge:0}
-        );
-    }else{
-        initializeFallback(hasSavedCoords, initLat, initLng,
-                defaultLat, defaultLng, savedProvinsi, savedKabupaten);
-    }
-    }
-
-    function initializeFallback(hasSavedCoords, initLat, initLng,
-                defaultLat, defaultLng, savedProvinsi, savedKabupaten){
-
-    if(hasSavedCoords){
-        let finalLat = parseFloat(initLat);
-        let finalLng = parseFloat(initLng);
-        initializeMap(finalLat, finalLng);
-    }else if (savedProvinsi) {
-        let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
-        const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
-        
-        fetch(nominatimURL)
-            .then(response => response.json())
-            .then(data => {
-                let finalLat = defaultLat;
-                let finalLng = defaultLng;
-                
-                if (data.length > 0) {
-                    const result = data[0];
-                    finalLat = parseFloat(result.lat);
-                    finalLng = parseFloat(result.lon);
-                }
-                initializeMap(finalLat, finalLng);
-            })
-            .catch(error => {
-                console.error('Geocoding wilayah gagal:', error);
-                // Jika gagal, tetap inisialisasi dengan koordinat default/awal
-                initializeMap(defaultLat, defaultLng); 
-            });
-    } else {
-        // Inisialisasi langsung jika koordinat sudah ada
-        initializeMap(defaultLat, defaultLng);
-    }
-    }
+}
+});
 </script>

@@ -44,13 +44,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_detail' && isset($_GET['i
 $kategori = isset($_GET['kategori']) ? htmlspecialchars($_GET['kategori']) : '';
 
 // Get all available categories for filter dropdown
+require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../src/config/config.php';
+
+if (isset($_GET['pilih'])) {
+    header('Content-Type: application/json');
+    if($_GET['pilih'] > 0){
+        $dokter = DAO_dokter::getProfilDokter(initiate:false, idDokter: $_GET['pilih']);
+        echo json_encode($dokter);
+        exit;
+    }else{
+        echo json_encode(false);
+        exit;
+    }
+}
+
 $all_kategori = DAO_kategori::getAllKategori();
 
 // Get list of doctors
 $listDokter = DAO_dokter::getAllDokter();
 // Detail lokasi/koordinat hanya diambil saat user klik kartu (via JS).
 date_default_timezone_set('Asia/Jakarta');
-$daysMap = [0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
+$daysMap = HARI_ID;
 $hariIni = $daysMap[(int) date('w')];
 $now = date('H:i:s');
 

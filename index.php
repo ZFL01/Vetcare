@@ -6,50 +6,125 @@ require_once __DIR__ . '/src/config/config.php';
 require_once __DIR__ . '/includes/DAO_Article.php';
 require_once __DIR__ . '/includes/DAO_others.php';
 require_once __DIR__ . '/includes/userService.php';
+require_once __DIR__ . '/chat-api-service/dao_chat.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 // Main entry point for PHP application
 $route = isset($_GET['route']) ? $_GET['route'] : '';
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = isset($_GET['aksi']) ? $_GET['aksi'] : '';
 
 // Define page variables
 $pageTitle = '';
 $divNotFound = '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
 $pageDescription = '';
 $ajaxLoad = false;
+$response = ['success' => false, 'messages' => [], 'message' => 'Data tidak lengkap.'];
+$httpCode = 200;
+$data = null;
 
-switch($action){
-    case 'location':
-        header('Content-Type: application/json');
-        $idLoc = isset($_SESSION['id_location'])? $_SESSION['id_location']:null;
-        $idUser = isset($_SESSION['user'])? $_SESSION['user']->getIdUser():null;
+//logika controller
+if ($action) {
+    header('Content-Type: application/json');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
-        $lat = $data['latitude'];
-        $long = $data['longitude'];
-        $koor = $lat.', '.$long;
-        $kotprov = apiControl::getCityProvince($lat, $long);
-        if(!$kotprov[0]){
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $response = ['success' => false, 'message' => 'Payload JSON tidak valid.'];
+            $httpCode = 400;
+            http_response_code($httpCode);
             echo json_encode($response);
             exit;
         }
-        if($data !==null){
+    }
+
+    switch ($action) {
+        case 'location':
+            if ($data === null) {
+                $response = ['success' => false, 'message' => 'Aksi location memerlukan data POST JSON.'];
+                $httpCode = 400;
+                break;
+            }
+
+            $idLoc = isset($_SESSION['id_location']) ? $_SESSION['id_location'] : null;
+            $idUser = isset($_SESSION['user']) ? $_SESSION['user']->getIdUser() : null;
+            $lat = $data['latitude'];
+            $long = $data['longitude'];
+            $koor = $lat . ', ' . $long;
+            $kotprov = apiControl::getCityProvince($lat, $long);
+            if (!$kotprov[0]) {
+                $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
+                $httpCode = 400;
+                break;
+            }
             $loc = new Location($idLoc, $koor, [$kotprov[0], $kotprov[1]], $idUser);
             $status = DAO_location::insertLocation($loc);
-            if(is_string($status)){
+            if (is_string($status)) {
                 $_SESSION['id_location'] = $status;
             }
-            if($status){
-                echo json_encode(['success'=>true, 'message'=>'']);
-            }else{
-                echo json_encode(['success'=>false, 'message'=>'gagal input data']);
+            if ($status) {
+                $response = ['success' => true, 'message' => ''];
+                $httpCode = 200;
+            } else {
+                $response = ['success' => false, 'message' => 'gagal input data'];
+                $httpCode = 500;
             }
-        }else{
-            echo json_encode(['success'=>false, 'message'=>'data kosong']);
-        }
-        exit;
+            break;
+
+        case 'sendMessage':
+            if (isset($data['chat_id'], $data['sender_id'], $data['sender_role'], $data['content'])) {
+                $result = DAO_MongoDB_Chat::insertMessage(
+                    $data['chat_id'],
+                    $data['sender_id'],
+                    $data['sender_role'],
+                    $data['content']
+                );
+                if ($result === true) {
+                    $response = ['success' => true, 'message' => 'Pesan terkirim.'];
+                    $httpCode = 200;
+                } else {
+                    $response['message'] = 'Gagal menyimpan pesan: ' . $result;
+                    $httpCode = 500;
+                }
+            }else{
+                $response['message'] = 'Data tidak lengkap.';
+                $httpCode = 400;
+            }
+            break;
+
+        case 'getMessages':
+            $chatId = $_GET['chat_id'] ?? null;
+            $since = $_GET['since'] ?? 0; // Default awal waktu
+
+            if ($chatId) {
+                $messagesOrError = DAO_MongoDB_Chat::getNewMessages($chatId, $since);
+
+                if (is_array($messagesOrError)) {
+                    $response = [
+                        'success' => true,
+                        'serverTimestamp'=>(new DateTime())->format(DateTime::ISO8601),
+                        'messages' => $messagesOrError,
+                        'message' => 'Pesan baru berhasil diambil.'
+                    ];
+                    $httpCode = 200;
+                } else {
+                    $response['message'] = 'Gagal Polling: ' . $messagesOrError;
+                    $httpCode = 500;
+                }
+            } else {
+                $response['message'] = 'Chat ID tidak ditemukan Polling.';
+                $httpCode = 400;
+            }
+            break;
+
+        default:
+            $response = ['success' => false, 'message' => 'Aksi tidak valid.'];
+            $httpCode = 404;
+    }
+    http_response_code($httpCode);
+    echo json_encode($response);
+    exit;
 }
 
 // Route handling: Tentukan file konten dan jalankan logika controller
@@ -93,7 +168,7 @@ switch ($route) {
         $contentFile = 'pages/pilih-dokter.php';
         break;
     case 'admin':
-        header('Location: '.BASE_URL.'admin/');
+        header('Location: ' . BASE_URL . 'admin/');
         exit();
     case 'tanya-jawab':
         $pageTitle = 'Tanya Jawab - VetCare';
@@ -108,7 +183,7 @@ switch ($route) {
     case 'profil':
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
-        $contentFile = 'pages/profil-dokter/profile-dokter.php';
+        $contentFile = 'pages/dokter/profile-dokter.php';
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -133,7 +208,7 @@ switch ($route) {
 if (isset($noHeaderFooter) && $noHeaderFooter) {
     if (file_exists($contentFile)) {
         error_log($contentFile);
-        if(!$ajaxLoad){
+        if (!$ajaxLoad) {
             include 'base.php';
         }
         include $contentFile;
@@ -141,12 +216,12 @@ if (isset($noHeaderFooter) && $noHeaderFooter) {
         echo $divNotFound;
     }
 } else {
-    if($ajaxLoad){
+    if ($ajaxLoad) {
         isset($contentFile) && file_exists($contentFile) ? include $contentFile : $divNotFound;
         exit;
     }
-// Include base template
-include 'base.php';
+    // Include base template
+    include 'base.php';
     ?>
     <div class="min-h-screen bg-gray-50">
         <?php include 'header.php'; ?>

@@ -327,6 +327,7 @@ class DAO_dokter
         ); //self dokter dan tabel admin
         //visualisasi data
         $obj->setTTL($dat['ttl'] ?? null);
+        $obj->setAlamat($dat['kabupaten'] ?? null, $dat['provinsi'] ?? null);
         $obj->setStatus($dat['status'] ?? null);
         return $obj;
     }
@@ -389,10 +390,7 @@ class DAO_dokter
 
             $DTO_dokter = [];
             foreach ($groupId as $id => $data) {
-                // Mapping data ke DTO
                 $obj = self::mapArray($data, $data['kateg'], $data['jadwal']);
-                // PENTING: Set Alamat secara eksplisit dari data query
-                $obj->setAlamat($data['kabupaten'] ?? null, $data['provinsi'] ?? null);
                 $DTO_dokter[] = $obj;
             }
             return $DTO_dokter;
@@ -491,13 +489,14 @@ class DAO_dokter
         }
     }
 
-    static function getProfilDokter(DTO_pengguna $data, bool $initiate)
+    static function getProfilDokter(?DTO_pengguna $data=null, bool $initiate=true, int $idDokter=0)
     {//dokter profil
         $conn = Database::getConnection();
+        $id = $idDokter >0 ? $idDokter : $data->getIdUser();
         try {
             $sql = "select * from m_dokter where id_dokter=?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$data->getIdUser()]);
+            $stmt->execute([$id]);
             $profil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($profil == null) {
                 return false;
@@ -524,6 +523,9 @@ class DAO_dokter
                 $kateg,
                 harga: $profil['harga']
             );
+            if($idDokter > 0 && $initiate ===false){
+                return $dokter;
+            }
             $dokter->setAlamat($profil['kabupaten'], $profil['provinsi']);
             $dokter->setDoc($profil['sip'], $profil['exp_sip'], $profil['strv'], $profil['exp_strv']);
             $dokter->setTTL($profil['ttl']);
@@ -835,62 +837,5 @@ class DAO_dokter
             return false;
         }
     }
-
-    /**
-     * Simple search/filter helper for doctors.
-     * Falls back to in-memory filtering of `getAllDokter()` results to avoid
-     * complex SQL changes. Accepts a search string and a category name/id.
-     *
-     * @param string $searchTerm
-     * @param string $kategori
-     * @return DTO_dokter[]
-     */
-    static function searchDokter(string $searchTerm = '', string $kategori = ''): array
-    {
-        $all = self::getAllDokter();
-        if (empty($searchTerm) && empty($kategori)) {
-            return $all;
-        }
-
-        $searchTerm = trim($searchTerm);
-        $kategori = trim($kategori);
-
-        $filtered = [];
-        foreach ($all as $dok) {
-            // filter by search term (name)
-            $matchSearch = true;
-            if ($searchTerm !== '') {
-                $name = $dok->getNama() ?? '';
-                $matchSearch = (stripos($name, $searchTerm) !== false);
-            }
-
-            // filter by kategori (category name or id)
-            $matchKateg = true;
-            if ($kategori !== '') {
-                $kategs = $dok->getKategori() ?? [];
-                $matchKateg = false;
-                foreach ($kategs as $k) {
-                    // allow matching by name (case-insensitive) or numeric id
-                    if (is_numeric($kategori)) {
-                        if ((string) $k === (string) $kategori) {
-                            $matchKateg = true;
-                            break;
-                        }
-                    }
-                    if (stripos((string) $k, $kategori) !== false) {
-                        $matchKateg = true;
-                        break;
-                    }
-                }
-            }
-
-            if ($matchSearch && $matchKateg) {
-                $filtered[] = $dok;
-            }
-        }
-
-        return $filtered;
-    }
 }
-
 ?>

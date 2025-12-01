@@ -14,7 +14,7 @@ function successCallback(position){
 
     console.log(`Lokasi Anda: Lat=${lat}, Long=${long}`);
 
-    fetch('/?action=location', {
+    fetch('/?aksi=location', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({latitude: lat, longitude: long})
@@ -43,4 +43,16 @@ function errorCallback(error){
             break;
     }
     console.log(msg);
+}
+
+function getTimestamp10() {
+    const d = new Date();
+
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+
+    return yy + mm + dd + hh + mi;
 }
