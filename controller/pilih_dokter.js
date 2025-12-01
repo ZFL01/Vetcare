@@ -511,18 +511,21 @@ async function showModal(idDokter) {
       </div>
 
       <div class="space-y-6">
-          <div>
-            <h3 class="text-sm font-bold text-purple-700 mb-1">Jadwal Praktik Mingguan</h3>
+          <div><div class='w-full flex items-center justify-center'>
+            <h3 class="text-sm font-bold text-purple-700 mb-1">Jadwal Praktik Mingguan</h3></div>
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                 ${jadwalHtml}
             </div>
           </div>
 
-          <div>
+          <div><div class='w-full flex items-center justify-center'>
             <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-2">
                📍 Lokasi Praktik
-            </h3>
-            <p id="modal-klinik-name" class="text-sm text-gray-600 font-medium mb-3 ml-1 animate-pulse">Memuat lokasi...</p>
+            </h3></div>
+            <p class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-2">
+               Nama Klinik
+               <p id="modal-klinik-name" class="text-sm text-gray-600 font-medium mb-3 ml-1 animate-pulse">Memuat lokasi...</p>
+            </p>
             
             <div id="${mapContainerId}" class="w-full h-64 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 relative shadow-inner">
                  <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-xs flex-col gap-2">
