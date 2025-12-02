@@ -5,7 +5,7 @@ require_once '../src/config/config.php';
 
 // Cek jika sudah login, langsung lempar ke dashboard
 if (isset($_SESSION['user']) && $_SESSION['user']->getRole()==='Admin') {
-    header('Location: admin_direct.php');
+    header('Location: '. BASE_URL);
     exit;
 }
 
@@ -26,16 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-login'])) {
     if($hasil[0]){
         if($obj->getRole()==='Admin'){
             $_SESSION['user'] = $obj;
-            header('Location: admin_direct.php');
+            header('Location: '. BASE_URL);
             exit;
         }else{
             setFlash('error', 'Anda tidak punya akses!');
-            header('Location: login.php');
+            header('Location: '. BASE_URL);
             exit;
         }
     }else{
         setFlash('error', $hasil[1]);
-        header('Location: login.php');
+        header('Location: '. BASE_URL);
         exit;
     }
 }
