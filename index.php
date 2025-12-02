@@ -145,7 +145,7 @@ switch ($route) {
     case 'dashboard-dokter':
         $pageTitle = 'Dashboard Dokter - VetCare';
         $pageDescription = 'Dashboard utama dokter VetCare';
-        $contentFile = 'pages/dashboard-dokter.php';
+        $contentFile = 'pages/dokter/dashboard-dokter.php';
         break;
     case 'logout':
         session_destroy();
@@ -156,11 +156,6 @@ switch ($route) {
         $pageTitle = 'Dashboard Member - VetCare';
         $pageDescription = 'Area akun member dan riwayat konsultasi.';
         $contentFile = 'pages/home.php';
-        break;
-    case 'dashboard_dokter':
-        $pageTitle = 'Dashboard Dokter - VetCare';
-        $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
-        $contentFile = 'pages/dashboard_dokter.php';
         break;
     case 'pilih-dokter':
         $pageTitle = 'Pilih Dokter - VetCare';

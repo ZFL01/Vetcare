@@ -535,7 +535,7 @@ class DAO_dokter
             error_log('[DAO_Dokter::getProfilDokter]: ' . $e->getMessage());
             return false;
         }
-    }
+    }   
 
     static function getAlamat(DTO_dokter $dat)
     {
