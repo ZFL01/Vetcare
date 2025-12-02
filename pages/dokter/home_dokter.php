@@ -17,7 +17,7 @@ include 'header-dokter.php';
                 <a href="<?php echo BASE_URL; ?>pages/dashboard-dokter.php" class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                     🏥 Dashboard
                 </a>
-                <a href="<?php echo BASE_URL; ?>pages/tanya-dokter.php" class="bg-accent text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-400 transition-colors">
+                <a href="<?php echo BASE_URL; ?>pages/dokter-cha.php" class="bg-accent text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-400 transition-colors">
                     💬 Jawab Pertanyaan
                 </a>
             </div>
