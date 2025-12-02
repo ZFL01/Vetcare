@@ -1,272 +1,412 @@
 <?php
-// Tanya Dokter page - Chat consultation service like Halodoc
+requireLogin(false)
 ?>
-<div class="pt-32 pb-20">
-    <div class="container mx-auto px-4">
-        <div class="mb-8">
-            <button onclick="navigateTo('?route=')" class="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold transition-colors duration-200">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+<style>
+    /* Sembunyikan footer situs utama (yang menggunakan tag footer) agar tampilan chat fullscreen */
+    body>footer,
+    footer.bg-gray-900 {
+        display: none !important;
+    }
+
+    /* Pastikan main container mengambil sisa height */
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 80px);
+        /* 80px approx header height */
+        overflow: hidden;
+    }
+</style>
+
+<!-- Container Utama: Full height relative to main -->
+<div class="flex flex-col h-full bg-gray-50 relative">
+
+    <!-- Header Kedua: Profil Dokter & Navigasi Kembali -->
+    <div class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm z-30 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-4">
+            <button onclick="window.history.back()" class="text-gray-500 hover:text-purple-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                Kembali ke Beranda
             </button>
+
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <img src="public/placeholder.svg" alt="Dokter"
+                        class="w-10 h-10 rounded-full object-cover border border-gray-100">
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 text-sm leading-tight" id="chat-doctor-name">Memuat Dokter...
+                    </h4>
+                    <p class="text-xs text-purple-600 font-medium" id="chat-doctor-specialty">-</p>
+                </div>
+            </div>
         </div>
 
-        <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-12">
-                <div class="w-20 h-20 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        <!-- Status -->
+        <div class="flex items-center">
+            <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Online
+            </span>
+        </div>
+    </div>
+
+    <!-- Area Chat Messages -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 scroll-smooth" id="chat-messages">
+        <!-- Placeholder State -->
+        <div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+            <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                </path>
+            </svg>
+            <p class="text-sm">Mulai percakapan dengan dokter</p>
+        </div>
+    </div>
+
+    <!-- Footer: Quick Questions & Input -->
+    <div class="bg-white border-t border-gray-200 p-4 shrink-0 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div class="max-w-4xl mx-auto w-full">
+            <!-- Quick Questions -->
+            <div class="flex gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar" id="quick-questions-container">
+                <button
+                    class="quick-question whitespace-nowrap px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-100 transition-colors"
+                    data-question="Anjing saya muntah-muntah">
+                    Anjing muntah
+                </button>
+                <button
+                    class="quick-question whitespace-nowrap px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-100 transition-colors"
+                    data-question="Kucing tidak mau makan">
+                    Kucing mogok makan
+                </button>
+                <button
+                    class="quick-question whitespace-nowrap px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-100 transition-colors"
+                    data-question="Jadwal vaksinasi">
+                    Jadwal vaksin
+                </button>
+                <button
+                    class="quick-question whitespace-nowrap px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-100 transition-colors"
+                    data-question="Konsultasi biaya">
+                    Biaya berobat
+                </button>
+            </div>
+
+            <!-- Input Area -->
+            <div
+                class="flex items-end gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+                <textarea id="chat-input" rows="1" placeholder="Ketik pesan Anda..."
+                    class="flex-1 bg-transparent border-0 focus:ring-0 resize-none text-sm py-3 px-2 max-h-32"
+                    style="min-height: 44px;"></textarea>
+
+                <button class="p-2 text-gray-400 hover:text-purple-600 transition-colors self-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                        </path>
                     </svg>
-                </div>
-                <h1 class="text-4xl font-display font-bold text-gray-800 mb-4">
-                    Chat Dokter
-                </h1>
-                <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-                    Tanyakan masalah kesehatan hewan peliharaan Anda langsung ke dokter hewan melalui chat
-                </p>
-            </div>
+                </button>
 
-            <div class="grid lg:grid-cols-3 gap-8">
-                <!-- Doctor Selection Sidebar -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-card p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pilih Dokter</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 cursor-pointer doctor-option" data-doctor="sarah">
-                                <img src="public/placeholder.svg" alt="Dr. Sarah Wijaya" class="w-12 h-12 rounded-full mr-4">
-                                <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800">Dr. Sarah Wijaya</h4>
-                                    <p class="text-sm text-gray-600">Spesialis Anjing & Kucing</p>
-                                    <div class="flex items-center mt-1">
-                                        <div class="flex text-yellow-400">
-                                            ★★★★★
-                                        </div>
-                                        <span class="text-sm text-gray-600 ml-2">4.8 (120 ulasan)</span>
-                                    </div>
-                                    <p class="text-xs text-green-600 mt-1">● Online</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 cursor-pointer doctor-option" data-doctor="michael">
-                                <img src="public/placeholder.svg" alt="Dr. Michael Chen" class="w-12 h-12 rounded-full mr-4">
-                                <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800">Dr. Michael Chen</h4>
-                                    <p class="text-sm text-gray-600">Spesialis Hewan Kecil</p>
-                                    <div class="flex items-center mt-1">
-                                        <div class="flex text-yellow-400">
-                                            ★★★★★
-                                        </div>
-                                        <span class="text-sm text-gray-600 ml-2">4.9 (95 ulasan)</span>
-                                    </div>
-                                    <p class="text-xs text-green-600 mt-1">● Online</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 cursor-pointer doctor-option" data-doctor="lisa">
-                                <img src="public/placeholder.svg" alt="Dr. Lisa Putri" class="w-12 h-12 rounded-full mr-4">
-                                <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800">Dr. Lisa Putri</h4>
-                                    <p class="text-sm text-gray-600">Spesialis Ternak</p>
-                                    <div class="flex items-center mt-1">
-                                        <div class="flex text-yellow-400">
-                                            ★★★★☆
-                                        </div>
-                                        <span class="text-sm text-gray-600 ml-2">4.7 (85 ulasan)</span>
-                                    </div>
-                                    <p class="text-xs text-orange-600 mt-1">○ Sibuk</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 pt-4 border-t border-gray-200">
-                            <h4 class="font-medium text-gray-800 mb-2">Spesialisasi</h4>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="radio" name="specialty" value="anjing-kucing" class="text-purple-600">
-                                    <span class="ml-2 text-sm">Anjing & Kucing</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="specialty" value="hewan-kecil" class="text-purple-600">
-                                    <span class="ml-2 text-sm">Hewan Kecil</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="specialty" value="ternak" class="text-purple-600">
-                                    <span class="ml-2 text-sm">Ternak</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Chat Interface -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-card h-96 flex flex-col">
-                        <!-- Chat Header -->
-                        <div class="p-4 border-b border-gray-200 flex items-center">
-                            <img src="public/placeholder.svg" alt="Doctor" class="w-10 h-10 rounded-full mr-3">
-                            <div>
-                                <h4 class="font-medium text-gray-800" id="chat-doctor-name">Pilih dokter untuk memulai chat</h4>
-                                <p class="text-sm text-gray-600" id="chat-doctor-specialty">-</p>
-                            </div>
-                            <div class="ml-auto text-green-600 text-sm" id="chat-status">● Online</div>
-                        </div>
-
-                        <!-- Chat Messages -->
-                        <div class="flex-1 p-4 overflow-y-auto" id="chat-messages">
-                            <div class="text-center text-gray-500 py-8">
-                                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                <p>Mulai percakapan dengan dokter</p>
-                            </div>
-                        </div>
-
-                        <!-- Chat Input -->
-                        <div class="p-4 border-t border-gray-200">
-                            <div class="flex space-x-2">
-                                <input type="text" placeholder="Ketik pertanyaan Anda..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none" id="chat-input">
-                                <button class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors" id="send-button">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Biaya chat: Rp 25.000 per sesi (30 menit)</p>
-                        </div>
-                    </div>
-
-                    <!-- Quick Questions -->
-                    <div class="mt-6 bg-white rounded-lg shadow-card p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Pertanyaan Cepat</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button class="p-3 text-left border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors quick-question" data-question="Anjing saya muntah-muntah, apa yang harus saya lakukan?">
-                                Anjing saya muntah-muntah
-                            </button>
-                            <button class="p-3 text-left border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors quick-question" data-question="Kucing saya tidak mau makan, ada masalah apa?">
-                                Kucing tidak mau makan
-                            </button>
-                            <button class="p-3 text-left border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors quick-question" data-question="Bagaimana cara merawat gigi hewan peliharaan?">
-                                Perawatan gigi hewan
-                            </button>
-                            <button class="p-3 text-left border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors quick-question" data-question="Apakah vaksin rabies wajib untuk anjing?">
-                                Vaksin rabies
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Emergency Section -->
-            <div class="mt-8 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg p-8 text-center">
-                <h3 class="text-2xl font-display font-bold mb-4">
-                    Kasus Darurat?
-                </h3>
-                <p class="mb-6 opacity-90">
-                    Untuk kasus darurat yang membutuhkan penanganan segera, hubungi hotline kami
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="tel:+6281122334455" class="inline-block bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                        🚨 +62 811-2233-4455
-                    </a>
-                    <a href="?route=klinik-terdekat" class="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-red-600 transition-colors">
-                        🏥 Cari Klinik Terdekat
-                    </a>
-                </div>
+                <button id="send-button"
+                    class="p-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all shadow-md shadow-purple-200 self-end">
+                    <svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-// Simple chat functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const doctorOptions = document.querySelectorAll('.doctor-option');
-    const chatDoctorName = document.getElementById('chat-doctor-name');
-    const chatDoctorSpecialty = document.getElementById('chat-doctor-specialty');
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('send-button');
-    const quickQuestions = document.querySelectorAll('.quick-question');
-
-    const doctors = {
-        sarah: { name: 'Dr. Sarah Wijaya', specialty: 'Spesialis Anjing & Kucing' },
-        michael: { name: 'Dr. Michael Chen', specialty: 'Spesialis Hewan Kecil' },
-        lisa: { name: 'Dr. Lisa Putri', specialty: 'Spesialis Ternak' }
-    };
-
-    let selectedDoctor = null;
-
-    // Select doctor
-    doctorOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const doctorKey = this.dataset.doctor;
-            selectedDoctor = doctors[doctorKey];
-            chatDoctorName.textContent = selectedDoctor.name;
-            chatDoctorSpecialty.textContent = selectedDoctor.specialty;
-            chatMessages.innerHTML = `
-                <div class="text-center text-gray-500 py-8">
-                    <p>Mulai percakapan dengan ${selectedDoctor.name}</p>
-                    <p class="text-sm mt-2">Biaya: Rp 25.000 per sesi</p>
-                </div>
-            `;
-        });
-    });
-
-    // Send message
-    function sendMessage(message) {
-        if (!selectedDoctor) {
-            alert('Pilih dokter terlebih dahulu');
-            return;
-        }
-
-        // Add user message
-        const userMessage = document.createElement('div');
-        userMessage.className = 'flex justify-end mb-4';
-        userMessage.innerHTML = `
-            <div class="bg-purple-600 text-white px-4 py-2 rounded-lg max-w-xs">
-                ${message}
-            </div>
-        `;
-        chatMessages.appendChild(userMessage);
-
-        // Simulate doctor response
-        setTimeout(() => {
-            const doctorMessage = document.createElement('div');
-            doctorMessage.className = 'flex mb-4';
-            doctorMessage.innerHTML = `
-                <img src="public/placeholder.svg" alt="Doctor" class="w-8 h-8 rounded-full mr-3 mt-1">
-                <div class="bg-gray-100 px-4 py-2 rounded-lg max-w-xs">
-                    Terima kasih atas pertanyaannya. Saya akan membantu Anda. Bisa ceritakan lebih detail tentang kondisi hewan peliharaan Anda?
-                </div>
-            `;
-            chatMessages.appendChild(doctorMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 1000);
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+<style>
+    /* Hide scrollbar for quick questions but allow scroll */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
     }
 
-    sendButton.addEventListener('click', function() {
-        const message = chatInput.value.trim();
-        if (message) {
-            sendMessage(message);
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
+<script>
+    window.lastMessageTime = 0;
+    let pollingInterval;
+
+    // Helper: Escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatDoctorName = document.getElementById('chat-doctor-name');
+        const chatDoctorSpecialty = document.getElementById('chat-doctor-specialty');
+        const quickQuestions = document.querySelectorAll('.quick-question');
+
+
+        // Helper: Scroll to bottom
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        //tampilan bubble chat
+        function appendMessage(text, isUser = true, senderName = 'Anda') {
+            const div = document.createElement('div');
+            div.className = `flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+            const bubbleColor = isUser ? 'bg-purple-600 text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-none';
+
+            let html = '';
+            if (!isUser) {
+                html += `
+                <img src="public/placeholder.svg" alt="Dokter" class="w-8 h-8 rounded-full mr-2 self-end mb-1">
+            `;
+            }
+
+            html += `
+            <div class="max-w-[75%] ${bubbleColor} px-4 py-2.5 rounded-2xl">
+                ${!isUser ? `<div class="text-xs font-semibold mb-1 text-purple-600">${escapeHtml(senderName)}</div>` : ''}
+                <div class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
+                <div class="text-[10px] opacity-70 text-right mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+        `;
+
+            div.innerHTML = html;
+            chatMessages.appendChild(div);
+            scrollToBottom();
+
+            // Remove placeholder if exists
+            const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
+            if (placeholder) placeholder.remove();
+        }
+
+        function displayConsultationSummary(data) {
+            const summaryHtml = `
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800">
+                    <h5 class="font-semibold mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        Ringkasan Konsultasi
+                    </h5>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <span class="text-blue-600/70">Hewan:</span> <span class="font-medium">${escapeHtml(data.nama_hewan)} (${escapeHtml(data.jenis_hewan)})</span>
+                        <span class="text-blue-600/70">Usia:</span> <span class="font-medium">${escapeHtml(data.usia_hewan)}</span>
+                        <span class="text-blue-600/70 col-span-2 mt-1">Keluhan:</span>
+                        <span class="col-span-2 font-medium italic">"${escapeHtml(data.keluhan_gejala)}"</span>
+                    </div>
+                </div>
+            `;
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = summaryHtml;
+            chatMessages.appendChild(summaryDiv);
+
+            const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
+            if (placeholder) placeholder.remove();
+
+            scrollToBottom();
+        }
+
+        function appendSendingIndicator(text) {
+            const div = document.createElement('div');
+            // Tambahkan kelas unik agar mudah dihapus
+            div.className = 'flex w-full mb-4 justify-end message-sending-indicator'; 
+
+            const html = `
+                <div class="max-w-[75%] bg-purple-200 text-purple-900 px-4 py-2.5 rounded-2xl rounded-br-none border border-purple-300">
+                    <div class="text-xs font-semibold mb-1 flex items-center gap-1 text-purple-700">
+                        <svg class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Mengirim...</span>
+                    </div>
+                    <div class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>
+                    <div class="text-[10px] opacity-70 text-right mt-1">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+            `;
+
+            div.innerHTML = html;
+            chatMessages.appendChild(div);
+            scrollToBottom();
+            return div; // Kembalikan elemen agar bisa di-handle jika gagal
+        }
+
+        function removeSendingIndicator() {
+            const indicators = chatMessages.querySelectorAll('.message-sending-indicator');
+            indicators.forEach(indicator => indicator.remove());
+        }
+
+        function loadChatHistory(chatId) {
+            if (!chatId) return;
+            const since = window.lastMessageTime + 1;
+            const apiurl = '/?aksi=getMessages&chat_id=' + chatId + '&since=' + since;
+
+            fetch(apiurl).then(res => {
+                if (!res.ok) throw new Error(`gagal memuat pesan: ${res.status}`);
+                return res.json();
+            })
+                .then(data => {
+                    removeSendingIndicator();
+
+                    if (data.success && data.messages && data.messages.length > 0) {
+                        let latestTimestamp = window.lastMessageTime;
+                        data.messages.forEach(msg => {
+                            const isUser = msg.senderRole === 'user';
+                            const senderName = isUser ? 'Anda' : window.chatSessionData.namaDokter;
+                            appendMessage(msg.content, isUser, senderName);
+
+                            const messageData = new Date(msg.timestamp);
+                            const currentMsgTime = Math.floor(messageData.getTime() / 1000);
+
+                            if (currentMsgTime > latestTimestamp) {
+                                latestTimestamp = currentMsgTime;
+                            }
+                        });
+                        window.lastMessageTime = latestTimestamp;
+                    }
+                }).catch(err => console.error('error loading chat history:', err));
+        }
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.value === '') this.style.height = 'auto';
+        });
+
+
+        // Send Message Logic
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            const sessionId = window.chatSessionData; // Ambil data sesi
+            const userId = sessionId.idUser; // ID pengirim (User)
+            const chatId = window.currentChatId;
+
+            if (!text || !chatId || !userId) return;
+
+            appendSendingIndicator(text);
+
+            fetch('/?aksi=sendMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    sender_id: userId, // User adalah pengirim
+                    sender_role: 'user', // Tentukan peran pengirim
+                    content: text,
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Gagal menyimpan pesan ke DB:', data.message);
+                    } else {
+                        console.log('Pesan berhasil disimpan');
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch Error saat mengirim pesan:', err);
+                    removeSendingIndicator();
+                });
             chatInput.value = '';
+            chatInput.style.height = 'auto';
         }
-    });
 
-    chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendButton.click();
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        quickQuestions.forEach(btn => {
+            btn.addEventListener('click', function () {
+                chatInput.value = this.dataset.question;
+                sendMessage();
+            });
+        });
+
+        // --- Data Loading Logic (Konsultasi / Dokter) ---
+
+        // 1. Cek Data Konsultasi dari SessionStorage (Flow normal dari form konsultasi)
+        try {
+            const rawKonsultasi = sessionStorage.getItem('konsultasiData');
+            if (rawKonsultasi) {
+                const data = JSON.parse(rawKonsultasi);
+                const kateg = JSON.parse(sessionStorage.getItem('listKategDokter') || '[]');
+                chatDoctorSpecialty.textContent = kateg;
+                displayConsultationSummary(data);
+
+                // Bersihkan session agar tidak muncul terus saat refresh (opsional, tergantung flow)
+                sessionStorage.removeItem('konsultasiData');
+                sessionStorage.removeItem('listKategDokter');
+            } else {
+                const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
+                if (placeholder) placeholder.remove();
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatId = urlParams.get('chat_id');
+            if (!chatId) {
+                return;
+            }
+
+            window.currentChatId = chatId;
+
+            // Fetch data dokter
+            const apiUrl = `/chat-api-service/controller_chat.php?action=getChatSession&chat_id=${chatId}`;
+            fetch(apiUrl)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Gagal memuat sesi chat. Status: ${res.status}`);
+                    } return res.json()
+                })
+                .then(data => {
+                    if (data.success && data.session) {
+                        const session = data.session;
+
+                        window.chatSessionData = session;
+
+                        chatDoctorName.textContent = session.namaDokter;
+                        //textcontent = 'sesi aktif hingga'+new Date(session.waktuSelesai).toLocaleString();
+
+                        loadChatHistory(chatId);
+
+                        if (pollingInterval) clearInterval(pollingInterval);
+                        pollingInterval = setInterval(() => {
+                            loadChatHistory(chatId);
+                        }, 5000);
+
+                    } else {
+                        console.error('data sesi chat tidak ditemukan', data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error("Gagal memuat data dokter", err);
+                    chatDoctorName.textContent = "Error memuat data";
+                });
+        } catch (e) {
+            console.error("Error parsing session data", e);
         }
-    });
-
-    // Quick questions
-    quickQuestions.forEach(button => {
-        button.addEventListener('click', function() {
-            const question = this.dataset.question;
-            sendMessage(question);
+        window.addEventListener('beforeunload', () => {
+            if (pollingInterval) clearInterval(pollingInterval);
         });
     });
-});
 </script>

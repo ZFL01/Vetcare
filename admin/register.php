@@ -3,7 +3,7 @@ session_start();
 require_once 'includes/db.php';
 
 // Jika user sudah login, arahkan ke dashboard
-if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
+if (isset($_SESSION['user']) && $_SESSION['user']->getRole() === 'Admin') {
     header('Location: admin_direct.php');
     exit;
 }
@@ -12,45 +12,25 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-register'])) {
-    $email = $_POST['email'] ?? '';
+    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
     // Validasi Password
     if ($password !== $confirm_password) {
         $error = 'Konfirmasi password tidak cocok!';
-    } elseif (strlen($password) < 5) { // Sesuaikan panjang minimal password
-        $error = 'Password terlalu pendek (minimal 5 karakter)!';
-    } else {
-        try {
-            // 1. Cek apakah email sudah terpakai
-            $checkSql = "SELECT id_pengguna FROM m_pengguna WHERE email = :email";
-            $stmt = $pdo->prepare($checkSql);
-            $stmt->execute(['email' => $email]);
-
-            if ($stmt->rowCount() > 0) {
-                $error = 'Email sudah terdaftar! Silakan login.';
-            } else {
-                // 2. Hash Password (biar aman kayak baris 33 di gambar)
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                
-                // 3. Insert ke Database
-                // Hapus kolom 'nama_lengkap' karena tidak ada di tabelmu
-                // Set role jadi 'Admin' (A besar sesuai gambar)
-                $sql = "INSERT INTO m_pengguna (email, pass, role) VALUES (:email, :pass, 'Admin')";
-                $stmt = $pdo->prepare($sql);
-                
-                if ($stmt->execute([
-                    'email' => $email,
-                    'pass' => $hashed_password
-                ])) {
-                    $message = 'Registrasi berhasil! Akun Admin telah dibuat.';
-                } else {
-                    $error = 'Gagal mendaftar, terjadi kesalahan database.';
-                }
-            }
-        } catch (PDOException $e) {
-            $error = 'Error: ' . $e->getMessage();
+    } elseif (strlen($password) < 8) { // Sesuaikan panjang minimal password
+        $error = 'Password terlalu pendek (minimal 8 karakter)!';
+    }elseif(!$email){
+        $error = 'Email tidak valid';
+    }else {
+        $obj = new DTO_pengguna(email:$email, pass:$password, role:'Admin');
+        $hasil = userService::register($obj);
+        if($hasil[0]){
+            $message = 'Registrasi berhasil! Akun Admin telah dibuat.';
+            header('Location: '.BASE_URL.'/admin/login.php');
+        } else {
+            $error = $hasil[1];
         }
     }
 }
@@ -71,6 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-register'])) {
             <p class="text-gray-600 mt-2">Buat akun untuk mengelola VetCare</p>
         </div>
         
+        <?php if ($flash = getFlash()): ?>
+            <div class="alert alert-<?php echo $flash['type'] == 'error' ? 'error' : 'success'; ?>">
+                <?php echo $flash['message']; ?>
+            </div>
+        <?php endif; ?>
+
         <?php if ($error): ?>
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
                 <?= htmlspecialchars($error) ?>
