@@ -1,7 +1,8 @@
 <?php
 /**
  * Konsultasi Form Modal
- * Pop-up form yang muncul sebelum user masuk ke chat dokter
+ * Pop-up form yang muncul sebelum user masuk ke 
+ *  dokter
  * Berisi: Nama Hewan, Jenis Hewan, Usia Hewan, Keluhan/Gejala
  * Plus section Kasus Darurat dengan daftar klinik terdekat
  */
@@ -156,7 +157,7 @@ $user = $_SESSION['user']->getIdUser();
   </div>
 </div>
 
-<script src="/public/service.js"></script>
+<script src="public/service.js"></script>
 <script>
   // Track character count for textarea
   document.addEventListener('DOMContentLoaded', function () {
@@ -203,9 +204,9 @@ $user = $_SESSION['user']->getIdUser();
 
     const dokterId = window.currentDokterId;
     if (!dokterId) {
-        alert('Error: Dokter tidak dipilih');
-        closeKonsultasiModal(); 
-        return; 
+      alert('Error: Dokter tidak dipilih');
+      closeKonsultasiModal();
+      return;
     }
 
     // Collect form data
@@ -223,39 +224,40 @@ $user = $_SESSION['user']->getIdUser();
     // Close modal
 
     // Redirect ke halaman chat-dokter dengan dokter ID
-      let idUser = '<?php echo $user; ?>';
-      let idChat = "C" + getTimestamp10() + '-U' + idUser + 'D' + dokterId;
+    let idUser = '<?php echo $user; ?>';
+    let idChat = "C" + getTimestamp10() + '-U' + idUser + 'D' + dokterId;
+    const initChatURL= '<?php BASE_URL;?>chat-api-service/controller_chat.php?action=initChat';
 
-      fetch('/chat-api-service/controller_chat.php?action=initChat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id_chat: idChat,
-          id_user: idUser,
-          id_dokter: window.currentDokterId,
-          formKonsul : Konsuldata
-        })
-      }).then(response => {
-        if (!response.ok) {
-          throw new Error(`Network response was not ok (${response.status})`);
-        }
-        return response.json();
+    fetch(initChatURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id_chat: idChat,
+        id_user: idUser,
+        id_dokter: window.currentDokterId,
+        formKonsul: Konsuldata
       })
-        .then(data => {
-          if (data.success) {
-            sessionStorage.setItem('konsultasiData', JSON.stringify(Konsuldata));
-            closeKonsultasiModal();
-            window.location.href = '?route=chat&chat_id=' + data.chat_id;
-          } else {
-            console.error('[KONSULTASI] Error initializing chat:', data);
-            alert(`Error: Gagal menginisialisasi chat. Silakan coba lagi. Detail: ${data.message || 'Tidak ada detail'}`);
-          }
-        })
-        .catch(error => {
-          console.error('[KONSULTASI] Fetch error:', error);
-          alert(`Error: Gagal menginisialisasi chat. Silakan coba lagi. Detail: ${error.message || 'Tidak ada detail'}`);
-        });
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`Network response was not ok (${response.status})`);
+      }
+      return response.json();
+    })
+      .then(data => {
+        if (data.success) {
+          sessionStorage.setItem('konsultasiData', JSON.stringify(Konsuldata));
+          closeKonsultasiModal();
+          window.location.href = '?route=chat&chat_id=' + data.chat_id;
+        } else {
+          console.error('[KONSULTASI] Error initializing chat:', data);
+          alert(`Error: Gagal menginisialisasi chat. Silakan coba lagi. Detail: ${data.message || 'Tidak ada detail'}`);
+        }
+      })
+      .catch(error => {
+        console.error('[KONSULTASI] Fetch error:', error);
+        alert(`Error: Gagal menginisialisasi chat. Silakan coba lagi. Detail: ${error.message || 'Tidak ada detail'}`);
+      });
   }
 </script>
