@@ -1,10 +1,11 @@
-  <?php
-// Header component converted to PHP
-$currentPage = isset($_GET['route']) ? $_GET['route'] : '';
-
-// Include config to get GOOGLE_MAPS_API_KEY and other constants
-require_once __DIR__ . '/src/config/config.php';
-require_once __DIR__ . '/includes/userService.php';
+<?php
+$loggedIn = isset($_SESSION['user']); $userRole = ''; $isDokter=false; $fotoProfile = null;
+if ($loggedIn){
+    $userRole = $_SESSION['user']->getRole();
+    $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
+    $fotoProfile = ($isDokter) ? $_SESSION['dokter']->getFoto() : null;
+}
+                
 ?>
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-card">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -89,21 +90,9 @@ require_once __DIR__ . '/includes/userService.php';
             </nav>
 
             <div class="flex items-center gap-3 md:gap-4">
-                <?php if (isset($_SESSION['user'])): ?>
+                <?php if ($loggedIn): ?>
                     <div class="relative hidden md:block" id="user-menu-container">
                         <button class="flex items-center gap-2 hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors group" onclick="toggleUserMenu()">
-                            <?php 
-                            $userRole = $_SESSION['user']->getRole();
-                            $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
-                            $fotoProfile = null;
-                            
-                            if ($isDokter) {
-                                // Fetch fresh profile to ensure photo is up to date
-                                $freshProfil = DAO_dokter::getProfilDokter($_SESSION['user'], true);
-                                $fotoProfile = $freshProfil ? $freshProfil->getFoto() : null;
-                            }
-                            ?>
-                            
                             <?php if ($isDokter): ?>
                                 <?php if ($fotoProfile): ?>
                                     <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-purple-200">
@@ -118,7 +107,7 @@ require_once __DIR__ . '/includes/userService.php';
                             
                             <span class="text-gray-700 group-hover:text-purple-600 transition-colors">
                                 <?php 
-                                if ($_SESSION['user']->getRole() === 'Dokter' && isset($_SESSION['dokter'])) {
+                                if ($isDokter) {
                                     $nama = $_SESSION['dokter']->getNama();
                                     // Remove 'dr.' or 'Dr.' prefix if present
                                     $nama = preg_replace('/^dr\.\s*/i', '', $nama);
@@ -135,7 +124,7 @@ require_once __DIR__ . '/includes/userService.php';
 
                         <!-- Dropdown Menu -->
                         <div class="absolute top-full right-0 mt-2 w-48 bg-white backdrop-blur-xl border border-gray-200 rounded-xl shadow-hero py-2 z-[100] hidden opacity-0 transform scale-95 transition-all duration-300" id="user-menu">
-                            <?php if ($_SESSION['user']->getRole() === 'Dokter'): ?>
+                            <?php if ($isDokter): ?>
                                 <a href="?route=profil" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
                                     <span>👨‍⚕️</span>
                                     Profil Saya
@@ -201,13 +190,7 @@ require_once __DIR__ . '/includes/userService.php';
                 </button>
 
                 <div class="px-4 pt-4 border-t border-purple-200 space-y-3">
-                    <?php if (isset($_SESSION['user'])){ 
-                        $userRole = $_SESSION['user']->getRole();
-                        $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
-                        $fotoProfile = null;
-                        if ($isDokter) {
-                            $fotoProfile = $_SESSION['dokter']->getFoto();
-                        }
+                    <?php if ($loggedIn){
                     ?>
                         <div class="flex items-center gap-3 mb-4">
                             <?php if ($isDokter): ?>
@@ -225,7 +208,7 @@ require_once __DIR__ . '/includes/userService.php';
                             <div class="flex flex-col">
                                 <span class="font-semibold text-gray-800">
                                     <?php 
-                                    if ($_SESSION['user']->getRole() === 'Dokter' && isset($_SESSION['dokter'])) {
+                                    if ($isDokter) {
                                         $nama = $_SESSION['dokter']->getNama();
                                         $nama = preg_replace('/^dr\.\s*/i', '', $nama);
                                         echo htmlspecialchars($nama);

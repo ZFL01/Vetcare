@@ -234,6 +234,7 @@ if ($action === 'verify_pass') {
 <?php
 // Get statistics
 $flash = getFlash();
+include_once 'header-dokter.php';
 include 'base.php';
 ?>
 <!DOCTYPE html>
@@ -646,8 +647,11 @@ include 'base.php';
         </div>
     </div>
 </div>
-
+<?php
+include_once 'footer-dokter.php';
+?>
 </html>
+
 
 <script src="<?php echo BASE_URL ?>public/assets/leaflet/leaflet.js"></script>
 <script src="<?php echo BASE_URL ?>public/assets/control-geocoder/Control.Geocoder.js"></script>

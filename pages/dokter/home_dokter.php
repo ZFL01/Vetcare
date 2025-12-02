@@ -1,6 +1,6 @@
 <?php
 $pageTitle = "Home - VetCare";
-include 'header.php';
+include 'header-dokter.php';
 ?>
 
 <main class="flex-grow">
@@ -95,4 +95,4 @@ include 'header.php';
     </section>
 </main>
 
-<?php include 'footer.php'; ?>
+<?php include 'footer-dokter.php'; ?>

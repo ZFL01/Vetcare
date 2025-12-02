@@ -71,10 +71,11 @@ define('GOOGLE_MAPS_API_KEY', '');
 /**
  * Check if user is logged in
  */
-function isLoggedIn(bool $dokter) {
-    if($dokter){
+function isLoggedIn(bool $isDokter)
+{
+    if ($isDokter) {
         return isset($_SESSION['dokter']) && isset($_SESSION['user']);
-    }else{
+    } else {
         return isset($_SESSION['user']);
     }
 }
@@ -82,14 +83,21 @@ function isLoggedIn(bool $dokter) {
 /**
  * Redirect if not logged in
  */
-function requireLogin(bool $dokter, string $onPage='') {
-    if (!isLoggedIn($dokter)) {
-        error_log("ada di ".$onPage);
-        if($onPage){
+function requireLogin(bool $isDokter, string $onPage = '')
+{
+    if (!isLoggedIn($isDokter)) {
+        error_log("ada di " . $onPage);
+        if ($onPage) {
             $_SESSION['prev_page'] = $onPage;
         }
         setFlash('Autentikasi dibutuhkan!', 'Silahkan login terlebih dahulu.');
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth');
+        header('Location: ' . BASE_URL . 'index.php?route=auth');
+        exit();
+    }
+}
+function dokterAllowed(bool $allow){
+    if (!$allow) {
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?route=dashboard-dokter');
         exit();
     }
 }
@@ -97,7 +105,8 @@ function requireLogin(bool $dokter, string $onPage='') {
 /**
  * Set flash message
  */
-function setFlash($type, $message) {
+function setFlash($type, $message)
+{
     $_SESSION['flash_type'] = $type;
     $_SESSION['flash_message'] = $message;
 }
@@ -105,7 +114,8 @@ function setFlash($type, $message) {
 /**
  * Get and clear flash message
  */
-function getFlash() {
+function getFlash()
+{
     if (isset($_SESSION['flash_message'])) {
         $flash = [
             'type' => $_SESSION['flash_type'],
@@ -121,7 +131,8 @@ function getFlash() {
 /**
  * Sanitize input
  */
-function clean($data) {
+function clean($data)
+{
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
@@ -129,42 +140,55 @@ function clean($data) {
 }
 
 define('HARI_ID', [
-    0 => 'Minggu', 
+    0 => 'Minggu',
     1 => 'Senin',
-    2 => 'Selasa', 
-    3 => 'Rabu', 
+    2 => 'Selasa',
+    3 => 'Rabu',
     4 => 'Kamis',
     5 => 'Jumat',
     6 => 'Sabtu'
 ]);
 
-function formatRupiah($angka) {
+function formatRupiah($angka)
+{
     $rupiah = 'Rp' . number_format($angka, 0, ',', '.');
     return $rupiah;
 }
 
-function formatTanggal($date, $format = 'd M Y') {
+function formatTanggal($date, $format = 'd M Y')
+{
     $bulan = [
-        1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+        1 => 'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Ags',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des'
     ];
-    
+
     $timestamp = strtotime($date);
     $formatted = date($format, $timestamp);
-    
+
     // Replace month with Indonesian
     foreach ($bulan as $key => $value) {
         $formatted = str_replace(date('M', $timestamp), $value, $formatted);
     }
-    
+
     return $formatted;
 }
 
-function previousPage(){
-    if(isset($_SESSION['prev_page']) && $_SESSION['prev_page'] !== ''){
+function previousPage()
+{
+    if (isset($_SESSION['prev_page']) && $_SESSION['prev_page'] !== '') {
         error_log($_SESSION['prev_page']);
         header('Location: ' . BASE_URL . '?route=' . $_SESSION['prev_page']);
-        unset($_SESSION['prev_page']);
+        // unset($_SESSION['prev_page']);
         exit;
     }
 }
@@ -172,10 +196,11 @@ function previousPage(){
 /**
  * Time ago function
  */
-function timeAgo($datetime) {
+function timeAgo($datetime)
+{
     $timestamp = strtotime($datetime);
     $diff = time() - $timestamp;
-    
+
     if ($diff < 60) {
         return 'Baru saja';
     } elseif ($diff < 3600) {
@@ -195,42 +220,44 @@ function timeAgo($datetime) {
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory, $prefix) {
+function uploadImage($file, $directory, $prefix)
+{
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
     }
-    
+
     // Check file type
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
-    
+
     if (!in_array($mime, ALLOWED_IMAGE_TYPES)) {
         return ['success' => false, 'message' => 'Tipe file tidak diizinkan'];
     }
-    
+
     // Check file size
     if ($file['size'] > MAX_FILE_SIZE) {
         return ['success' => false, 'message' => 'Ukuran file terlalu besar (max 5MB)'];
     }
-    
+
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
-    
+
     // Move file
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
         return ['success' => true, 'filename' => $filename];
     }
-    
+
     return ['success' => false, 'message' => 'Gagal mengupload file'];
 }
 
 /**
  * Delete image helper
  */
-function deleteImage($filename, $directory) {
+function deleteImage($filename, $directory)
+{
     $filepath = $directory . $filename;
     if (file_exists($filepath) && $filename != 'default-profile.jpg') {
         return unlink($filepath);
@@ -238,7 +265,8 @@ function deleteImage($filename, $directory) {
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix) {
+function uploadDocument($file, $target_dir, $prefix)
+{
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
     // Check if file is uploaded
