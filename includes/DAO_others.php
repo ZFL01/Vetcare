@@ -450,11 +450,11 @@ class DAO_chat{
             }
             if($hasil && $hasil2){
                 $conn->commit();
-                return true;
+                return [true, 'berhasil harusnya'];
             }
         }catch(PDOException $e){
             error_log("[DAO_others::registChatRoom]: ".$e->getMessage());
-            return false;
+            return [false, $e->getMessage()];
         }
     }
 

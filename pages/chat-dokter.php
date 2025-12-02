@@ -252,7 +252,7 @@ requireLogin(false)
         function loadChatHistory(chatId) {
             if (!chatId) return;
             const since = window.lastMessageTime + 1;
-            const apiurl = '/?aksi=getMessages&chat_id=' + chatId + '&since=' + since;
+            const apiurl = '?aksi=getMessages&chat_id=' + chatId + '&since=' + since;
 
             fetch(apiurl).then(res => {
                 if (!res.ok) throw new Error(`gagal memuat pesan: ${res.status}`);
@@ -299,7 +299,7 @@ requireLogin(false)
 
             appendSendingIndicator(text);
 
-            fetch('/?aksi=sendMessage', {
+            fetch('?aksi=sendMessage', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -371,7 +371,7 @@ requireLogin(false)
             window.currentChatId = chatId;
 
             // Fetch data dokter
-            const apiUrl = `/chat-api-service/controller_chat.php?action=getChatSession&chat_id=${chatId}`;
+            const apiUrl = `chat-api-service/controller_chat.php?action=getChatSession&chat_id=${chatId}`;
             fetch(apiUrl)
                 .then(res => {
                     if (!res.ok) {
