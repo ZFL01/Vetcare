@@ -40,7 +40,7 @@ $pageTitle = $pageTitle ?? 'VetCare - Dashboard Dokter';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- Memuat pustaka TinyMCE lokal dari folder assets -->
-    <script src="public/assets/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="/public/assets/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
 
     <style>
         /* Memastikan editor memiliki sudut melengkung agar serasi dengan form */

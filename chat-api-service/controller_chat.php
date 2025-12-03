@@ -75,15 +75,18 @@ if (isset($_GET['action'])) {
         $data = json_decode($json, true);
 
         $idUser = $_SESSION['user']->getIdUser();
-        $idDokter = $data['id_dokter'] ?? null;
+        $dokterId = $data['id_dokter'] ?? null;
         $idChat = $data['id_chat'] ?? null;
         $formKonsul = $data['formKonsul'] ?? null;
 
         // Safety check untuk idDokter
-        if (empty($idDokter) || $idUser != $data['id_user'] || empty($idChat) || empty($formKonsul)) {
+        if (empty($dokterId) || $idUser != $data['id_user'] || empty($idChat) || empty($formKonsul)) {
             $response = ['success' => false, 'message' => 'ID tidak valid atau form kosong.'];
             $httpCode = 400;
         } else {
+            $idDokter = hashId($dokterId, false);
+            $idChat .= $idDokter;
+            error_log("ini id chat : ".$idChat);
             $hashedIdChat = md5($idChat);
             $result = initChat($hashedIdChat, $idDokter, $idUser, $formKonsul);
             $response = $result;

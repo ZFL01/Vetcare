@@ -6,7 +6,7 @@
  * Berisi: Nama Hewan, Jenis Hewan, Usia Hewan, Keluhan/Gejala
  * Plus section Kasus Darurat dengan daftar klinik terdekat
  */
-$user = $_SESSION['user']->getIdUser();
+$user = isset($_SESSION['user']) ? $_SESSION['user']->getIdUser() : null;
 ?>
 
 <!-- Modal Konsultasi Form -->
@@ -172,6 +172,11 @@ $user = $_SESSION['user']->getIdUser();
   });
 
   function openKonsultasiModal() {
+    let idUser = "<?php echo $user ? $user : ''; ?>";
+    if(!idUser){
+      window.location.href = '?route=auth';
+      return;
+    }
     const modal = document.getElementById('konsultasiModal');
     if (modal) {
       modal.classList.remove('hidden');
@@ -224,8 +229,9 @@ $user = $_SESSION['user']->getIdUser();
     // Close modal
 
     // Redirect ke halaman chat-dokter dengan dokter ID
-    let idUser = '<?php echo $user; ?>';
-    let idChat = "C" + getTimestamp10() + '-U' + idUser + 'D' + dokterId;
+    let idUser = "<?php echo $user; ?>";
+
+    let idChat = "C" + getTimestamp10() + '-U' + idUser + 'D';
     const initChatURL= '<?php BASE_URL;?>chat-api-service/controller_chat.php?action=initChat';
 
     fetch(initChatURL, {

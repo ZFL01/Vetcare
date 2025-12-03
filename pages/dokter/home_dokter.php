@@ -1,6 +1,7 @@
 <?php
 $pageTitle = "Home - VetCare";
 include 'header-dokter.php';
+requireLogin(true);
 ?>
 
 <main class="flex-grow">

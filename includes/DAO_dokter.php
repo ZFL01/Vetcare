@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Hashids\Hashids;
+
+function hashId($id, bool $encode = true){
+    $hashId = new Hashids(SALT_HASH, HASH_LENGTH);
+    return $encode ? $hashId->encode($id) : $hashId->decode($id)[0];
+}
+
 include_once 'database.php';
 
 class DTO_kateg implements JsonSerializable
@@ -57,7 +66,7 @@ class DTO_dokter implements JsonSerializable
     private ?string $status = null;//dokter
 
     function __construct(
-        private ?int $id_dokter = null, //validasi
+        private null|int|string $id_dokter = null, //validasi
         private ?string $nama = null, //dokter, user, admin
         private ?string $foto = null, //user, dokter
         private ?int $pengalaman = null, //user, dokter
@@ -222,7 +231,7 @@ class DTO_dokter implements JsonSerializable
     function jsonSerialize(): mixed
     {
         return [
-            'id' => $this->id_dokter,
+            'id' => hashId($this->id_dokter, true),
             'nama' => $this->nama,
             'foto' => $this->foto,
             'pengalaman' => $this->pengalaman,
@@ -309,8 +318,9 @@ class DAO_dokter
 {
     private static function mapArray(array $dat, ?array $kateg = null, ?array $jadwal = null): DTO_dokter
     {
+        $id = $dat['id_dokter'];
         $obj = new DTO_dokter(
-            $dat['id_dokter'] ?? null,
+            $id,
             $dat['nama_dokter'] ?? null,
             $dat['foto'] ?? null,
             $dat['pengalaman'] ?? null,

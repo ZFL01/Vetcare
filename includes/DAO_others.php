@@ -1,6 +1,7 @@
 <?php
 include_once 'database.php';
 require_once 'userService.php';
+require_once 'DAO_dokter.php';
 
 class Location{
 
@@ -405,7 +406,7 @@ class DAO_chat{
 
                 $obj=new DTO_chat(
                     $idChat,
-                    $hasil['user_id'], $hasil['dokter_id'],
+                    $hasil['user_id'], hashId($hasil['dokter_id'], true),
                     email: $hasil['email'],
                     namaDokter: $hasil['nama_dokter'],
                     status: $hasil['status'],

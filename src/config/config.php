@@ -20,17 +20,21 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVE
 
 $host = $_SERVER['HTTP_HOST'];
 
-$baseDir = dirname($_SERVER['PHP_SELF']);
-if ($baseDir === '/' || $baseDir === '\\') {
-    $baseUrlPath = '';
-} else {
-    $baseUrlPath = $baseDir;
-}
-$baseUrlPath = rtrim($baseUrlPath, '/\\');
-$dynamicBaseUrl = $protocol . $host . $baseUrlPath . '/';
+$script_filename = $_SERVER['SCRIPT_FILENAME']; 
 
-// Base URL
+$script_name = $_SERVER['SCRIPT_NAME']; 
+$base_path = str_replace(basename($script_name), '', $script_name);
+
+$base_path = rtrim($base_path, '/\\');
+if ($base_path === '/' || $base_path === '\\') {
+    $base_path = '';
+}
+$dynamicBaseUrl = $protocol . $host . $base_path . '/';
+
+// Define Global Base URL
 define('BASE_URL', $dynamicBaseUrl);
+
+define('ROOT_DIR', dirname(dirname(__DIR__)));
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
@@ -91,12 +95,12 @@ function requireLogin(bool $isDokter, string $onPage = '')
             $_SESSION['prev_page'] = $onPage;
         }
         setFlash('Autentikasi dibutuhkan!', 'Silahkan login terlebih dahulu.');
-        header('Location: ' . BASE_URL . 'index.php?route=auth');
+        header('Location: ' . ROOT_DIR . '/index.php?route=auth');
         exit();
     }
 }
 function dokterAllowed(bool $allow){
-    if (!$allow) {
+    if (!$allow && isLoggedIn(true)) {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?route=dashboard-dokter');
         exit();
     }
@@ -324,5 +328,8 @@ function uploadDocument($file, $target_dir, $prefix)
 define('LOCATIONIQ_API', 'pk.f36f3d13ab6674ab62602323da859b26');
 define('MONGODB_URI', "mongodb+srv://klinikH:QZ6Bqc8HAH5LPa7g@cluster0.rgxz9ub.mongodb.net/?appName=Cluster0");
 define('MONGODB_DBNAME', 'klinikH');
+
+define('SALT_HASH', 'iniSaltHashKlinikH');
+define('HASH_LENGTH', 8);
 
 ?>
