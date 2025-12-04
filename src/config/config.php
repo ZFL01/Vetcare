@@ -20,9 +20,9 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVE
 
 $host = $_SERVER['HTTP_HOST'];
 
-$script_filename = $_SERVER['SCRIPT_FILENAME']; 
+$script_filename = $_SERVER['SCRIPT_FILENAME'];
 
-$script_name = $_SERVER['SCRIPT_NAME']; 
+$script_name = $_SERVER['SCRIPT_NAME'];
 $base_path = str_replace(basename($script_name), '', $script_name);
 
 $base_path = rtrim($base_path, '/\\');
@@ -45,6 +45,7 @@ define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
 define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
 
 define('URL_FOTO', BASE_URL . 'public/img/');
+define('FOTO_DI_DOKTER', BASE_URL . '../../public/img/dokter-profil/');
 define('URL_SIP_DOC', BASE_URL . 'public/docs/sip/');
 define('URL_STRV_DOC', BASE_URL . 'public/docs/strv/');
 
@@ -99,7 +100,8 @@ function requireLogin(bool $isDokter, string $onPage = '')
         exit();
     }
 }
-function dokterAllowed(bool $allow){
+function dokterAllowed(bool $allow)
+{
     if (!$allow && isLoggedIn(true)) {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?route=dashboard-dokter');
         exit();

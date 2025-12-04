@@ -88,8 +88,8 @@ $color = 'purple'; // Keep theme purple
                             <button
                                 class="flex items-center gap-2 hover:bg-<?php echo $color; ?>-50 font-medium px-4 py-2 rounded-lg transition-colors group"
                                 onclick="toggleUserMenu()">
-                                <?php if ($fotoProfile && file_exists(PROFILE_DIR . $fotoProfile)): ?>
-                                    <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile"
+                                <?php if ($fotoProfile): ?>
+                                    <img src="<?php echo FOTO_DI_DOKTER . $fotoProfile; ?>" alt="Profile"
                                         class="w-8 h-8 rounded-full object-cover border border-<?php echo $color; ?>-200">
                                 <?php else: ?>
                                     <div
@@ -116,7 +116,7 @@ $color = 'purple'; // Keep theme purple
                             <!-- Dropdown Menu -->
                             <div class="absolute top-full right-0 mt-2 w-48 bg-white backdrop-blur-xl border border-gray-200 rounded-xl shadow-hero py-2 z-[100] hidden opacity-0 transform scale-95 transition-all duration-300"
                                 id="user-menu">
-                                <a href="?route=profil"
+                                <a href="/../../?route=profil"
                                     class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-<?php echo $color; ?>-50 hover:text-<?php echo $color; ?>-600 transition-colors">
                                     <span>👨‍⚕️</span>
                                     Profil Saya
@@ -154,46 +154,47 @@ $color = 'purple'; // Keep theme purple
                     <div class="px-4 pt-4 border-t border-<?php echo $color; ?>-200 space-y-3">
                         <?php if ($isLoggedIn): ?>
                             <div class="flex items-center gap-3 mb-4">
-                                <?php if ($fotoProfile && file_exists(PROFILE_DIR . $fotoProfile)): ?>
-                                    <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile"
-                                        class="w-10 h-10 rounded-full object-cover border border-<?php echo $color; ?>-200">
-                                <?php else: ?>
-                                    <div
-                                        class="w-10 h-10 bg-<?php echo $color; ?>-100 rounded-full flex items-center justify-center text-<?php echo $color; ?>-600 font-bold text-lg">
-                                        <span>👨‍⚕️</span>
+                                <div>
+                                    <?php if ($fotoProfile): ?>
+                                        <img src="<?php echo FOTO_DI_DOKTER . $fotoProfile; ?>" alt="Profile"
+                                            class="w-10 h-10 rounded-full object-cover border border-<?php echo $color; ?>-200">
+                                    <?php else: ?>
+                                        <div
+                                            class="w-10 h-10 bg-<?php echo $color; ?>-100 rounded-full flex items-center justify-center text-<?php echo $color; ?>-600 font-bold text-lg">
+                                            <span>👨‍⚕️</span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-gray-800">
+                                            <?php
+                                            $nama = $_SESSION['dokter']->getNama();
+                                            $nama = preg_replace('/^dr\\.\\s*/i', '', $nama);
+                                            echo htmlspecialchars($nama);
+                                            ?>
+                                        </span>
+                                        <span class="text-xs text-gray-500">Dokter</span>
                                     </div>
-                                <?php endif; ?>
-
-                                <div class="flex flex-col">
-                                    <span class="font-semibold text-gray-800">
-                                        <?php
-                                        $nama = $_SESSION['dokter']->getNama();
-                                        $nama = preg_replace('/^dr\\.\\s*/i', '', $nama);
-                                        echo htmlspecialchars($nama);
-                                        ?>
-                                    </span>
-                                    <span class="text-xs text-gray-500">Dokter</span>
                                 </div>
-                            </div>
 
-                            <button onclick="navigateTo('?route=profil'); toggleMobileMenu()"
-                                class="w-full justify-start hover:bg-<?php echo $color; ?>-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
-                                <span class="mr-2">👨‍⚕️</span>
-                                Profil Saya
-                            </button>
-                            <button onclick="logout(); toggleMobileMenu()"
-                                class="w-full font-display font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-glow">
-                                <span class="mr-2">🚪</span>
-                                Keluar
-                            </button>
-                        <?php else: ?>
-                            <button onclick="navigateTo('pages/auth-dokter.php'); toggleMobileMenu()"
-                                class="w-full font-display font-semibold bg-gradient-to-r from-<?php echo $color; ?>-500 to-<?php echo $color; ?>-600 text-white px-6 py-3 rounded-2xl hover:from-<?php echo $color; ?>-600 hover:to-<?php echo $color; ?>-700 transition-all duration-300 shadow-glow">
-                                <span class="mr-2">🔐</span>
-                                Login
-                            </button>
-                        <?php endif; ?>
-                    </div>
+                                <button onclick="navigateTo('/../../?route=profil'); toggleMobileMenu()"
+                                    class="w-full justify-start hover:bg-<?php echo $color; ?>-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
+                                    <span class="mr-2">👨‍⚕️</span>
+                                    Profil Saya
+                                </button>
+                                <button onclick="logout(); toggleMobileMenu()"
+                                    class="w-full font-display font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-glow">
+                                    <span class="mr-2">🚪</span>
+                                    Keluar
+                                </button>
+                            <?php else: ?>
+                                <button onclick="navigateTo('pages/auth-dokter.php'); toggleMobileMenu()"
+                                    class="w-full font-display font-semibold bg-gradient-to-r from-<?php echo $color; ?>-500 to-<?php echo $color; ?>-600 text-white px-6 py-3 rounded-2xl hover:from-<?php echo $color; ?>-600 hover:to-<?php echo $color; ?>-700 transition-all duration-300 shadow-glow">
+                                    <span class="mr-2">🔐</span>
+                                    Login
+                                </button>
+                            <?php endif; ?>
+                        </div>
                 </nav>
             </div>
         </div>
