@@ -10,27 +10,31 @@
                 <!-- Left Content -->
                 <div class="space-y-8 animate-fade-in">
                     <div class="inline-block">
-                       
+
                     </div>
 
                     <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
                         Konsultasi dengan
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-400 animate-gradient-shift">
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-400 animate-gradient-shift">
                             Dokter Hewan
                         </span>
                         Terpercaya
                     </h1>
 
                     <p class="text-xl text-gray-600 leading-relaxed">
-                        Dapatkan perawatan terbaik untuk hewan kesayangan Anda. Konsultasi online 24/7 dengan dokter hewan profesional dan berpengalaman.
+                        Dapatkan perawatan terbaik untuk hewan kesayangan Anda. Konsultasi online 24/7 dengan dokter
+                        hewan profesional dan berpengalaman.
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 relative z-30">
-                        <button onclick="navigateTo('?route=pilih-dokter')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
+                        <button onclick="navigateTo('?route=pilih-dokter')"
+                            class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
                             <span class="mr-2">🩺</span>
                             Mulai Konsultasi
                         </button>
-                        <button onclick="scrollToSection('cara-kerja')" class="font-display font-semibold bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-2xl hover:bg-purple-50 transition-all duration-300 text-lg">
+                        <button onclick="scrollToSection('cara-kerja')"
+                            class="font-display font-semibold bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-2xl hover:bg-purple-50 transition-all duration-300 text-lg">
                             <span class="mr-2">📖</span>
                             Pelajari Lebih Lanjut
                         </button>
@@ -56,14 +60,21 @@
                 <!-- Right Content - Doctor Profile Card -->
                 <div class="animate-slide-up">
                     <div class="relative">
-                        <div class="absolute -top-4 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-glow"></div>
-                        <div class="absolute -bottom-8 -left-4 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-glow"></div>
+                        <div
+                            class="absolute -top-4 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-glow">
+                        </div>
+                        <div
+                            class="absolute -bottom-8 -left-4 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-glow">
+                        </div>
 
                         <!-- Doctor Card -->
-                        <div class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
-                            <div id="doctor-profile-image" class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden relative">
+                        <div
+                            class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
+                            <div id="doctor-profile-image"
+                                class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden relative">
                                 <div class="slideshow-container w-full h-full relative">
-                                    <div class="slide active text-center space-y-4 flex flex-col justify-center items-center">
+                                    <div
+                                        class="slide active text-center space-y-4 flex flex-col justify-center items-center">
                                         <div class="text-6xl">👨‍⚕️</div>
                                         <p class="text-gray-400 text-sm px-4">Foto dokter akan ditampilkan di sini</p>
                                     </div>
@@ -85,8 +96,10 @@
                             <div id="doctor-profile-info" class="space-y-4 fade-content">
                                 <div class="flex items-start justify-between">
                                     <div>
-                                        <h3 class="font-display text-2xl font-bold text-gray-900" id="doctor-name">Dr. Ahmad Santoso</h3>
-                                        <p class="text-purple-600 font-medium" id="doctor-specialty">Dokter Hewan Umum</p>
+                                        <h3 class="font-display text-2xl font-bold text-gray-900" id="doctor-name">Dr.
+                                            Ahmad Santoso</h3>
+                                        <p class="text-purple-600 font-medium" id="doctor-specialty">Dokter Hewan Umum
+                                        </p>
                                     </div>
                                     <div class="flex items-center gap-1">
                                         <span class="text-yellow-400 text-lg">⭐</span>
@@ -95,15 +108,19 @@
                                 </div>
 
                                 <div class="flex flex-wrap gap-2">
-                                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm" id="doctor-experience">12+ Tahun</span>
-                                    <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm" id="doctor-status">🟢 Tersedia</span>
+                                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm"
+                                        id="doctor-experience">12+ Tahun</span>
+                                    <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
+                                        id="doctor-status">🟢 Tersedia</span>
                                 </div>
 
                                 <p class="text-gray-600 text-sm" id="doctor-description">
-                                    Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan.
+                                    Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan
+                                    berbagai jenis penyakit hewan.
                                 </p>
 
-                                <button onclick="navigateTo('?route=konsultasi-dokter')" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-card">
+                                <button onclick="navigateTo('?route=konsultasi-dokter')"
+                                    class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-card">
                                     <span class="mr-2">💬</span>
                                     Chat Sekarang
                                 </button>
@@ -127,88 +144,77 @@
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 <!-- Konsultasi Dokter -->
                 <a href="?route=pilih-dokter" class="group service-card animate-slide-up">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                    <div
+                        class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
                         <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl">
+                        </div>
 
                         <!-- Badge -->
-                        <div class="absolute top-4 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                        <div
+                            class="absolute top-4 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             24/7
                         </div>
 
                         <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div
+                                class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">🩺</span>
                                 <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                                <div
+                                    class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500">
+                                </div>
                             </div>
 
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                            <h3
+                                class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
                                 Konsultasi Dokter
                             </h3>
                             <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Konsultasi online dengan dokter hewan profesional kapan saja, di mana saja. Dapatkan jawaban cepat untuk pertanyaan kesehatan hewan Anda.
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Tanya Dokter -->
-                <a href="?route=tanya-dokter" class="group service-card animate-slide-up" style="animation-delay: 0.1s">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
-                        <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
-
-                        <!-- Badge -->
-                        <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            Gratis
-                        </div>
-
-                        <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
-                                <span class="text-5xl filter drop-shadow-lg">❓</span>
-                                <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
-                            </div>
-
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
-                                Tanya Dokter
-                            </h3>
-
-                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Ajukan pertanyaan kesehatan hewan kapan saja. Dijawab oleh dokter berpengalaman dalam 30 menit.
-                            </p>
-
+                                Konsultasi online dengan dokter hewan profesional kapan saja, di mana saja. Dapatkan
+                                jawaban cepat untuk pertanyaan kesehatan hewan Anda.
                         </div>
                     </div>
                 </a>
 
                 <!-- Klinik Terdekat -->
-                <a href="?route=klinik-terdekat" class="group service-card animate-slide-up" style="animation-delay: 0.2s">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                <a href="?route=klinik-terdekat" class="group service-card animate-slide-up"
+                    style="animation-delay: 0.2s">
+                    <div
+                        class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
                         <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl">
+                        </div>
 
                         <!-- Badge -->
-                        <div class="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                        <div
+                            class="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             Populer
                         </div>
 
                         <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div
+                                class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">📍</span>
                                 <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                                <div
+                                    class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500">
+                                </div>
                             </div>
 
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                            <h3
+                                class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
                                 Klinik Terdekat
                             </h3>
 
                             <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Temukan klinik hewan terdekat dengan navigasi real-time. Lihat ulasan, jam operasional, dan layanan.
+                                Temukan klinik hewan terdekat dengan navigasi real-time. Lihat ulasan, jam operasional,
+                                dan layanan.
                             </p>
 
                         </div>
@@ -232,7 +238,8 @@
 
             <div id="doctors-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="bg-white rounded-3xl shadow-card p-6 border border-gray-100">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
+                    <div
+                        class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
                         <span class="text-5xl">👨‍⚕️</span>
                     </div>
                     <h3 class="font-display text-xl font-bold text-gray-900 mb-2">Dr. Nama Dokter 1</h3>
@@ -242,13 +249,15 @@
                         <span>•</span>
                         <span>15+ Tahun</span>
                     </div>
-                    <button class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
+                    <button
+                        class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
                         Lihat Profile
                     </button>
                 </div>
 
                 <div class="bg-white rounded-3xl shadow-card p-6 border border-gray-100">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
+                    <div
+                        class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
                         <span class="text-5xl">👩‍⚕️</span>
                     </div>
                     <h3 class="font-display text-xl font-bold text-gray-900 mb-2">Dr. Nama Dokter 2</h3>
@@ -258,13 +267,15 @@
                         <span>•</span>
                         <span>10+ Tahun</span>
                     </div>
-                    <button class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
+                    <button
+                        class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
                         Lihat Profile
                     </button>
                 </div>
 
                 <div class="bg-white rounded-3xl shadow-card p-6 border border-gray-100">
-                    <div class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
+                    <div
+                        class="aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-4 flex items-center justify-center">
                         <span class="text-5xl">👨‍⚕️</span>
                     </div>
                     <h3 class="font-display text-xl font-bold text-gray-900 mb-2">Dr. Nama Dokter 3</h3>
@@ -274,7 +285,8 @@
                         <span>•</span>
                         <span>8+ Tahun</span>
                     </div>
-                    <button class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
+                    <button
+                        class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">
                         Lihat Profile
                     </button>
                 </div>
@@ -296,7 +308,8 @@
 
             <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 <div class="text-center animate-slide-up">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">1</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Layanan</h3>
@@ -306,7 +319,8 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.1s">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">2</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Dokter</h3>
@@ -316,83 +330,14 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.2s">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">3</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Mulai Konsultasi</h3>
                     <p class="text-gray-600 leading-relaxed">
-                        Konsultasi dengan dokter via chat atau video call
+                        Konsultasi dengan dokter via chat atau berkunjung ke Klinik terdekat dengan Anda
                     </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Articles Section -->
-    <section id="artikel" class="py-20 bg-gradient-to-b from-white to-purple-50">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-16 animate-fade-in">
-                <h2 class="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                    Artikel & Tips
-                </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Informasi dan tips kesehatan hewan dari para ahli
-                </p>
-            </div>
-
-            <div id="articles-grid" class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-hero transition-all duration-300">
-                    <div class="aspect-video bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-                        <span class="text-5xl">📰</span>
-                    </div>
-                    <div class="p-6">
-                        <div class="text-sm text-purple-600 mb-2">Kesehatan Hewan</div>
-                        <h3 class="font-display text-xl font-bold text-gray-900 mb-2">
-                            Tips Merawat Hewan Peliharaan
-                        </h3>
-                        <p class="text-gray-600 text-sm mb-4">
-                            Panduan lengkap merawat hewan peliharaan dengan baik dan benar...
-                        </p>
-                        <button class="text-purple-600 font-medium hover:text-purple-700 transition-colors">
-                            Baca Selengkapnya →
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-hero transition-all duration-300">
-                    <div class="aspect-video bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-                        <span class="text-5xl">📰</span>
-                    </div>
-                    <div class="p-6">
-                        <div class="text-sm text-purple-600 mb-2">Nutrisi</div>
-                        <h3 class="font-display text-xl font-bold text-gray-900 mb-2">
-                            Makanan Sehat untuk Hewan
-                        </h3>
-                        <p class="text-gray-600 text-sm mb-4">
-                            Rekomendasi makanan dan nutrisi yang tepat untuk hewan kesayangan...
-                        </p>
-                        <button class="text-purple-600 font-medium hover:text-purple-700 transition-colors">
-                            Baca Selengkapnya →
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-hero transition-all duration-300">
-                    <div class="aspect-video bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-                        <span class="text-5xl">📰</span>
-                    </div>
-                    <div class="p-6">
-                        <div class="text-sm text-purple-600 mb-2">Perawatan</div>
-                        <h3 class="font-display text-xl font-bold text-gray-900 mb-2">
-                            Cara Memandikan Hewan
-                        </h3>
-                        <p class="text-gray-600 text-sm mb-4">
-                            Teknik dan tips memandikan hewan peliharaan dengan aman...
-                        </p>
-                        <button class="text-purple-600 font-medium hover:text-purple-700 transition-colors">
-                            Baca Selengkapnya →
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -436,18 +381,25 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Nama</label>
-                                <input type="text" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all" placeholder="Nama lengkap Anda">
+                                <input type="text"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
+                                    placeholder="Nama lengkap Anda">
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Email</label>
-                                <input type="email" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all" placeholder="email@example.com">
+                                <input type="email"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
+                                    placeholder="email@example.com">
                             </div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Pesan</label>
-                            <textarea rows="5" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all" placeholder="Tulis pesan Anda di sini..."></textarea>
+                            <textarea rows="5"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
+                                placeholder="Tulis pesan Anda di sini..."></textarea>
                         </div>
-                        <button type="submit" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button type="submit"
+                            class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">📨</span>
                             Kirim Pesan
                         </button>
@@ -467,7 +419,8 @@
                 <p class="text-xl mb-8 text-white/90">
                     Bergabunglah dengan ribuan pemilik hewan yang mempercayai VetCare
                 </p>
-                <button onclick="navigateTo('?route=auth')" class="font-display font-semibold bg-white text-purple-600 px-8 py-4 rounded-2xl hover:bg-gray-100 transition-all duration-300 shadow-hero text-lg">
+                <button onclick="navigateTo('?route=auth')"
+                    class="font-display font-semibold bg-white text-purple-600 px-8 py-4 rounded-2xl hover:bg-gray-100 transition-all duration-300 shadow-hero text-lg">
                     <span class="mr-2">✨</span>
                     Daftar Sekarang - Gratis
                 </button>
@@ -477,123 +430,123 @@
 </main>
 
 <style>
-.slideshow-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
+    .slideshow-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
 
-.slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: all 0.5s ease-in-out;
-}
+    .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.5s ease-in-out;
+    }
 
-.slide.active {
-    opacity: 1;
-    transform: translateX(0);
-}
+    .slide.active {
+        opacity: 1;
+        transform: translateX(0);
+    }
 
-.slide.prev {
-    transform: translateX(-100%);
-}
+    .slide.prev {
+        transform: translateX(-100%);
+    }
 
-.fade-content {
-    transition: opacity 0.5s ease-in-out;
-}
+    .fade-content {
+        transition: opacity 0.5s ease-in-out;
+    }
 
-.fade-content.fade-out {
-    opacity: 0;
-}
+    .fade-content.fade-out {
+        opacity: 0;
+    }
 
-.fade-content.fade-in {
-    opacity: 1;
-}
+    .fade-content.fade-in {
+        opacity: 1;
+    }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const slides = document.querySelectorAll('.slide');
-    const doctorInfo = document.getElementById('doctor-profile-info');
-    let currentSlide = 0;
+    document.addEventListener('DOMContentLoaded', function () {
+        const slides = document.querySelectorAll('.slide');
+        const doctorInfo = document.getElementById('doctor-profile-info');
+        let currentSlide = 0;
 
-    // Doctor data for each slide
-    const doctorData = [
-        {
-            name: "Dr. Ahmad Santoso",
-            specialty: "Dokter Hewan Umum",
-            rating: "4.9",
-            experience: "12+ Tahun",
-            status: "🟢 Tersedia",
-            description: "Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan."
-        },
-        {
-            name: "Dr. Sari Wijaya",
-            specialty: "Spesialis Hewan Kecil",
-            rating: "4.8",
-            experience: "10+ Tahun",
-            status: "🟢 Tersedia",
-            description: "Spesialis dalam perawatan kesehatan kucing, anjing, dan hewan peliharaan kecil lainnya."
-        },
-        {
-            name: "Dr. Budi Rahman",
-            specialty: "Spesialis Ternak",
-            rating: "4.9",
-            experience: "15+ Tahun",
-            status: "🟢 Tersedia",
-            description: "Ahli dalam kesehatan ternak dan hewan produktif dengan pengalaman luas di bidang nutrisi dan pencegahan penyakit."
-        },
-        {
-            name: "Dr. Maya Putri",
-            specialty: "Spesialis Bedah",
-            rating: "5.0",
-            experience: "8+ Tahun",
-            status: "🟢 Tersedia",
-            description: "Dokter bedah hewan dengan keahlian khusus dalam operasi ortopedi dan bedah darurat."
-        }
-    ];
-
-    function updateDoctorInfo(index) {
-        const data = doctorData[index];
-        doctorInfo.classList.add('fade-out');
-
-        setTimeout(() => {
-            document.getElementById('doctor-name').textContent = data.name;
-            document.getElementById('doctor-specialty').textContent = data.specialty;
-            document.getElementById('doctor-rating').textContent = data.rating;
-            document.getElementById('doctor-experience').textContent = data.experience;
-            document.getElementById('doctor-status').textContent = data.status;
-            document.getElementById('doctor-description').textContent = data.description;
-
-            doctorInfo.classList.remove('fade-out');
-            doctorInfo.classList.add('fade-in');
-        }, 250);
-    }
-
-    function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.classList.remove('active', 'prev');
-            if (i === index) {
-                slide.classList.add('active');
-            } else if (i === (index - 1 + slides.length) % slides.length) {
-                slide.classList.add('prev');
+        // Doctor data for each slide
+        const doctorData = [
+            {
+                name: "Dr. Ahmad Santoso",
+                specialty: "Dokter Hewan Umum",
+                rating: "4.9",
+                experience: "12+ Tahun",
+                status: "🟢 Tersedia",
+                description: "Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan."
+            },
+            {
+                name: "Dr. Sari Wijaya",
+                specialty: "Spesialis Hewan Kecil",
+                rating: "4.8",
+                experience: "10+ Tahun",
+                status: "🟢 Tersedia",
+                description: "Spesialis dalam perawatan kesehatan kucing, anjing, dan hewan peliharaan kecil lainnya."
+            },
+            {
+                name: "Dr. Budi Rahman",
+                specialty: "Spesialis Ternak",
+                rating: "4.9",
+                experience: "15+ Tahun",
+                status: "🟢 Tersedia",
+                description: "Ahli dalam kesehatan ternak dan hewan produktif dengan pengalaman luas di bidang nutrisi dan pencegahan penyakit."
+            },
+            {
+                name: "Dr. Maya Putri",
+                specialty: "Spesialis Bedah",
+                rating: "5.0",
+                experience: "8+ Tahun",
+                status: "🟢 Tersedia",
+                description: "Dokter bedah hewan dengan keahlian khusus dalam operasi ortopedi dan bedah darurat."
             }
-        });
-        updateDoctorInfo(index);
-    }
+        ];
 
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
+        function updateDoctorInfo(index) {
+            const data = doctorData[index];
+            doctorInfo.classList.add('fade-out');
+
+            setTimeout(() => {
+                document.getElementById('doctor-name').textContent = data.name;
+                document.getElementById('doctor-specialty').textContent = data.specialty;
+                document.getElementById('doctor-rating').textContent = data.rating;
+                document.getElementById('doctor-experience').textContent = data.experience;
+                document.getElementById('doctor-status').textContent = data.status;
+                document.getElementById('doctor-description').textContent = data.description;
+
+                doctorInfo.classList.remove('fade-out');
+                doctorInfo.classList.add('fade-in');
+            }, 250);
+        }
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active', 'prev');
+                if (i === index) {
+                    slide.classList.add('active');
+                } else if (i === (index - 1 + slides.length) % slides.length) {
+                    slide.classList.add('prev');
+                }
+            });
+            updateDoctorInfo(index);
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // Start slideshow
         showSlide(currentSlide);
-    }
-
-    // Start slideshow
-    showSlide(currentSlide);
-    setInterval(nextSlide, 2500); // Change slide every 5 seconds
-});
+        setInterval(nextSlide, 2500); // Change slide every 5 seconds
+    });
 </script>
