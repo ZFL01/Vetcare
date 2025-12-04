@@ -89,7 +89,7 @@ if ($action) {
                     $response['message'] = 'Gagal menyimpan pesan: ' . $result;
                     $httpCode = 500;
                 }
-            }else{
+            } else {
                 $response['message'] = 'Data tidak lengkap.';
                 $httpCode = 400;
             }
@@ -105,7 +105,7 @@ if ($action) {
                 if (is_array($messagesOrError)) {
                     $response = [
                         'success' => true,
-                        'serverTimestamp'=>(new DateTime())->format(DateTime::ISO8601),
+                        'serverTimestamp' => (new DateTime())->format(DateTime::ISO8601),
                         'messages' => $messagesOrError,
                         'message' => 'Pesan baru berhasil diambil.'
                     ];
@@ -151,8 +151,9 @@ switch ($route) {
         header('Location: pages/dokter/home_dokter.php');
         exit();
     case 'logout':
-        session_destroy();
-        header('Location: ?route='); // Redirect akan bekerja
+        session_unset();    // Hapus semua session variables
+        session_destroy();  // Destroy session
+        header('Location: ?route='); // Redirect ke home
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':

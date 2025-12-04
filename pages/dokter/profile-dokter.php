@@ -408,8 +408,7 @@ include 'base.php';
 
                 <!-- Change Password Button -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <button onclick="cekPass()"
-                        class="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                    <button onclick="cekPass()"class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-colors">
                         🔒 Ubah Password
                     </button>
                 </div>

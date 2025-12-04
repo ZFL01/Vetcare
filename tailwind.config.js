@@ -2,7 +2,7 @@
 module.exports = {
   content: [
     "./*.php",
-    "./pages/*.php",
+    "./pages/**/*.php",
     "./includes/*.php",
     "./*.html"
   ],
@@ -26,9 +26,13 @@ module.exports = {
         warning: 'hsl(270 65% 60%)',
       },
       backgroundImage: {
-        'gradient-hero': 'linear-gradient(135deg, hsl(270 70% 50%) 0%, hsl(275 65% 55%) 50%, hsl(280 60% 60%) 100%)',
-        'gradient-primary': 'linear-gradient(135deg, hsl(270 70% 50%) 0%, hsl(270 70% 65%) 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, hsl(280 60% 60%) 0%, hsl(280 60% 75%) 100%)',
+        'gradient-hero': 'linear-gradient(135deg, hsl(229 84% 58%) 0%, hsl(249 77% 60%) 50%, hsl(262 83% 58%) 100%)',
+        'gradient-primary': 'linear-gradient(135deg, hsl(229 84% 58%) 0%, hsl(262 83% 58%) 100%)',
+        'gradient-secondary': 'linear-gradient(135deg, hsl(249 77% 60%) 0%, hsl(262 83% 75%) 100%)',
+        'gradient-indigo-violet': 'linear-gradient(135deg, hsl(238 84% 59%) 0%, hsl(262 83% 58%) 100%)',
+        'gradient-violet-indigo': 'linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(270 83% 58%) 100%)',
+        'gradient-indigo-violet-light': 'linear-gradient(135deg, hsl(270 83% 75%) 0%, hsl(262 83% 81%) 100%)',
+        'gradient-violet-indigo-light': 'linear-gradient(135deg, hsl(262 83% 81%) 0%, hsl(270 83% 75%) 100%)',
         'gradient-glass': 'linear-gradient(145deg, hsl(270 50% 90% / 0.15), hsl(270 50% 85% / 0.08))',
       },
       boxShadow: {
