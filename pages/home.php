@@ -15,7 +15,7 @@
 
                     <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
                         Konsultasi dengan
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-400 animate-gradient-shift">
+                        <span class="text-transparent bg-clip-text bg-gradient-indigo-violet animate-gradient-shift">
                             Dokter Hewan
                         </span>
                         Terpercaya
@@ -26,7 +26,7 @@
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 relative z-30">
-                        <button onclick="navigateTo('?route=pilih-dokter')" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
+                        <button onclick="navigateTo('?route=pilih-dokter')" class="font-display font-semibold bg-gradient-indigo-violet text-white px-8 py-4 rounded-2xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
                             <span class="mr-2">🩺</span>
                             Mulai Konsultasi
                         </button>
@@ -103,7 +103,7 @@
                                     Dokter hewan berpengalaman dengan spesialisasi dalam diagnosis dan pengobatan berbagai jenis penyakit hewan.
                                 </p>
 
-                                <button onclick="navigateTo('?route=konsultasi-dokter')" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-card">
+                                <button onclick="navigateTo('?route=konsultasi-dokter')" class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-6 py-3 rounded-xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-card">
                                     <span class="mr-2">💬</span>
                                     Chat Sekarang
                                 </button>
@@ -140,10 +140,10 @@
                         </div>
 
                         <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">🩺</span>
                                 <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
                             </div>
 
                             <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
@@ -167,10 +167,10 @@
                         </div>
 
                         <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">❓</span>
                                 <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
                             </div>
 
                             <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
@@ -197,10 +197,10 @@
                         </div>
 
                         <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">📍</span>
                                 <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
                             </div>
 
                             <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
@@ -296,7 +296,7 @@
 
             <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 <div class="text-center animate-slide-up">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">1</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Layanan</h3>
@@ -306,7 +306,7 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.1s">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">2</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Dokter</h3>
@@ -316,7 +316,7 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.2s">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">3</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Mulai Konsultasi</h3>
@@ -447,7 +447,7 @@
                             <label class="block text-gray-700 font-medium mb-2">Pesan</label>
                             <textarea rows="5" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all" placeholder="Tulis pesan Anda di sini..."></textarea>
                         </div>
-                        <button type="submit" class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button type="submit" class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-8 py-4 rounded-2xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-glow">
                             <span class="mr-2">📨</span>
                             Kirim Pesan
                         </button>
