@@ -6,6 +6,8 @@
  */
 $pageTitle = "Profil Dokter - VetCare";
 
+//require_once "/public/src/config/config.php";
+
 // Require login
 requireLogin(true, 'profil');
 // Get current dokter profile
@@ -95,7 +97,7 @@ if (isset($_POST['update_profile'])) {
     $long = $_POST['longitude'] ?? '';
 
     $isupdate = $_SESSION['update_lokasi'];
-    error_log($isupdate? 'iya':'tidak');
+    error_log($isupdate ? 'iya' : 'tidak');
     $hasil = DAO_dokter::setLokasi($isupdate, $profil, $nama, $lat, $long);
 
     if ($hasil[0]) {
@@ -117,7 +119,7 @@ if (isset($action) && $action === 'load-tab') {
             break;
         case 'tempat-klinik':
             $dataLokasi = DAO_dokter::getAlamat($profil);
-            $_SESSION['update_lokasi']= $profil->getKoor() ? true:false;
+            $_SESSION['update_lokasi'] = $profil->getKoor() ? true : false;
             include 'tab-lokasi.php';
             break;
         case 'kategori':
@@ -348,20 +350,21 @@ include 'base.php';
         </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-sm p-6 text-center">
             <div class="text-3xl font-bold text-primary mb-2"><?php echo (date('Y') - $profil->getPengalaman()); ?>
                 tahun</div>
             <div class="text-gray-600">Pengalaman</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div class="text-3xl font-bold text-primary mb-2"><?php echo ($profil->getRate() * 100); ?>%</div>
+            <div class="text-3xl font-bold text-primary mb-2"><?php echo ($profil->getRate() * 5); ?>⭐</div>
             <div class="text-gray-600">Like Rate</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm p-6 text-center">
             <div class="text-3xl font-bold text-primary mb-2"><?php echo $profil->getStatus(); ?></div>
             <div class="text-gray-600">
-                <?php echo $profil->getStatus() == 'nonaktif' ? 'Silahkan update dokumen Anda' : 'Status'; ?></div>
+                <?php echo $profil->getStatus() == 'nonaktif' ? 'Silahkan update dokumen Anda' : 'Status'; ?>
+            </div>
         </div>
     </div>
 
@@ -649,6 +652,7 @@ include 'base.php';
 <?php
 include_once 'footer-dokter.php';
 ?>
+
 </html>
 
 
@@ -657,7 +661,7 @@ include_once 'footer-dokter.php';
 <script>
 
     let map = null;
-    let marker = null; 
+    let marker = null;
 
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.tab-btn').forEach(button => {
@@ -723,7 +727,7 @@ include_once 'footer-dokter.php';
             contentDataDiri.classList.add('hidden');
             profileCardWrapper.classList.add('hidden');
         }
-        
+
         // 3. Muat Konten Tab Lain via AJAX
         tabContent.innerHTML = '<div class="text-center p-8">Memuat...</div>'; // Loading indicator
 
@@ -1038,118 +1042,118 @@ include_once 'footer-dokter.php';
     //inisialisasi map
 
 
-function initializeMap(lat, lng) {
-    const mapContainer = document.getElementById('map-klinik');
-    
-    // Cek apakah elemen map-klinik ada di DOM dan Leaflet sudah dimuat
-    if (!mapContainer || typeof L === 'undefined') {
-        console.warn("Element map-klinik tidak ditemukan atau Leaflet belum dimuat.");
-        return; 
+    function initializeMap(lat, lng) {
+        const mapContainer = document.getElementById('map-klinik');
+
+        // Cek apakah elemen map-klinik ada di DOM dan Leaflet sudah dimuat
+        if (!mapContainer || typeof L === 'undefined') {
+            console.warn("Element map-klinik tidak ditemukan atau Leaflet belum dimuat.");
+            return;
+        }
+        if (map && map.remove) {
+            map.remove();
+            map = null;
+        }
+
+        const inputLat = document.getElementById('input-latitude');
+        const inputLng = document.getElementById('input-longitude');
+
+        // --- INISIALISASI PETA ---
+        map = L.map('map-klinik').setView([lat, lng], 13); // Zoom level 13
+
+        // Tambahkan Tile Layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // --- INISIALISASI MARKER (PIN) ---
+        marker = L.marker([lat, lng], { // Gunakan variabel global 'marker'
+            draggable: true // 🎯 Kunci: Membuat marker dapat digeser
+        }).addTo(map);
+
+        inputLat.value = lat.toFixed(6); // Simpan hingga 6 desimal
+        inputLng.value = lng.toFixed(6);
+
+        // --- INISIALISASI GEOCODER ---
+        const geocoder = L.Control.Geocoder.nominatim();
+        const control = L.Control.geocoder({
+            geocoder: geocoder,
+            placeholder: 'Cari Alamat, Jalan, atau Nama Klinik...',
+            position: 'topleft',
+            defaultMarkGeocode: false
+        }).addTo(map);
+
+        // --- EVENT LISTENER GEOCODER ---
+        control.on('markgeocode', function (e) {
+            const bbox = e.geocode.bbox;
+            const center = e.geocode.center;
+
+            map.fitBounds(bbox);
+            marker.setLatLng(center);
+
+            inputLat.value = center.lat.toFixed(6);
+            inputLng.value = center.lng.toFixed(6);
+        });
+
+        // --- EVENT LISTENER UNTUK DRAG MARKER ---
+        marker.on('dragend', function (e) {
+            const position = marker.getLatLng();
+
+            inputLat.value = position.lat.toFixed(6);
+            inputLng.value = position.lng.toFixed(6);
+        });
+
+        // --- EVENT LISTENER DOUBLE-CLICK ---
+        map.on('dblclick', function (e) {
+            marker.setLatLng(e.latlng);
+            inputLat.value = e.latlng.lat.toFixed(6);
+            inputLng.value = e.latlng.lng.toFixed(6);
+        });
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+
+        console.log("Peta berhasil diinisialisasi ulang.");
     }
-    if (map && map.remove) {
-        map.remove();
-        map = null;
+    function determineAndInitializeMap() {
+        // Variabel PHP yang di-echo hanya tersedia jika tab-lokasi.php sudah dimuat!
+        const savedProvinsi = "<?php echo htmlspecialchars($profil->getProv() ?? ''); ?>";
+        const savedKabupaten = "<?php echo htmlspecialchars($profil->getKab() ?? ''); ?>";
+        let initLat = document.getElementById('input-latitude').value; // Gunakan let
+        let initLng = document.getElementById('input-longitude').value; // Gunakan let
+        const defaultLat = -6.2088; // Koordinat default ( Jakarta)
+        const defaultLng = 106.8456;
+
+        // Tentukan koordinat awal
+        initLat = initLat ? parseFloat(initLat) : defaultLat;
+        initLng = initLng ? parseFloat(initLng) : defaultLng;
+
+        // --- Logika Geocoding Wilayah (Hanya jika koordinat belum ada) ---
+        if (initLat === defaultLat && savedProvinsi) {
+            let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
+            const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+
+            fetch(nominatimURL)
+                .then(response => response.json())
+                .then(data => {
+                    let finalLat = initLat;
+                    let finalLng = initLng;
+
+                    if (data.length > 0) {
+                        const result = data[0];
+                        finalLat = parseFloat(result.lat);
+                        finalLng = parseFloat(result.lon);
+                    }
+                    initializeMap(finalLat, finalLng);
+                })
+                .catch(error => {
+                    console.error('Geocoding wilayah gagal:', error);
+                    // Jika gagal, tetap inisialisasi dengan koordinat default/awal
+                    initializeMap(initLat, initLng);
+                });
+        } else {
+            // Inisialisasi langsung jika koordinat sudah ada
+            initializeMap(initLat, initLng);
+        }
     }
-
-    const inputLat = document.getElementById('input-latitude');
-    const inputLng = document.getElementById('input-longitude');
-
-    // --- INISIALISASI PETA ---
-    map = L.map('map-klinik').setView([lat, lng], 13); // Zoom level 13
-
-    // Tambahkan Tile Layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    // --- INISIALISASI MARKER (PIN) ---
-    marker = L.marker([lat, lng], { // Gunakan variabel global 'marker'
-        draggable: true // 🎯 Kunci: Membuat marker dapat digeser
-    }).addTo(map);
-
-    inputLat.value = lat.toFixed(6); // Simpan hingga 6 desimal
-    inputLng.value = lng.toFixed(6);
-
-    // --- INISIALISASI GEOCODER ---
-    const geocoder = L.Control.Geocoder.nominatim();
-    const control = L.Control.geocoder({
-        geocoder: geocoder,
-        placeholder: 'Cari Alamat, Jalan, atau Nama Klinik...',
-        position: 'topleft',
-        defaultMarkGeocode: false
-    }).addTo(map);
-
-    // --- EVENT LISTENER GEOCODER ---
-    control.on('markgeocode', function (e) {
-        const bbox = e.geocode.bbox;
-        const center = e.geocode.center;
-
-        map.fitBounds(bbox);
-        marker.setLatLng(center);
-
-        inputLat.value = center.lat.toFixed(6);
-        inputLng.value = center.lng.toFixed(6);
-    });
-
-    // --- EVENT LISTENER UNTUK DRAG MARKER ---
-    marker.on('dragend', function (e) {
-        const position = marker.getLatLng();
-
-        inputLat.value = position.lat.toFixed(6);
-        inputLng.value = position.lng.toFixed(6);
-    });
-
-    // --- EVENT LISTENER DOUBLE-CLICK ---
-    map.on('dblclick', function (e) {
-        marker.setLatLng(e.latlng);
-        inputLat.value = e.latlng.lat.toFixed(6);
-        inputLng.value = e.latlng.lng.toFixed(6);
-    });
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100); 
-
-    console.log("Peta berhasil diinisialisasi ulang.");
-}
-function determineAndInitializeMap() {
-    // Variabel PHP yang di-echo hanya tersedia jika tab-lokasi.php sudah dimuat!
-    const savedProvinsi = "<?php echo htmlspecialchars($profil->getProv() ?? ''); ?>";
-    const savedKabupaten = "<?php echo htmlspecialchars($profil->getKab() ?? ''); ?>";
-    let initLat = document.getElementById('input-latitude').value; // Gunakan let
-    let initLng = document.getElementById('input-longitude').value; // Gunakan let
-    const defaultLat = -6.2088; // Koordinat default ( Jakarta)
-    const defaultLng = 106.8456;
-
-    // Tentukan koordinat awal
-    initLat = initLat ? parseFloat(initLat) : defaultLat;
-    initLng = initLng ? parseFloat(initLng) : defaultLng;
-
-    // --- Logika Geocoding Wilayah (Hanya jika koordinat belum ada) ---
-    if (initLat === defaultLat && savedProvinsi) {
-        let query = `${savedKabupaten ? savedKabupaten + ',' : ''} ${savedProvinsi}, Indonesia`;
-        const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
-        
-        fetch(nominatimURL)
-            .then(response => response.json())
-            .then(data => {
-                let finalLat = initLat;
-                let finalLng = initLng;
-                
-                if (data.length > 0) {
-                    const result = data[0];
-                    finalLat = parseFloat(result.lat);
-                    finalLng = parseFloat(result.lon);
-                }
-                initializeMap(finalLat, finalLng);
-            })
-            .catch(error => {
-                console.error('Geocoding wilayah gagal:', error);
-                // Jika gagal, tetap inisialisasi dengan koordinat default/awal
-                initializeMap(initLat, initLng); 
-            });
-    } else {
-        // Inisialisasi langsung jika koordinat sudah ada
-        initializeMap(initLat, initLng);
-    }
-}
 </script>
