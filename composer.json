@@ -2,7 +2,7 @@
     "require": {
         "phpmailer/phpmailer": "^7.0",
         "guzzlehttp/guzzle": "^7.10",
-        "mongodb/mongodb": "^1.20",
+        "mongodb/mongodb": ">=1.20",
         "hashids/hashids": "^5.0"
     },
     "autoload":{
