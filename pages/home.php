@@ -172,37 +172,7 @@
                         </div>
                     </div>
                 </a>
-
-                <!-- Tanya Dokter -->
-                <a href="?route=tanya-dokter" class="group service-card animate-slide-up" style="animation-delay: 0.1s">
-                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
-                        <!-- Ripple Effect -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
-
-                        <!-- Badge -->
-                        <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            Gratis
-                        </div>
-
-                        <div class="relative z-10">
-                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
-                                <span class="text-5xl filter drop-shadow-lg">❓</span>
-                                <!-- Glow Effect -->
-                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
-                            </div>
-
-                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
-                                Tanya Dokter
-                            </h3>
-
-                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Ajukan pertanyaan kesehatan hewan kapan saja. Dijawab oleh dokter berpengalaman dalam 30 menit.
-                            </p>
-
-                        </div>
-                    </div>
-                </a>
-
+                
                 <!-- Klinik Terdekat -->
                 <a href="?route=klinik-terdekat" class="group service-card animate-slide-up"
                     style="animation-delay: 0.2s">
