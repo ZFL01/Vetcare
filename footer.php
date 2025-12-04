@@ -40,7 +40,7 @@
                 <ul class="space-y-2">
                     <li class="text-white/80">📞 +62 811-2233-4455</li>
                     <li class="text-white/80">📧 info@vethewan.co.id</li>
-                    <li class="text-white/80">📍 Jakarta, Indonesia</li>
+                    <li class="text-white/80">📍 Jember, Indonesia</li>
                     <li><button onclick="window.location.href='?route=auth-dokter'" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
                         <span class="mr-2">👨‍⚕️</span>
                         Masuk sebagai Dokter

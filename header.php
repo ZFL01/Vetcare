@@ -36,18 +36,11 @@ if ($loggedIn){
                         <div class="px-3 py-2 border-b border-gray-100 mb-2">
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Layanan Kami</h4>
                         </div>
-                        <a href="?route=konsultasi-dokter" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
+                        <a href="?route=pilih-dokter" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
                             <span class="text-lg">🩺</span>
                             <div>
                                 <div class="font-medium">Konsultasi Dokter</div>
-                                <div class="text-xs text-gray-500">Chat & Video Call</div>
-                            </div>
-                        </a>
-                        <a href="?route=tanya-dokter" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
-                            <span class="text-lg">❓</span>
-                            <div>
-                                <div class="font-medium">Tanya Dokter</div>
-                                <div class="text-xs text-gray-500">Konsultasi Tertulis</div>
+                                <div class="text-xs text-gray-500">Pilih dan chat dengan Dokter</div>
                             </div>
                         </a>
                         <a href="?route=klinik-terdekat" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
@@ -55,20 +48,6 @@ if ($loggedIn){
                             <div>
                                 <div class="font-medium">Klinik Terdekat</div>
                                 <div class="text-xs text-gray-500">Temukan Lokasi</div>
-                            </div>
-                        </a>
-                        <a href="?route=dokter-ternak" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
-                            <span class="text-lg">🐄</span>
-                            <div>
-                                <div class="font-medium">Dokter Ternak</div>
-                                <div class="text-xs text-gray-500">Hewan Produktif</div>
-                            </div>
-                        </a>
-                        <a href="?route=dokter-hewan-kecil" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
-                            <span class="text-lg">🐱</span>
-                            <div>
-                                <div class="font-medium">Dokter Hewan Kecil</div>
-                                <div class="text-xs text-gray-500">Kucing, Anjing & Hewan Peliharaan</div>
                             </div>
                         </a>
                     </div>
@@ -88,8 +67,7 @@ if ($loggedIn){
                     <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300"></div>
                 </button>
             </nav>
-
-            <div class="flex items-center gap-3 md:gap-4">
+<div class="flex items-center gap-3 md:gap-4">
                 <?php if ($loggedIn): ?>
                     <div class="relative hidden md:block" id="user-menu-container">
                         <button class="flex items-center gap-2 hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors group" onclick="toggleUserMenu()">
