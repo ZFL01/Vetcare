@@ -1,7 +1,6 @@
-<!-- Main Content -->
-<main>
+
     <!-- Hero Section with Doctor Profile -->
-    <section class="relative pt-32 pb-20 overflow-hidden">
+    <section class="relative pb-20 overflow-hidden">
         <!-- gradient background - set pointer-events-none so it doesn't block buttons -->
         <div class="absolute inset-0 bg-gradient-hero opacity-10 pointer-events-none"></div>
 
@@ -15,8 +14,7 @@
 
                     <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
                         Konsultasi dengan
-                        <span
-                            class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-400 animate-gradient-shift">
+                        <span class="text-transparent bg-clip-text bg-gradient-indigo-violet animate-gradient-shift">
                             Dokter Hewan
                         </span>
                         Terpercaya
@@ -28,8 +26,7 @@
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 relative z-30">
-                        <button onclick="navigateTo('?route=pilih-dokter')"
-                            class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
+                        <button onclick="navigateTo('?route=pilih-dokter')" class="font-display font-semibold bg-gradient-indigo-violet text-white px-8 py-4 rounded-2xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-glow hover:shadow-hero text-lg">
                             <span class="mr-2">🩺</span>
                             Mulai Konsultasi
                         </button>
@@ -68,7 +65,7 @@
                         </div>
 
                         <!-- Doctor Card -->
-                        <div
+                          <div
                             class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
                             <div id="doctor-profile-image"
                                 class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden relative">
@@ -119,8 +116,7 @@
                                     berbagai jenis penyakit hewan.
                                 </p>
 
-                                <button onclick="navigateTo('?route=konsultasi-dokter')"
-                                    class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-card">
+                                <button onclick="navigateTo('?route=konsultasi-dokter')" class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-6 py-3 rounded-xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-card">
                                     <span class="mr-2">💬</span>
                                     Chat Sekarang
                                 </button>
@@ -144,7 +140,7 @@
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-3 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
                 <!-- Konsultasi Dokter -->
                 <a href="?route=pilih-dokter" class="group service-card animate-slide-up">
                     <div
@@ -161,13 +157,10 @@
                         </div>
 
                         <div class="relative z-10">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">🩺</span>
                                 <!-- Glow Effect -->
-                                <div
-                                    class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500">
-                                </div>
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
                             </div>
 
                             <h3
@@ -175,8 +168,37 @@
                                 Konsultasi Dokter
                             </h3>
                             <p class="text-gray-600 leading-relaxed text-lg mb-6">
-                                Konsultasi online dengan dokter hewan profesional kapan saja, di mana saja. Dapatkan
-                                jawaban cepat untuk pertanyaan kesehatan hewan Anda.
+                                Konsultasi online dengan dokter hewan profesional kapan saja, di mana saja. Dapatkan jawaban cepat untuk pertanyaan kesehatan hewan Anda.
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Tanya Dokter -->
+                <a href="?route=tanya-dokter" class="group service-card animate-slide-up" style="animation-delay: 0.1s">
+                    <div class="bg-gradient-to-br from-white via-purple-50 to-purple-100 border-2 border-purple-200 rounded-3xl p-10 hover:border-purple-400 hover:shadow-2xl transition-all duration-500 h-full relative overflow-hidden">
+                        <!-- Ripple Effect -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+
+                        <!-- Badge -->
+                        <div class="absolute top-4 right-4 bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            Gratis
+                        </div>
+
+                        <div class="relative z-10">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                                <span class="text-5xl filter drop-shadow-lg">❓</span>
+                                <!-- Glow Effect -->
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                            </div>
+
+                            <h3 class="font-display text-3xl font-bold text-gray-900 mb-4 group-hover:text-purple-700 transition-colors duration-300">
+                                Tanya Dokter
+                            </h3>
+
+                            <p class="text-gray-600 leading-relaxed text-lg mb-6">
+                                Ajukan pertanyaan kesehatan hewan kapan saja. Dijawab oleh dokter berpengalaman dalam 30 menit.
+                            </p>
+
                         </div>
                     </div>
                 </a>
@@ -198,13 +220,10 @@
                         </div>
 
                         <div class="relative z-10">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
+                            <div class="w-24 h-24 bg-gradient-indigo-violet rounded-3xl flex items-center justify-center mb-8 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500 shadow-glow relative">
                                 <span class="text-5xl filter drop-shadow-lg">📍</span>
                                 <!-- Glow Effect -->
-                                <div
-                                    class="absolute inset-0 bg-purple-400 rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500">
-                                </div>
+                                <div class="absolute inset-0 bg-gradient-indigo-violet rounded-3xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
                             </div>
 
                             <h3
@@ -308,8 +327,7 @@
 
             <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 <div class="text-center animate-slide-up">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">1</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Layanan</h3>
@@ -319,8 +337,7 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.1s">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">2</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Pilih Dokter</h3>
@@ -330,8 +347,7 @@
                 </div>
 
                 <div class="text-center animate-slide-up" style="animation-delay: 0.2s">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                    <div class="w-20 h-20 bg-gradient-indigo-violet rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
                         <span class="text-4xl text-white font-bold">3</span>
                     </div>
                     <h3 class="font-display text-2xl font-bold text-gray-900 mb-3">Mulai Konsultasi</h3>
@@ -398,8 +414,7 @@
                                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
                                 placeholder="Tulis pesan Anda di sini..."></textarea>
                         </div>
-                        <button type="submit"
-                            class="w-full font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                        <button type="submit" class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-8 py-4 rounded-2xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-glow">
                             <span class="mr-2">📨</span>
                             Kirim Pesan
                         </button>
@@ -427,7 +442,6 @@
             </div>
         </div>
     </section>
-</main>
 
 <style>
     .slideshow-container {

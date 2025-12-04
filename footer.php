@@ -5,7 +5,7 @@
         <div class="grid md:grid-cols-4 gap-8">
             <div>
                 <div class="flex items-center gap-2 mb-4">
-                    <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <div class="w-10 h-10 bg-gradient-indigo-violet rounded-lg flex items-center justify-center">
                         <span class="text-white text-xl">🐾</span>
                     </div>
                     <span class="text-2xl font-bold">VetCare</span>
@@ -40,8 +40,8 @@
                 <ul class="space-y-2">
                     <li class="text-white/80">📞 +62 811-2233-4455</li>
                     <li class="text-white/80">📧 info@vethewan.co.id</li>
-                    <li class="text-white/80">📍 Jember, Indonesia</li>
-                    <li><button onclick="window.location.href='?route=auth-dokter'" class="font-display font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-2xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-glow">
+                    <li class="text-white/80">📍 Jakarta, Indonesia</li>
+                    <li><button onclick="window.location.href='?route=auth-dokter'" class="font-display font-semibold bg-gradient-indigo-violet text-white px-6 py-3 rounded-2xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-glow">
                         <span class="mr-2">👨‍⚕️</span>
                         Masuk sebagai Dokter
                     </button></li>
