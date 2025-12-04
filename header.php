@@ -76,14 +76,6 @@ if ($loggedIn) {
                     </div>
                 </button>
 
-                <button onclick="scrollToSection('artikel')"
-                    class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
-                    <span>Artikel</span>
-                    <div
-                        class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300">
-                    </div>
-                </button>
-
                 <button onclick="scrollToSection('kontak')"
                     class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
                     <span>Kontak</span>
@@ -213,11 +205,6 @@ if ($loggedIn) {
                 <button onclick="scrollToSection('cara-kerja'); toggleMobileMenu()"
                     class="text-left text-gray-700 hover:text-purple-600 font-medium transition-colors px-4">
                     Cara Kerja
-                </button>
-
-                <button onclick="scrollToSection('artikel'); toggleMobileMenu()"
-                    class="text-left text-gray-700 hover:text-purple-600 font-medium transition-colors px-4">
-                    Artikel
                 </button>
 
                 <button onclick="scrollToSection('kontak'); toggleMobileMenu()"
