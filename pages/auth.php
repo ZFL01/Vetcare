@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
-                    header('Location: '.BASE_URL.'?route=home');
+                    header('Location: '.BASE_URL.'?route=');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {
                     $objDokter = DAO_dokter::getProfilDokter($objUser, true);

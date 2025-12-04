@@ -1,6 +1,7 @@
 <?php
 include_once 'database.php';
 require_once 'userService.php';
+require_once 'DAO_dokter.php';
 
 class Location{
 
@@ -405,7 +406,7 @@ class DAO_chat{
 
                 $obj=new DTO_chat(
                     $idChat,
-                    $hasil['user_id'], $hasil['dokter_id'],
+                    $hasil['user_id'], hashId($hasil['dokter_id'], true),
                     email: $hasil['email'],
                     namaDokter: $hasil['nama_dokter'],
                     status: $hasil['status'],
@@ -450,11 +451,11 @@ class DAO_chat{
             }
             if($hasil && $hasil2){
                 $conn->commit();
-                return [true, 'berhasil harusnya'];
+                return true;
             }
         }catch(PDOException $e){
             error_log("[DAO_others::registChatRoom]: ".$e->getMessage());
-            return [false, $e->getMessage()];
+            return false;
         }
     }
 

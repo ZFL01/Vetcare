@@ -12,7 +12,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 // Main entry point for PHP application
-$route = isset($_GET['route']) ? $_GET['route'] : '';
+$dokter = isset($_SESSION['dokter']);
+
+$route = isset($_GET['route']) ? $_GET['route'] : ($dokter ? 'dashboard-dokter' : '');
 $action = isset($_GET['aksi']) ? $_GET['aksi'] : '';
 
 // Define page variables
@@ -87,7 +89,7 @@ if ($action) {
                     $response['message'] = 'Gagal menyimpan pesan: ' . $result;
                     $httpCode = 500;
                 }
-            }else{
+            } else {
                 $response['message'] = 'Data tidak lengkap.';
                 $httpCode = 400;
             }
@@ -103,7 +105,7 @@ if ($action) {
                 if (is_array($messagesOrError)) {
                     $response = [
                         'success' => true,
-                        'serverTimestamp'=>(new DateTime())->format(DateTime::ISO8601),
+                        'serverTimestamp' => (new DateTime())->format(DateTime::ISO8601),
                         'messages' => $messagesOrError,
                         'message' => 'Pesan baru berhasil diambil.'
                     ];
@@ -143,13 +145,15 @@ switch ($route) {
         $ajaxLoad = true;
         break;
     case 'dashboard-dokter':
-        $pageTitle = 'Dashboard Dokter - VetCare';
-        $pageDescription = 'Dashboard utama dokter VetCare';
-        $contentFile = 'pages/dokter/dashboard-dokter.php';
-        break;
+        requireLogin(true);
+        dokterAllowed(true);
+        $_SESSION['prev_page'] = $route;
+        header('Location: pages/dokter/home_dokter.php');
+        exit();
     case 'logout':
-        session_destroy();
-        header('Location: ?route='); // Redirect akan bekerja
+        session_unset();    // Hapus semua session variables
+        session_destroy();  // Destroy session
+        header('Location: ?route='); // Redirect ke home
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
@@ -166,23 +170,27 @@ switch ($route) {
         header('Location: ' . BASE_URL . 'admin/');
         exit();
     case 'tanya-jawab':
+        requireLogin(false);
+        dokterAllowed(false);
         $pageTitle = 'Tanya Jawab - VetCare';
         $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
         $contentFile = 'pages/Tanya-Jawab.php';
         break;
     case 'chat':
+        requireLogin(false);
+        dokterAllowed(false);
         $pageTitle = 'Chat dengan Dokter - VetCare';
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
         break;
     case 'profil':
+        requireLogin(true);
+        dokterAllowed(true);
+        $_SESSION['prev_page'] = $route;
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
+        $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
-        if(isset($_POST['action'])){
-            $noHeaderFooter=true;
-            $ajaxLoad=true;
-        }
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':

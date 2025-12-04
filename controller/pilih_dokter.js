@@ -376,7 +376,7 @@ function renderDokters(dokters) {
     // --- 4. HTML STRUCTURE ---
     return `
       <div 
-        onclick="showModal(${idForModal})"
+        onclick="showModal('${idForModal}')"
         class="bg-white rounded-2xl p-6 shadow-card hover:shadow-xl transition-all duration-300 group cursor-pointer relative flex flex-col h-full border border-gray-100">
         
         <div class="flex gap-6 mb-4">
@@ -433,7 +433,7 @@ function renderDokters(dokters) {
              <span class="text-purple-700 font-bold text-xl">Rp ${harga}</span>
           </div>
           <button 
-            onclick="event.stopPropagation(); window.currentDokterId=${idForModal}; openKonsultasiModal()"
+            onclick="event.stopPropagation(); window.currentDokterId='${idForModal}'; openKonsultasiModal()"
             class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-purple-200 transition-transform active:scale-95 transform hover:-translate-y-0.5">
             Chat Sekarang
           </button>
@@ -552,7 +552,7 @@ async function showModal(idDokter) {
              <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
                 Tutup
              </button>
-             <button onclick="window.currentDokterId=${idDokter}; openKonsultasiModal()" class="px-8 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
+             <button onclick="window.currentDokterId='${idDokter}'; openKonsultasiModal()" class="px-8 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
                 Chat
              </button>
         </div>

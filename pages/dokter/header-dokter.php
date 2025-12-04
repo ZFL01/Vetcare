@@ -1,17 +1,16 @@
-jekas<?php
+<?php
 // Include required files first (before any output)
-require_once __DIR__ . '/src/config/config.php';
-require_once __DIR__ . '/services/DAO_dokter.php';
-require_once __DIR__ . '/services/DAO_artikel.php';
-require_once __DIR__ . '/services/DAO_pertanyaan.php';
 
-// Start session if not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../src/config/config.php';
+require_once __DIR__ . '/../../includes/DAO_dokter.php';
+require_once __DIR__ . '/../../includes/DAO_user.php';
+require_once __DIR__ . '/../../includes/DAO_Article.php';
+require_once __DIR__ . '/../../includes/DAO_others.php';
+
+requireLogin(true);
 
 // Check login status
-$isLoggedIn = isLoggedIn();
+$isLoggedIn = isset($_SESSION['dokter']);
 
 // Set page title
 $pageTitle = $pageTitle ?? 'VetCare - Dashboard Dokter';
@@ -41,7 +40,7 @@ $pageTitle = $pageTitle ?? 'VetCare - Dashboard Dokter';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- Memuat pustaka TinyMCE lokal dari folder assets -->
-    <script src="public/assets/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="/public/assets/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
 
     <style>
         /* Memastikan editor memiliki sudut melengkung agar serasi dengan form */

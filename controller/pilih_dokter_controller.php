@@ -15,7 +15,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_detail' && isset($_GET['i
     ob_clean();
     header('Content-Type: application/json');
 
-    $idDokter = (int) $_GET['id'];
+    $hashId = hashId($_GET['id'], false);
+    $idDokter = (int) $hashId;
 
     // Buat objek dummy hanya untuk menampung ID
     // Kita perlu trick sedikit karena getInfoDokter butuh objek DTO

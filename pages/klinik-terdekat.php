@@ -83,7 +83,7 @@ foreach ($raw_locations as $loc) {
                         <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">🏥</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Klinik Terdaftar</h3>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Klinik Terdaftar di wilayah Anda</h3>
                         <p class="text-gray-600">Saat ini belum ada klinik yang terdaftar dalam sistem.</p>
                     </div>
                 <?php else: ?>

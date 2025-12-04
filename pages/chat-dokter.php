@@ -1,6 +1,3 @@
-<?php
-requireLogin(false)
-?>
 <style>
     /* Sembunyikan footer situs utama (yang menggunakan tag footer) agar tampilan chat fullscreen */
     body>footer,
