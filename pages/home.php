@@ -1,7 +1,6 @@
-<!-- Main Content -->
-<main>
+
     <!-- Hero Section with Doctor Profile -->
-    <section class="relative pt-32 pb-20 overflow-hidden">
+    <section class="relative pb-20 overflow-hidden">
         <!-- gradient background - set pointer-events-none so it doesn't block buttons -->
         <div class="absolute inset-0 bg-gradient-hero opacity-10 pointer-events-none"></div>
 
@@ -66,7 +65,7 @@
                         </div>
 
                         <!-- Doctor Card -->
-                        <div
+                          <div
                             class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
                             <div id="doctor-profile-image"
                                 class="w-full aspect-square bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl mb-6 flex items-center justify-center overflow-hidden relative">
@@ -443,7 +442,6 @@
             </div>
         </div>
     </section>
-</main>
 
 <style>
     .slideshow-container {

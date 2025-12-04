@@ -413,7 +413,10 @@ function adjustBodyPaddingForHeader() {
         var hdr = document.querySelector('header');
         if (!hdr) return;
         var height = hdr.offsetHeight || 0;
-        document.body.style.paddingTop = height + 'px';
+        var wrapper = document.querySelector('.min-h-screen');
+        if (wrapper) {
+            wrapper.style.paddingTop = height + 'px';
+        }
     } catch (e) {
         // fail silently
         console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
