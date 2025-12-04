@@ -15,7 +15,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $dokter = isset($_SESSION['dokter']);
 
 $route = isset($_GET['route']) ? $_GET['route'] : ($dokter ? 'dashboard-dokter' : '');
-$action = isset($_GET['aksi']) ? $_GET['aksi'] : '';
+$action = isset($_GET['aksi']) ? $_GET['aksi'] : ''; //permintaan ajax (JS)
 
 // Define page variables
 $pageTitle = '';
@@ -119,7 +119,12 @@ if ($action) {
                 $httpCode = 400;
             }
             break;
-
+        case 'logout':
+            session_unset();
+            session_destroy();
+            $response = ['success' => true, 'message' => 'berrhasil logout'];
+            $httpCode = 200;
+            break;
         default:
             $response = ['success' => false, 'message' => 'Aksi tidak valid.'];
             $httpCode = 404;
@@ -151,9 +156,9 @@ switch ($route) {
         header('Location: pages/dokter/home_dokter.php');
         exit();
     case 'logout':
-        session_unset();    // Hapus semua session variables
-        session_destroy();  // Destroy session
-        header('Location: ?route='); // Redirect ke home
+        session_unset();
+        session_destroy();
+        header('Location: ?route=');
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
