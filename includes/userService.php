@@ -62,8 +62,9 @@ enum index_email
 function censorEmail(string $email)
 {
     $atpos = strpos($email, '@');
-    if ($atpos <= 2)
+    if ($atpos <= 2){
         return $email;
+    }
 
     $uName = substr($email, 0, $atpos);
     $domain = substr($email, $atpos);
@@ -78,9 +79,15 @@ function censorEmail(string $email)
     $mask = $uNameLength - $vis - 2;
     if ($mask < 1) {
         $mask = 1;
+    }else{
+        $mask = 5;
     }
+
     $masked = str_repeat('*', $mask);
 
+    if($atpos <= 4){
+        return substr($uName, 0, 2) . '*' . $domain;
+    }
     return $start . $masked . $end . $domain;
 }
 
