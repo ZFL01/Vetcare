@@ -1,5 +1,6 @@
 <?php
 require_once 'DAO_user.php';
+require_once 'database.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -253,7 +254,7 @@ class emailService
                 return [false, "Gagal"];
             }
         } catch (Exception $e) {
-            error_log("userService::verifyEmail" . $e->getMessage());
+            error_log("userService::verifyEmail" . $e->getMessage(), 3, ERROR_LOG_FILE);
             return [false, 'Gagal mengirim email token! ' . DAO_pengguna::$pesan];
         }
     }

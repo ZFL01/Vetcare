@@ -163,6 +163,7 @@ switch ($route) {
         $pageDescription = 'Masuk atau daftar akun VetCare';
         $contentFile = 'pages/auth.php';
         $noHeaderFooter = true;
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'auth-dokter':
         $pageTitle = 'Masuk/Daftar Dokter - VetCare';
@@ -170,28 +171,33 @@ switch ($route) {
         $contentFile = 'pages/auth-dokter.php';
         $noHeaderFooter = true;
         $ajaxLoad = true;
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'dashboard-dokter':
         requireLogin(true);
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
         header('Location: pages/dokter/home_dokter.php');
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         exit();
     case 'logout':
         session_unset();
         session_destroy();
         header('Location: ?route=');
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
         $pageTitle = 'Dashboard Member - VetCare';
         $pageDescription = 'Area akun member dan riwayat konsultasi.';
         $contentFile = 'pages/home.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'pilih-dokter':
         $pageTitle = 'Pilih Dokter - VetCare';
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
         $contentFile = 'pages/pilih-dokter.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'admin':
         header('Location: ' . BASE_URL . 'admin/');
@@ -202,6 +208,7 @@ switch ($route) {
         $pageTitle = 'Tanya Jawab - VetCare';
         $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
         $contentFile = 'pages/Tanya-Jawab.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'chat':
         requireLogin(false);
@@ -209,6 +216,7 @@ switch ($route) {
         $pageTitle = 'Chat dengan Dokter - VetCare';
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     case 'profil':
         requireLogin(true);
@@ -218,6 +226,7 @@ switch ($route) {
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
         $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -229,6 +238,7 @@ switch ($route) {
         $pageTitle = 'Mencari Klinik Hewan Terdekat - VetCare';
         $pageDescription = 'Temukan klinik hewan terdekat dari lokasi Anda';
         $contentFile = 'pages/klinik-terdekat.php';
+        error_log("Route". $route. "accessed on root :". ROOT_DIR. $contentFile, 3, ACTIVITY_LOG_FILE);
         break;
     // ...
     default:

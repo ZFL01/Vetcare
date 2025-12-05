@@ -334,4 +334,5 @@ define('MONGODB_DBNAME', 'klinikH');
 define('SALT_HASH', 'iniSaltHashKlinikH');
 define('HASH_LENGTH', 8);
 
+define('ACTIVITY_LOG_FILE', __DIR__ . '/../VetCare logs/Activity.log');
 ?>
