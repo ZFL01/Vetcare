@@ -1,10 +1,9 @@
 <?php
 require_once __DIR__ . '/dao_chat.php';
-require_once __DIR__ . '/../includes/DAO_User.php';
-require_once __DIR__ . '/../includes/DAO_Dokter.php';
+require_once __DIR__ . '/../includes/DAO_user.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
 require_once __DIR__ . '/../src/config/config.php';
-
 
 function initChat($idChat, $idDokter, $idUser, $formKonsul)
 {
@@ -86,7 +85,7 @@ if (isset($_GET['action'])) {
         } else {
             $idDokter = hashId($dokterId, false);
             $idChat .= $idDokter;
-            error_log("ini id chat : ".$idChat);
+            error_log("ini id chat : " . $idChat);
             $hashedIdChat = md5($idChat);
             $result = initChat($hashedIdChat, $idDokter, $idUser, $formKonsul);
             $response = $result;
