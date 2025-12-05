@@ -1,5 +1,6 @@
 <?php
 require_once 'DAO_user.php';
+require_once 'database.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -109,7 +110,7 @@ class userService
 
     static function deleteUser(int $dat)
     {
-        error_log("hapus : " . $dat);
+        custom_log("hapus : " . $dat, LOG_TYPE::ACTIVITY);
         return DAO_pengguna::deleteUser($dat);
     }
 
@@ -174,7 +175,7 @@ class apiControl
 
         if ($json === FALSE) {
             // Gagal mengambil data (timeout, jaringan, atau API key salah)
-            error_log("LocationIQ Request Failed.");
+            custom_log("LocationIQ Request Failed.", LOG_TYPE::ACTIVITY);
             return [false, 'Tidak Diketahui'];
         }
         $dat = json_decode($json, true);
@@ -253,7 +254,7 @@ class emailService
                 return [false, "Gagal"];
             }
         } catch (Exception $e) {
-            error_log("userService::verifyEmail" . $e->getMessage());
+            custom_log("userService::verifyEmail" . $e->getMessage(), LOG_TYPE::ERROR);
             return [false, 'Gagal mengirim email token! ' . DAO_pengguna::$pesan];
         }
     }

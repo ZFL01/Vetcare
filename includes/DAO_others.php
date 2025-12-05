@@ -1,7 +1,4 @@
 <?php
-include_once 'database.php';
-require_once 'userService.php';
-require_once 'DAO_dokter.php';
 
 class Location
 {
@@ -119,6 +116,9 @@ class DTO_Tag implements JsonSerializable
     }
 }
 
+include_once 'database.php';
+require_once 'userService.php';
+require_once 'DAO_dokter.php';
 class DTO_tanyajawab
 {
     private ?int $idTanya = null;
@@ -233,7 +233,7 @@ class DAO_location
             }
             return $dto;
         } catch (PDOException $e) {
-            error_log("[DAO_location::getAllLocation]: " . $e->getMessage());
+            custom_log("[DAO_location::getAllLocation]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -253,7 +253,7 @@ class DAO_location
             $stmt->execute($params);
             return $ada ? true : $conn->lastInsertId();
         } catch (PDOException $e) {
-            error_log("[DAO_location::insertLocation]: " . $e->getMessage());
+            custom_log("[DAO_location::insertLocation]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -279,7 +279,7 @@ class DAO_Tag
             }
             return $dto;
         } catch (PDOException $e) {
-            error_log("[DAO_others::getAllTags]: " . $e->getMessage());
+            custom_log("[DAO_others::getAllTags]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -292,7 +292,7 @@ class DAO_Tag
             $stmt->execute([$tag]);
             return $conn->lastInsertId();
         } catch (PDOException $e) {
-            error_log("[DAO_others::insertTag]: " . $e->getMessage());
+            custom_log("[DAO_others::insertTag]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -341,7 +341,7 @@ class DAO_Tanya
             }
             return $dto;
         } catch (PDOException $e) {
-            error_log("[DAO_others::previewAll]: " . $e->getMessage());
+            custom_log("[DAO_others::previewAll]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -354,7 +354,7 @@ class DAO_Tanya
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getIdUser(), $dat->getUser(), $dat->getJudul(), $dat->getDeskripsi(), $dat->getTag()]);
         } catch (PDOException $e) {
-            error_log('[DAO_others::insertAsk]: ' . $e->getMessage());
+            custom_log('[DAO_others::insertAsk]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -376,7 +376,7 @@ class DAO_Tanya
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log('[DAO_others::delAsk]: ' . $e->getMessage());
+            custom_log('[DAO_others::delAsk]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -414,7 +414,7 @@ class DAO_Tanya
             );
             return $obj;
         } catch (PDOException $e) {
-            error_log("[DAO_others::showAnswer]: " . $e->getMessage());
+            custom_log("[DAO_others::showAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -427,7 +427,7 @@ class DAO_Tanya
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getIdTanya(), $dat->getIdDokter(), $dat->getDokter(), $dat->getJawaban()]);
         } catch (PDOException $e) {
-            error_log("[DAO_others::insertAnswer]: " . $e->getMessage());
+            custom_log("[DAO_others::insertAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -440,7 +440,7 @@ class DAO_Tanya
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getJawaban(), $dat->getIdTanya()]);
         } catch (PDOException $e) {
-            error_log("[DAO_others::updateAnswer]: " . $e->getMessage());
+            custom_log("[DAO_others::updateAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -516,7 +516,7 @@ class DAO_chat
             }
             return $dto;
         } catch (PDOException $e) {
-            error_log("[DAO_others::getAllChats]: " . $e->getMessage());
+            custom_log("[DAO_others::getAllChats]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -544,7 +544,7 @@ class DAO_chat
             }
             return $obj;
         } catch (PDOException $e) {
-            error_log("[DAO_others::findChatRoom]: " . $e->getMessage());
+            custom_log("[DAO_others::findChatRoom]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return null;
         }
     }
@@ -587,7 +587,7 @@ class DAO_chat
             }
             return $obj;
         } catch (PDOException $e) {
-            error_log("[DAO_others::thisChatRoom]: " . $e->getMessage());
+            custom_log("[DAO_others::thisChatRoom]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return null;
         }
     }
@@ -603,7 +603,7 @@ class DAO_chat
             $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $hasil;
         } catch (PDOException $e) {
-            error_log("[DAO_others::getRating]: " . $e->getMessage());
+            custom_log("[DAO_others::getRating]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -628,7 +628,7 @@ class DAO_chat
                 return true;
             }
         } catch (PDOException $e) {
-            error_log("[DAO_others::registChatRoom]: " . $e->getMessage());
+            custom_log("[DAO_others::registChatRoom]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -641,7 +641,7 @@ class DAO_chat
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$liked, $idChat]);
         } catch (PDOException $e) {
-            error_log("[DAO_others::updateLogMessage]: " . $e->getMessage());
+            custom_log("[DAO_others::updateLogMessage]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }

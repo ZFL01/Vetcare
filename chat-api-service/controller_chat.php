@@ -2,8 +2,15 @@
 require_once __DIR__ . '/dao_chat.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../includes/DAO_user.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
 require_once __DIR__ . '/../src/config/config.php';
+
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 function initChat($idChat, $idDokter, $idUser, $formKonsul)
 {
@@ -35,7 +42,7 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
                 $message = "Chat room berhasil dibuat dan formulir tersimpan.";
             } else {
                 // Penanganan jika simpan form gagal, tapi chat sudah dibuat di MySQL
-                error_log("Gagal menyimpan form ke MongoDB: " . $form);
+                custom_log("Gagal menyimpan form ke MongoDB: " . $form, LOG_TYPE::ERROR);
                 return ['success' => false, 'message' => 'Gagal membuat Formulir.'];
             }
             $chatId = $idChat;
@@ -85,7 +92,7 @@ if (isset($_GET['action'])) {
         } else {
             $idDokter = hashId($dokterId, false);
             $idChat .= $idDokter;
-            error_log("ini id chat : " . $idChat);
+            custom_log("ini id chat : " . $idChat, LOG_TYPE::ACTIVITY);
             $hashedIdChat = md5($idChat);
             $result = initChat($hashedIdChat, $idDokter, $idUser, $formKonsul);
             $response = $result;

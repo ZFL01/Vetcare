@@ -7,11 +7,6 @@
 // Include database class
 require_once __DIR__ . '/../../includes/database.php';
 
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
 
@@ -333,5 +328,28 @@ define('MONGODB_DBNAME', 'klinikH');
 
 define('SALT_HASH', 'iniSaltHashKlinikH');
 define('HASH_LENGTH', 8);
+
+
+define('ACTIVITY_LOG_FILE', __DIR__ . '/../VetCare logs/Activity.log');
+define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
+define('ROUTING_LOG_FILE', __DIR__ . '/../Vetcare logs/routing.log');
+
+enum LOG_TYPE{
+    case ACTIVITY;
+    case ERROR;
+    case ROUTING;
+}
+
+function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR) {
+    $timestamp = date('Y-m-d H:i:s');
+    $log_entry = "[{$timestamp}] {$message}\n"; // Format + newline
+    $dest = match ($type) {
+        LOG_TYPE::ACTIVITY => ACTIVITY_LOG_FILE,
+        LOG_TYPE::ERROR => ERROR_LOG_FILE,
+        LOG_TYPE::ROUTING => ROUTING_LOG_FILE,
+    };
+
+    error_log($log_entry, 3, $dest);
+}
 
 ?>
