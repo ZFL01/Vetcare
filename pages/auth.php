@@ -284,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $content = showForgotPasswordForm();
         } else {
             $objUser = new DTO_pengguna(email: $validEmail);
-            $user = userService::sendEmail($objUser, index_email::Forgot);
+            $user = emailService::sendEmail($objUser, index_email::FORGOT->getData());
             if (!$user[0]) {
                 $message = $user[1];
                 setFlash('error', $message);

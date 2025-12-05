@@ -18,7 +18,7 @@ class DTO_chat implements JsonSerializable{
     function __construct(
         private ?string $idChat=null,
         private ?int $idUser=null,
-        private ?int $idDokter=null,
+        private string | int | null $idDokter=null,
         private ?string $email=null,
         private ?string $namaDokter=null,
         private ?string $waktuSelesai=null,

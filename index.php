@@ -29,6 +29,28 @@ $data = null;
 //logika controller
 if ($action) {
     header('Content-Type: application/json');
+
+    if ($action === 'sendComplaint') {
+        $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        if (empty($head) || strtolower($head) !== 'xmlhttprequest') {
+            http_response_code(403);
+            exit();
+        }
+        $email = $_POST['email'] ?? '';
+        $pesan = $_POST['pesan'] ?? '';
+        $reason = $email . '<br><br>' . $pesan;
+
+        $dat = new DTO_pengguna(email:$email);
+        $status = emailService::sendEmail($dat, index_email::COMPLAINT->getData($reason));
+
+        if ($status) {
+            echo json_encode(['success' => true, 'message' => "Komplain Anda sudah kami terima, Terima kasih atas perhatiannya"]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Silahkan hubungi lewat nomor WA yang tercantum.']);
+        }
+        exit();
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);

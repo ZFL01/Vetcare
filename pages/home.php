@@ -346,13 +346,13 @@
                     <div class="text-center p-6 bg-purple-50 rounded-2xl">
                         <div class="text-4xl mb-3">📞</div>
                         <h3 class="font-display font-bold text-gray-900 mb-2">Telepon</h3>
-                        <p class="text-gray-600">+62 811-2233-4455</p>
+                        <p class="text-gray-600">+62 823-5068-7089</p>
                     </div>
 
                     <div class="text-center p-6 bg-purple-50 rounded-2xl">
                         <div class="text-4xl mb-3">📧</div>
                         <h3 class="font-display font-bold text-gray-900 mb-2">Email</h3>
-                        <p class="text-gray-600">info@vethewan.co.id</p>
+                        <p class="text-gray-600">svenhikari@gmail.com</p>
                     </div>
 
                     <div class="text-center p-6 bg-purple-50 rounded-2xl">
@@ -363,24 +363,18 @@
                 </div>
 
                 <div class="bg-gradient-to-br from-purple-50 to-white border-2 border-purple-100 rounded-3xl p-8">
-                    <form class="space-y-6">
+                    <form id="contactForm" method="POST" class="space-y-6">
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-gray-700 font-medium mb-2">Nama</label>
-                                <input type="text"
-                                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
-                                    placeholder="Nama lengkap Anda">
-                            </div>
-                            <div>
                                 <label class="block text-gray-700 font-medium mb-2">Email</label>
-                                <input type="email"
+                                <input type="email" name="email"
                                     class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
                                     placeholder="email@example.com">
                             </div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Pesan</label>
-                            <textarea rows="5"
+                            <textarea rows="5" name="pesan"
                                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
                                 placeholder="Tulis pesan Anda di sini..."></textarea>
                         </div>
@@ -533,4 +527,59 @@
         showSlide(currentSlide);
         setInterval(nextSlide, 2500); // Change slide every 5 seconds
     });
+
+    function handleSubmitComplaint(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // 1. Kumpulkan Data Formulir
+        const formData = new FormData(form);
+
+        // 2. Tampilkan Loading dan Nonaktifkan Tombol
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'mengirim email....';
+
+        // 3. Konfigurasi Fetch Request
+        fetch("/?aksi=sendComplaint", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                // Cek status code (terutama 200 OK atau error)
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 4. Handle Respon Sukses
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+
+                if (data.success) {
+                    alert(data.message || 'Komplain Anda sudah kami terima, Terima kasih atas perhatiannya');
+                    location.reload();
+                } else {
+                    alert('Gagal mengirim email: ' + (data.message || 'Terjadi kesalahan server.'));
+                }
+            })
+            .catch(error => {
+                // 5. Handle Error
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                console.error('Error saat submit form komplain:', error);
+                alert('Terjadi kesalahan koneksi atau server: ' + error.message);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('contactForm').addEventListener('submit', handleSubmitComplaint);
+    });
+
 </script>
