@@ -1,0 +1,72 @@
+[05-Dec-2025 15:21:58 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:21:58 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(55): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(97): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:24:14 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:24:14 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(176): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(39): DAO_MongoDB_Chat::insertConsultationForm()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(97): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:26:48 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:26:48 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(55): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(99): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:30:01 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:30:01 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(55): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(105): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:33:16 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:33:16 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(59): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(109): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:36:55 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:36:55 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(69): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(119): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:43:01 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:43:01 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(124): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(72): DAO_MongoDB_Chat::findChatRoom()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(148): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
+[05-Dec-2025 15:45:45 Asia/Jakarta] PHP Warning:  error_log(/home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/../VetCare logs/Activity.log): Failed to open stream: No such file or directory in /home/mifmyho2/eaude-vetcare.mif.myhost.id/src/config/config.php on line 352
+[05-Dec-2025 15:45:45 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Class "MongoDB\Driver\Manager" not found in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php:118
+Stack trace:
+#0 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(19): MongoDB\Client->__construct()
+#1 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/dao_chat.php(176): DAO_MongoDB_Chat::getDb()
+#2 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(53): DAO_MongoDB_Chat::insertConsultationForm()
+#3 /home/mifmyho2/eaude-vetcare.mif.myhost.id/chat-api-service/controller_chat.php(144): initChat()
+#4 {main}
+  thrown in /home/mifmyho2/eaude-vetcare.mif.myhost.id/vendor/mongodb/mongodb/src/Client.php on line 118
