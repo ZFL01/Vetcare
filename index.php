@@ -176,14 +176,15 @@ switch ($route) {
         requireLogin(true);
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
-        header('Location: pages/dokter/home_dokter.php');
+        $contentFile = 'pages/dokter/home_dokter.php';
+        header('Location: '. $contentFile);
         custom_log("Route {". $route. "} accessed on root :". ROOT_DIR. '/'. $contentFile, LOG_TYPE::ROUTING);
         exit();
     case 'logout':
         session_unset();
         session_destroy();
         header('Location: ?route=');
-        custom_log("Route {". $route. "} accessed on root :". ROOT_DIR. '/'. $contentFile, LOG_TYPE::ROUTING);
+        custom_log("Route {". $route. "} :", LOG_TYPE::ROUTING);
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':

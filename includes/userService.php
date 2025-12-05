@@ -160,7 +160,7 @@ class userService
         return [true];
     }
 }
-//pk.f36f3d13ab6674ab62602323da859b26
+
 class apiControl
 {
     static function getCityProvince($lat, $lng)
@@ -226,15 +226,24 @@ class emailService
     {
         $mail = new PHPMailer(true);
         try {
+            $mail->SMTPDebug = 2;
+            $mail->Debugoutput = function ($str, $level) {
+                custom_log("SMTP Debug: $str"); // Masukkan ke log kamu
+            };
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'svenhikari@gmail.com';
-            $mail->Password = 'adgr jymt rqmf qkdv';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port = 465;
+            $mail->Host = 'localhost';
+            $mail->SMTPAuth = false;
+            $mail->SMTPAutoTLS = false;
+            $mail->Port = 25;
+            $mail->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
 
-            $mail->setFrom('svenhikari@gmail.com', $data['subject']);
+            $mail->setFrom('noreply@eaude-vetcare.mif.myhost.id', $data['subject']);
             $mail->addAddress($recipientEmail);
             $mail->Subject = $data['subject'];
             $mail->isHTML(true);
