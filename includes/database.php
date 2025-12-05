@@ -1,8 +1,6 @@
 <?php
 // Database connection configuration for MySQL
 
-define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
-
 class Database{
     private static $host = 'localhost';
     private static $port = '3306';
@@ -24,7 +22,7 @@ class Database{
                     PDO::ATTR_EMULATE_PREPARES => false,
                 ]);
             } catch (PDOException $e) {
-                error_log("Database connection failed: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+                custom_log("Database connection failed: " . $e->getMessage(), LOG_TYPE::ERROR);
                 throw new \RuntimeException("Tidak dapat tersambung ke database");
             }
         }

@@ -9,8 +9,6 @@ function hashId($id, bool $encode = true)
     return $encode ? $hashId->encode($id) : $hashId->decode($id)[0];
 }
 
-include_once 'database.php';
-
 class DTO_kateg implements JsonSerializable
 {
     function __construct(private ?int $id = null, private ?string $namaKateg = null)
@@ -249,6 +247,9 @@ class DTO_dokter implements JsonSerializable
     }
 }
 
+
+include_once 'database.php';
+
 class DAO_kategori
 {
     static function getAllKategori()
@@ -269,7 +270,7 @@ class DAO_kategori
             }
             return $kateg;
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::getAllKategori] : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("[DAO_dokter::getAllKategori] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -282,7 +283,7 @@ class DAO_kategori
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getNamaKateg()]);
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::newKategori] : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("[DAO_dokter::newKategori] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -295,7 +296,7 @@ class DAO_kategori
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getNamaKateg(), $dat->getIdK()]);
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::updateKateg] : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("[DAO_dokter::updateKateg] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -308,7 +309,7 @@ class DAO_kategori
             $stmt = $conn->prepare($sql);
             return $stmt->execute([$dat->getIdK()]);
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::delKateg] : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("[DAO_dokter::delKateg] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -407,7 +408,7 @@ class DAO_dokter
             return $DTO_dokter;
 
         } catch (PDOException $e) {
-            error_log("DAO_dokter::getAllDokter :" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::getAllDokter :" . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -453,7 +454,7 @@ class DAO_dokter
             }
             return $obj;
         } catch (PDOException $e) {
-            error_log("DAO_dokter::getTop3Dokter :" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::getTop3Dokter :" . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -475,7 +476,7 @@ class DAO_dokter
             $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $hasil;
         } catch (PDOException $e) {
-            error_log('[DAO_dokter::allDoktersLocations]: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('[DAO_dokter::allDoktersLocations]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -494,7 +495,7 @@ class DAO_dokter
             $data->setDocPath($hasil['path_sip'], $hasil['path_strv']);
             return true;
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::manageDokter] : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("[DAO_dokter::manageDokter] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -541,7 +542,7 @@ class DAO_dokter
             return $DTO_dokter;
 
         } catch (PDOException $e) {
-            error_log("DAO_dokter::getAllDokter :" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::getAllDokter :" . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -589,7 +590,7 @@ class DAO_dokter
             $dokter->setStatus($profil['status']);
             return $dokter;
         } catch (PDOException $e) {
-            error_log('[DAO_Dokter::getProfilDokter]: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('[DAO_Dokter::getProfilDokter]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -608,7 +609,7 @@ class DAO_dokter
             $dat->setInfoDokter($hasil);
             return true;
         } catch (PDOException $e) {
-            error_log('[DAO_dokter::getAlamat]: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('[DAO_dokter::getAlamat]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -634,7 +635,7 @@ class DAO_dokter
             }
             return $jadwal;
         } catch (PDOException $e) {
-            error_log('[DAO_dokter::getJadwal]: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('[DAO_dokter::getJadwal]: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
@@ -657,7 +658,7 @@ class DAO_dokter
             $dat->setInfoDokter($detail);
             return true;
         } catch (PDOException $e) {
-            error_log("DAO_dokter::getInfoDokter :" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::getInfoDokter :" . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -710,7 +711,7 @@ class DAO_dokter
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::insertDokter :" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::insertDokter :" . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -742,7 +743,7 @@ class DAO_dokter
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::setkategDokter {$update} : " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::setkategDokter {$update} : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -783,7 +784,7 @@ class DAO_dokter
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::setJadwalStructured Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::setJadwalStructured Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }
@@ -806,8 +807,8 @@ class DAO_dokter
             $hasil = $stmt->execute([$nKlinik, $lat, $long]);
             return [$hasil, 'update/insert'];
         } catch (PDOException $e) {
-            error_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage(), 3, ERROR_LOG_FILE);
-            return [false, "error saat {$update} : " . $e->getMessage(), 3, ERROR_LOG_FILE];
+            custom_log("[DAO_dokter::setLokasi] {$update} : " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [false, "error saat {$update} : " . $e->getMessage()];
         }
     }
 
@@ -825,8 +826,8 @@ class DAO_dokter
                 $data->getId()
             ]);
         } catch (PDOException $e) {
-            error_log("DAO_dokter::updateDocument: " . $e->getMessage(), 3, ERROR_LOG_FILE);
-            return [false, $e->getMessage(), 3, ERROR_LOG_FILE];
+            custom_log("DAO_dokter::updateDocument: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [false, $e->getMessage()];
         }
     }
 
@@ -860,8 +861,8 @@ class DAO_dokter
                 ]);
             }
         } catch (PDOException $e) {
-            error_log("DAO_dokter::updateDokter {admin = $admin}: " . $e->getMessage(), 3, ERROR_LOG_FILE);
-            return [false, $e->getMessage(), 3, ERROR_LOG_FILE];
+            custom_log("DAO_dokter::updateDokter {admin = $admin}: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [false, $e->getMessage()];
         }
     }
 
@@ -886,7 +887,7 @@ class DAO_dokter
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            error_log("DAO_dokter::deleteDokter" . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("DAO_dokter::deleteDokter" . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
         }
     }

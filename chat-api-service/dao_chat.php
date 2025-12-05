@@ -20,7 +20,7 @@ class DAO_MongoDB_Chat
             self::$db = self::$client->selectDatabase(MONGODB_DBNAME);
             return self::$db;
         } catch (Exception $e) {
-            error_log('Gagal koneksi ke MongoDB: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('Gagal koneksi ke MongoDB: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return null;
         }
     }
@@ -58,10 +58,10 @@ class DAO_MongoDB_Chat
             }
             return true;
         } catch (\MongoDB\Driver\Exception\Exception $e) {
-            error_log('MongoDB insert error: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('MongoDB insert error: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return 'Gagal menyimpan pesan: ' . $e->getMessage();
         } catch (Exception $e) {
-            error_log("General Chat Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("General Chat Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Terjadi kesalahan umum: " . $e->getMessage();
         }
     }
@@ -111,10 +111,10 @@ class DAO_MongoDB_Chat
             return $formattedMessages;
 
         } catch (\MongoDB\Driver\Exception\Exception $e) {
-            error_log("MongoDB Retrieve Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("MongoDB Retrieve Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Gagal mengambil pesan: " . $e->getMessage();
         } catch (Exception $e) {
-            error_log("General Chat Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("General Chat Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Terjadi kesalahan umum saat Polling: " . $e->getMessage();
         }
     }
@@ -131,7 +131,7 @@ class DAO_MongoDB_Chat
             $document = $chatsCollection->findOne(['_id' => $mysqlChatId]);
             return $document;
         } catch (Exception $e) {
-            error_log("MongoDB findChatRoom Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("MongoDB findChatRoom Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return null;
         }
     }
@@ -163,10 +163,10 @@ class DAO_MongoDB_Chat
             return 'Gagal memasukkan dokumen chat baru.';
 
         } catch (\MongoDB\Driver\Exception\Exception $e) {
-            error_log('MongoDB create error: ' . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log('MongoDB create error: ' . $e->getMessage(), LOG_TYPE::ERROR);
             return 'Gagal membuat room chat: ' . $e->getMessage();
         } catch (Exception $e) {
-            error_log("General Chat Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("General Chat Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Terjadi kesalahan umum: " . $e->getMessage();
         }
     }
@@ -192,7 +192,7 @@ class DAO_MongoDB_Chat
                 return 'Gagal menyimpan formulir.';
             }
         } catch (\Exception $e) {
-            error_log("MongoDB Form Insert Error: " . $e->getMessage(), 3, ERROR_LOG_FILE);
+            custom_log("MongoDB Form Insert Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Gagal menyimpan formulir: " . $e->getMessage();
         }
     }
