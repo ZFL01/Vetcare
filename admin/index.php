@@ -32,7 +32,7 @@ switch ($route) {
         break;
     case 'logout':
         session_destroy();
-        header('Location: ?access=auth');
+        header('Location: ../');
         exit;
     default:
         $isValid = false;

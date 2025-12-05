@@ -39,3 +39,9 @@
 [2025-12-06 00:09:04] Route {logout} accessed on root :Z:\laragon\www\Vetcare/
 [2025-12-06 00:09:06] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
 [2025-12-06 00:09:18] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:48:16] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:48:23] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:50:19] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:50:27] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:51:28] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 00:51:29] Route {dashboard-dokter} accessed on root :Z:\laragon\www\Vetcare/

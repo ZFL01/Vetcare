@@ -16,3 +16,4 @@
 [2025-12-06 00:13:04] DAO_dokter::updateDokter {admin = 1}: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '123123' for key 'm_dokter.STRV'
 [2025-12-06 00:18:28] DAO_dokter::updateDokter {admin = 1}: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '123123' for key 'm_dokter.STRV'
 [2025-12-06 00:19:59] DAO_dokter::updateDokter {admin = 1}: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '123123' for key 'm_dokter.STRV'
+[2025-12-06 00:51:29] [DAO_others::getAllChats]: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'T1.id_chat' in 'field list'

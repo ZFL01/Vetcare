@@ -19,7 +19,8 @@ if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {
 // Handle logout
 if (isset($_POST['admin-logout'])) {
     session_destroy();
-    header('Location: login.php');
+    // Redirect to member homepage (go up one directory from /admin/)
+    header('Location: ../');
     exit;
 }
 
