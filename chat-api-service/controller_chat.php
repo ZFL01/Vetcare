@@ -2,8 +2,6 @@
 require_once __DIR__ . '/dao_chat.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
-require_once __DIR__ . '/../includes/DAO_user.php';
-require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
 require_once __DIR__ . '/../src/config/config.php';
 
