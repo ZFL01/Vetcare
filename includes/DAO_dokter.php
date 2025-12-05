@@ -481,19 +481,18 @@ class DAO_dokter
         }
     }
 
-    static function manageDokter(DTO_dokter $data)
+    static function manageDokter($id)
     {
         $conn = Database::getConnection();
         try {
             $sql = 'select * from m_doc_dokter where id_dokter = ?';
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$data->getId()]);
+            $stmt->execute([$id]);
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($hasil == null) {
                 return null;
             }
-            $data->setDocPath($hasil['path_sip'], $hasil['path_strv']);
-            return true;
+            return $hasil;
         } catch (PDOException $e) {
             custom_log("[DAO_dokter::manageDokter] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
@@ -504,7 +503,7 @@ class DAO_dokter
     {
         $conn = Database::getConnection();
         try {
-            $queryDokter = "select d.id_dokter, d.nama_dokter, d.ttl, d.exp_strv,
+            $queryDokter = "select d.id_dokter, d.nama_dokter, d.ttl, d.sip, d.strv, d.exp_strv,
             d.exp_sip, d.kabupaten, d.provinsi, d.rate, d.status from m_dokter as d order by d.id_dokter desc";
 
             $stmt = $conn->prepare($queryDokter);
