@@ -78,7 +78,6 @@ if (isset($_GET['action'])) {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
-        error_log("adakah? ". (isset($_SESSION['user'])));
         $idUser = $_SESSION['user']->getIdUser();
         $dokterId = $data['id_dokter'] ?? null;
         $idChat = $data['id_chat'] ?? null;
@@ -91,7 +90,7 @@ if (isset($_GET['action'])) {
         } else {
             $idDokter = hashId($dokterId, false);
             $idChat .= $idDokter;
-            custom_log("ini id chat : ".$idChat, LOG_TYPE::ACTIVITY);
+            custom_log("ini id chat : " . $idChat, LOG_TYPE::ACTIVITY);
             $hashedIdChat = md5($idChat);
             $result = initChat($hashedIdChat, $idDokter, $idUser, $formKonsul);
             $response = $result;

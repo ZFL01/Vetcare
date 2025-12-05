@@ -5,11 +5,12 @@
 require_once __DIR__ . '/../../includes/database.php';
 require_once __DIR__ . '/../../includes/DAO_dokter.php';
 require_once __DIR__ . '/../../includes/DAO_user.php';
-require_once __DIR__ . '/../../includes/DAO_Article.php';
 require_once __DIR__ . '/../../includes/DAO_others.php';
-
-// Sekarang baru load config.php (yang melakukan session_start)
 require_once __DIR__ . '/../../src/config/config.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Sekarang panggil requireLogin setelah semua class di-load
 requireLogin(true);
