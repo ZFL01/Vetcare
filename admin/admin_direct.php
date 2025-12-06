@@ -81,10 +81,10 @@ $stats['approved'] = 0;
 $pendingVets = [];
 $activeVets = [];
 foreach ($vets as $vet) {
-    $stats['pending'] += $vet->getStatus() == 'pending' ? 1 : 0;
+    $stats['pending'] += $vet->getStatus() == 'nonaktif' ? 1 : 0;
     $stats['approved'] += $vet->getStatus() == 'aktif' ? 1 : 0;
 
-    if ($vet->getStatus() === 'pending') {
+    if ($vet->getStatus() === 'nonaktif') {
         $pendingVets[] = $vet;
     } elseif ($vet->getStatus() === 'aktif') {
         $activeVets[] = $vet;
@@ -139,10 +139,12 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                                 <p class="text-purple-100 text-xs mt-2">Terdaftar</p>
                             </div>
                             <div class="bg-white/20 p-3 rounded-xl">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+  <path stroke-linecap="round" stroke-linejoin="round"
+    d="M12 4.75c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 10c-3.7 0-7 2-7 4.5v.75c0 .6.4 1 1 1h12c.6 0 1-.4 1-1v-.75c0-2.5-3.3-4.5-7-4.5z"/>
+</svg>
+
+
                             </div>
                         </div>
                     </div>
@@ -181,9 +183,19 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                 </div>
 
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🗺️ Sebaran Lokasi Praktik Dokter</h2>
-                    <div id="mapContainer"
-                        class="w-full h-96 rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg"></div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 Dashboard Analitik Dokter</h2>
+                    <div class="w-full h-[600px] rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg">
+                        <iframe
+                            title="visualisasi_data_all"
+                            class="w-full h-full"
+                            src="https://app.powerbi.com/view?r=eyJrIjoiYzRiYjBkZjQtNmJhOS00MDk2LWI3Y2MtMDMwNzkyZjkyY2U2IiwidCI6ImE2OWUxOWU4LWYwYTQtNGU3Ny1iZmY2LTk1NjRjODgxOWIxNCJ9"
+                            frameborder="0"
+                            allowFullScreen="true"
+                            loading="lazy"></iframe>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-3 text-center">
+                        Dashboard Power BI menampilkan analisis lengkap sebaran lokasi, kategori spesialisasi, dan statistik dokter
+                    </p>
                 </div>
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
                     <div class="flex items-center justify-between mb-6">
@@ -402,8 +414,8 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                     </div>
                 </div>
             </div>
-            <?php if ($activeTab === 'categories'): 
-                $categories = DAO_kategori::getAllKategori();?>
+            <?php if ($activeTab === 'categories'):
+                $categories = DAO_kategori::getAllKategori(); ?>
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
                     <div class="flex justify-between items-center mb-8 pb-6 border-b-2 border-purple-200">
                         <div>
@@ -422,7 +434,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <?php foreach ($categories as $cat):
-                            ?>
+                        ?>
                             <div
                                 class="group bg-gradient-to-br from-white to-purple-50 border-2 border-purple-200 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition transform duration-300">
                                 <div class="mb-4">
@@ -547,7 +559,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                     }
 
                     // Close modal when clicking outside
-                    window.addEventListener('click', function (event) {
+                    window.addEventListener('click', function(event) {
                         const modal = document.getElementById('addCategoryModal');
                         if (event.target === modal) {
                             closeAddModal();
@@ -588,37 +600,12 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                     document.getElementById('doctorModal').style.display = 'none';
                 }
 
-                window.onclick = function (event) {
+                window.onclick = function(event) {
                     const modal = document.getElementById('doctorModal');
                     if (event.target === modal) {
                         modal.style.display = 'none';
                     }
                 }
-
-                // Initialize Map on Dashboard Tab
-                <?php if ($activeTab === 'dashboard' && !empty($locations = DAO_dokter::allDoktersLocations())): ?>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        // Center of Jakarta
-                        const map = L.map('mapContainer').setView([-6.2088, 106.8456], 12);
-
-                        // Add OpenStreetMap tiles
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '© OpenStreetMap contributors',
-                            maxZoom: 19
-                        }).addTo(map);
-
-                        // Add markers for each doctor location
-                        const locations = <?= json_encode($locations) ?>;
-                        locations.forEach(function (loc) {
-                            const marker = L.marker([parseFloat(loc.lat), parseFloat(loc.long)]).addTo(map);
-                            marker.bindPopup(`
-            <div class="font-bold text-gray-900">${loc.nama_dokter}</div>
-            <div class="text-sm text-gray-700 mt-1">${loc.nama_klinik}</div>
-            <div class="text-xs text-gray-600 mt-1">${loc.alamat}</div>
-        `);
-                        });
-                    });
-                <?php endif; ?>
             </script>
 
             <?php include __DIR__ . '/includes/footer.php'; ?>
