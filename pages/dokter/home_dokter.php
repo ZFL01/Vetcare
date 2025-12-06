@@ -300,10 +300,19 @@ if (isset($_GET['tab'])) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="dokter-charts.js"></script>
 <script>
     function switchTab(tabName) {
         const tabContent = document.getElementById('tabContent');
         const contentOverview = document.getElementById('content-overview');
+
+        // Update Pill Active State
+        document.querySelectorAll('.pill-item').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === 'tab-' + tabName) {
+                btn.classList.add('active');
+            }
+        });
 
         // Hide overview if not selected
         if (tabName === 'overview') {
@@ -333,12 +342,6 @@ if (isset($_GET['tab'])) {
                     }
                     document.body.appendChild(newScript);
                 });
-
-                // Trigger initCharts if available (for analytics)
-                if (typeof initCharts === 'function' && tabName === 'analytics') {
-                    // small delay to ensure script loaded
-                    setTimeout(initCharts, 100);
-                }
             })
             .catch(error => {
                 tabContent.innerHTML = `<div class="text-center p-8 text-red-600">❌ Error: ${error.message}</div>`;
