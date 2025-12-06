@@ -180,8 +180,8 @@ class DAO_chat
                 ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
                 LEFT JOIN log_rating L ON T1.id_tr = L.idChat
                 JOIN m_pengguna U ON T1.user_id = U.id_pengguna
-                WHERE T1.dokter_id = ? and T1.paid_at >= date(now())
-                and T1.paid_at < date(now()), interval 1 DAY
+                WHERE T1.dokter_id = ? and T1.paid_at >= date(now() - interval 7 day)
+                and T1.paid_at < date(now())
                 ORDER BY waktu_mulai_terbaru DESC;";
                 $param = [$idDokter, $idDokter];
             } else {
@@ -319,33 +319,32 @@ class DAO_chat
         try {
             $stmt = $conn->prepare($sql);
             $stmt->execute([$idDokter]);
-            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
             return $hasil;
         } catch (PDOException $e) {
             custom_log("[DAO_others::getRating]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }
-    static function registChatRoom($idChat, $user, $dokter, $created)
+    static function registChatRoom($idChat, $user, $dokter, $created, $biaya, array $liked = ['isLiked'=>false, 'rating'=> true])
     {
         $start = $created;
         $end = date('Y-m-d H:i:s', strtotime($created . self::sesi_durasi));
+        $hasil = true;
 
         $conn = Database::getConnection();
-        $conn->beginTransaction();
-        $sql = "insert into tr_transaksi (id_tr, user_id, dokter_id, created) values (?,?,?,?)";
-        $sql2 = "insert into log_rating (idChat, end) values (?,?)";
+        $sql = "insert into tr_transaksi (id_tr, user_id, dokter_id, created, paid_at, biaya) values (?,?,?,?,?,?)";
+        $sql2 = "insert into log_rating (idChat, `liked?`, `end`) values (?, ?, now())";
         try {
-            $stmt = $conn->prepare($sql);
-            $hasil = $stmt->execute([$idChat, $user, $dokter, $start]);
-            if ($hasil) {
-                $stmt2 = $conn->prepare($sql2);
-                $hasil2 = $stmt2->execute([$idChat, $end]);
+            if($liked['isLiked']){
+                $stmt = $conn->prepare($sql2);
+                $hasil = $stmt->execute([$idChat, $liked['rating']]);
+            }else{
+                $stmt = $conn->prepare($sql);
+                $hasil = $stmt->execute([$idChat, $user, $dokter, $start, $start, $biaya]);
             }
-            if ($hasil && $hasil2) {
-                $conn->commit();
-                return true;
-            }
+
+            return $hasil;
         } catch (PDOException $e) {
             custom_log("[DAO_others::registChatRoom]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
@@ -362,6 +361,39 @@ class DAO_chat
         } catch (PDOException $e) {
             custom_log("[DAO_others::updateLogMessage]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
+        }
+    }
+}
+
+class ringkasanTransaksiDoker {
+    static function getRingkasan(DTO_dokter $dokter, int $tahun)
+    {
+        $conn = Database::getConnection();
+        $sql = "select month(paid_at) as bulan, count(*) as total, sum(biaya) as total_pendapatan from tr_transaksi
+        where dokter_id=? and year(paid_at)=? group by paid_at";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter->getId(), $tahun]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $hasil;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getRingkasan]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [];
+        }
+    }
+    static function ringkasanMingguIni(int $dokter)
+    {
+        $conn = Database::getConnection();
+        $sql = "select month(paid_at) as bulan, count(*) as total, sum(biaya) as total_pendapatan from tr_transaksi
+        where dokter_id=? and year(paid_at)=? group by paid_at";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $hasil;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getRingkasan]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [];
         }
     }
 }

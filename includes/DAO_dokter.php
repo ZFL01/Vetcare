@@ -662,6 +662,25 @@ class DAO_dokter
         }
     }
 
+    static function getHarga(int $idDokter){
+        $conn = Database::getConnection();
+        try {
+            $sql = "select harga from m_dokter where id_dokter=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$idDokter]);
+            $harga = $stmt->fetchColumn();
+            if ($harga === false) {
+                return 0;
+            }
+            return (int) $harga;
+        } catch (PDOException $e) {
+            custom_log("DAO_dokter::getHarga :" . $e->getMessage(), LOG_TYPE::ERROR);
+            return null;
+        }
+    }
+
+//logika insert
+
     static function insertDokter(DTO_dokter $data, array $datKateg)
     { //register kedua dokter
         $conn = Database::getConnection();
@@ -861,6 +880,21 @@ class DAO_dokter
             }
         } catch (PDOException $e) {
             custom_log("DAO_dokter::updateDokter {admin = $admin}: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [false, $e->getMessage()];
+        }
+    }
+
+    static function updateRate(int $idDokter, $rate){
+        $conn = Database::getConnection();
+        $sql = "update m_dokter set rate=? where id_dokter=?";
+        try {
+            $stmt = $conn->prepare($sql);
+            return $stmt->execute([
+                $rate,
+                $idDokter
+            ]);
+        } catch (PDOException $e) {
+            custom_log("DAO_dokter::updateRate: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [false, $e->getMessage()];
         }
     }

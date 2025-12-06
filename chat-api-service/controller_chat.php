@@ -30,8 +30,13 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
             $ended = false;
         }
     } elseif ($exist === null || $ended) {
+        $harga = DAO_dokter::getHarga($idDokter);
+        if ($harga === null) {
+            return ['success' => false, 'message' => 'Terjadi kesalahan saat memuat dokter. Silahkan coba kembali'];
+        }
+        
         $FormatNow = date('Y-m-d H:i:s', $now);
-        $hasil = DAO_chat::registChatRoom($idChat, $idUser, $idDokter, $FormatNow);
+        $hasil = DAO_chat::registChatRoom($idChat, $idUser, $idDokter, $FormatNow, $harga);
         $message = 'berjalan di sini sebelum hasil';
         if ($hasil) {
             $form = DAO_MongoDB_Chat::insertConsultationForm($idChat, $formKonsul);
