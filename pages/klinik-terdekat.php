@@ -251,6 +251,7 @@ foreach ($raw_locations as $loc) {
             const level8 = admin.find(x => x.adminLevel === 8)?.name || d.locality || ''; // Kecamatan
             const level6 = admin.find(x => x.adminLevel === 6)?.name || ''; // Kab/Kota (kadang level 5)
             const level5 = admin.find(x => x.adminLevel === 5)?.name || level6 || d.city || '';
+            const prov = admin.find(x => x.adminLevel === 4)?.name || admin.find(x => x.adminLevel === 3)?.name || d.principalSubdivision || ''; // Provinsi
 
             const parts = [];
             if (level10) parts.push(level10);
@@ -259,6 +260,27 @@ foreach ($raw_locations as $loc) {
 
             if (parts.length >= 2) resultText = parts.join(', ');
             else if (level8 && level5) resultText = `${level8}, ${level5.replace('Kabupaten ', '').replace('Kota ', '')}`;
+
+            fetch('/?aksi=location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lng,
+                    kota: level5,
+                    prov: prov
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("berhasil memuat data lokasi");
+                    }
+                }).catch(error => {
+                    console.error("Error fetching location:", error);
+                });
 
         } catch (e) {
             // Jika BigDataCloud gagal → langsung pakai Nominatim (jarang terjadi)
@@ -271,6 +293,7 @@ foreach ($raw_locations as $loc) {
                 const desa = a.village || a.hamlet || a.neighbourhood || '';
                 const kec = a.suburb || a.town || a.city_district || '';
                 const kota = a.city || a.regency || a.county || a.state_district || '';
+                const prov = a.state || '';
 
                 const parts = [];
                 if (desa) parts.push(desa);
@@ -278,7 +301,47 @@ foreach ($raw_locations as $loc) {
                 if (kota) parts.push(kota.replace('Kabupaten ', '').replace('Kota ', ''));
 
                 if (parts.length >= 2) resultText = parts.join(', ');
-            } catch (e2) { /* tetap pakai koordinat */ }
+
+                fetch('/?aksi=location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        kota: kota,
+                        prov: prov
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log("berhasil memuat data lokasi");
+                        }
+                    }).catch(error => {
+                        console.error("Error fetching location:", error);
+                    });
+
+            } catch (e2) {
+                fetch('/?aksi=location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        kota: '',
+                        prov: ''
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("Fallback lokasi (koordinat saja)");
+                    })
+                    .catch(err => console.error("Gagal menyimpan fallback:", err));
+            }
         }
 
         // Simpan ke cache & tampilkan

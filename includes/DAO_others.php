@@ -92,126 +92,10 @@ class DTO_chat implements JsonSerializable
         ];
     }
 }
-class DTO_Tag implements JsonSerializable
-{
-    private ?int $idTag = null;
-    private ?string $tag = null;
-
-    function __construct(int $idTag, string $tag)
-    {
-        $this->idTag = $idTag;
-        $this->tag = $tag;
-    }
-    function getIdTag()
-    {
-        return $this->idTag;
-    }
-    function getTag()
-    {
-        return $this->tag;
-    }
-    function jsonSerialize(): mixed
-    {
-        return ['idTag' => $this->idTag, 'tag' => $this->tag];
-    }
-}
 
 include_once 'database.php';
 require_once 'userService.php';
 require_once 'DAO_dokter.php';
-class DTO_tanyajawab
-{
-    private ?int $idTanya = null;
-    private ?int $idUser = null;
-    private ?int $idDokter = null;
-    private string|int|null $Tag = null;
-
-    private string $user, $dokter, $judul, $pertanyaan,
-    $jawaban, $status, $dibuat, $tglJawab;
-
-    function forPreview($idtanya, $user, $judul, $destanya, $dibuat, $status, $tag = null)
-    {
-        $this->idTanya = $idtanya;
-        $this->judul = $judul;
-        $this->pertanyaan = $destanya;
-        $this->dibuat = $dibuat;
-        $this->status = $status;
-        $this->tag = $tag;
-        $this->user = $user;
-    }
-    function forShowAnswer($dokter, $idDokter, $jwaban, $publish, $destanya)
-    {
-        $this->dokter = $dokter;
-        $this->idDokter = $idDokter;
-        $this->jawaban = $jwaban;
-        $this->tglJawab = $publish;
-        $this->pertanyaan = $destanya;
-    }
-    function forCreateAsk(DTO_pengguna $user, string $judul, string $deskripsi, int $tag)
-    {
-        $this->idUser = $user->getIdUser();
-        $this->user = censorEmail($user->getEmail());
-        $this->judul = $judul;
-        $this->pertanyaan = $deskripsi;
-        $this->Tag = $tag;
-    }
-    function forAnswering(DTO_dokter $dokter, DTO_tanyajawab $tanya, $isi)
-    {
-        $this->idDokter = $dokter->getId();
-        $this->dokter = $dokter->getNama();
-        $this->idTanya = $tanya->getIdTanya();
-        $this->jawaban = $isi;
-    }
-
-    function getIdTanya()
-    {
-        return $this->idTanya;
-    }
-    function getIdUser()
-    {
-        return $this->idUser;
-    }
-    function getIdDokter()
-    {
-        return $this->idDokter;
-    }
-    function getUser()
-    {
-        return $this->user;
-    }
-    function getDokter()
-    {
-        return $this->dokter;
-    }
-    function getJudul()
-    {
-        return $this->judul;
-    }
-    function getDeskripsi()
-    {
-        return $this->pertanyaan;
-    }
-    function getJawaban()
-    {
-        return $this->jawaban;
-    }
-    function getStatus()
-    {
-        return $this->status;
-    }
-    function getCreated()
-    {
-        return $this->dibuat;
-    }
-    function getTag(): mixed
-    {
-        return $this->Tag;
-    }
-    function getTglJawab()
-    {
-        return $this->tglJawab;
-    }
-}
 
 class DAO_location
 {
@@ -259,193 +143,6 @@ class DAO_location
     }
 }
 
-class DAO_Tag
-{
-    static function getAllTags()
-    {
-        $conn = Database::getConnection();
-        $sql = "select idTag, tag from m_tag";
-        try {
-            $stmt = $conn->prepare($sql);
-            $stmt->execute();
-            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (empty($hasil)) {
-                return [];
-            }
-            $dto = [];
-            foreach ($hasil as $dat) {
-                $obj = new DTO_Tag($dat['idTag'], $dat['tag']);
-                $dto[] = $obj;
-            }
-            return $dto;
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::getAllTags]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return [];
-        }
-    }
-    static function insertTag(string $tag)
-    {
-        $conn = Database::getConnection();
-        $sql = "insert into m_tag (tag) values (?)";
-        try {
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([$tag]);
-            return $conn->lastInsertId();
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::insertTag]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-}
-
-class DAO_Tanya
-{
-    static function previewAll(?int $idTag = null, ?DTO_dokter $dokter = null, ?DTO_pengguna $user = null)
-    {
-        $conn = Database::getConnection();
-        $sql = "select t.id_tanya, t.penanya, t.judul, substring_index(t.pertanyaan, ' ', 20)
-        as deskripsi, t.dibuat, t.status, g.tag from tr_tanya as t
-        join m_tag as g on t.idTag=g.idTag";
-        $param = [];
-        if ($user !== null) {
-            $sql .= ' where id_penanya=?';
-            $param = [$user->getIdUser()];
-        } elseif ($dokter !== null) {
-            $sql .= ' join jwb_dokter as d on t.id_tanya=d.id_tanya where d.id_dokter=?';
-            $param = [$dokter->getId()];
-        } elseif ($idTag !== null) {
-            $sql .= ' where t.idTag=?';
-            $param = [$idTag];
-        }
-
-        try {
-            $stmt = $conn->prepare($sql);
-            $stmt->execute($param);
-            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (empty($hasil)) {
-                return [];
-            }
-            $dto = [];
-            foreach ($hasil as $dat) {
-                $obj = new DTO_tanyajawab();
-                $obj->forPreview(
-                    $dat['id_tanya'],
-                    $dat['penanya'],
-                    $dat['judul'],
-                    $dat['deskripsi'],
-                    $dat['dibuat'],
-                    $dat['status'],
-                    $dat['tag']
-                );
-                $dto[] = $obj;
-            }
-            return $dto;
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::previewAll]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return [];
-        }
-    }
-
-    static function insertAsk(DTO_tanyajawab $dat)
-    {
-        $conn = Database::getConnection();
-        $sql = "insert into tr_tanya (id_penanya, penanya, judul, pertanyaan, idTag) values (?,?,?,?,?)";
-        try {
-            $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getIdUser(), $dat->getUser(), $dat->getJudul(), $dat->getDeskripsi(), $dat->getTag()]);
-        } catch (PDOException $e) {
-            custom_log('[DAO_others::insertAsk]: ' . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-    static function delete(DTO_tanyajawab $dat)
-    {
-        $conn = Database::getConnection();
-
-        $sql = [
-            'jwb_dokter' => 'delete from jwb_dokter where id_tanya=?',
-            'tr_tanya' => 'delete from tr_tanya where id_tanya = ?'
-        ];
-        try {
-            $conn->beginTransaction();
-            foreach ($sql as $x => $y) {
-                $conn->prepare($y)->execute([$dat->getIdTanya()]);
-            }
-            return $conn->commit();
-        } catch (PDOException $e) {
-            if ($conn->inTransaction()) {
-                $conn->rollBack();
-            }
-            custom_log('[DAO_others::delAsk]: ' . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-
-    static function showAnswer(int $dat)
-    {
-        $conn = Database::getConnection();
-        $sql = "select t.penanya, t.judul, t.dibuat, t.status, j.id_dokter, j.nama_dokter, j.isi, j.publish, t.pertanyaan
-        from jwb_dokter as j join tr_tanya as t on j.id_tanya=t.id_tanya
-        where j.id_tanya=?";
-        try {
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([$dat]);
-            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (empty($hasil)) {
-                return false;
-            }
-
-            $obj = new DTO_tanyajawab();
-            $obj->forPreview(
-                $dat,
-                $hasil['penanya'],
-                $hasil['judul'],
-                $hasil['pertanyaan'],
-                $hasil['dibuat'],
-                $hasil['status']
-            );
-
-            $obj->forShowAnswer(
-                $hasil['nama_dokter'],
-                $hasil['id_dokter'],
-                $hasil['isi'],
-                $hasil['publish'],
-                $hasil['pertanyaan']
-            );
-            return $obj;
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::showAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-
-    static function insertAnswer(DTO_tanyajawab $dat)
-    {
-        $conn = Database::getConnection();
-        $sql = "insert into jwb_dokter (id_tanya, id_dokter, nama_dokter, isi) values (?,?,?,?)";
-        try {
-            $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getIdTanya(), $dat->getIdDokter(), $dat->getDokter(), $dat->getJawaban()]);
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::insertAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-
-    static function updateAnswer(DTO_tanyajawab $dat)
-    {
-        $conn = Database::getConnection();
-        $sql = "update jwb_dokter set isi=? where id_tanya=?";
-        try {
-            $stmt = $conn->prepare($sql);
-            return $stmt->execute([$dat->getJawaban(), $dat->getIdTanya()]);
-        } catch (PDOException $e) {
-            custom_log("[DAO_others::updateAnswer]: " . $e->getMessage(), LOG_TYPE::ERROR);
-            return false;
-        }
-    }
-}
-
 class DAO_chat
 {
     private const sesi_durasi = '+12 hours';
@@ -455,21 +152,22 @@ class DAO_chat
         $sql = "";
         $param = [];
         if ($idUser) {
-            $sql = "SELECT T1.id_chat, T1.id_dokter, D.nama AS nama_dokter, L.end AS waktu_selesai, T1.paid_at AS waktu_mulai_terbaru
+            $sql = "SELECT T1.id_tr, T1.dokter_id, D.nama_dokter, L.end AS waktu_selesai, T1.paid_at AS waktu_mulai_terbaru
             FROM tr_transaksi T1
             JOIN (
                 SELECT dokter_id, MAX(paid_at) AS waktu_terbaru 
                 FROM tr_transaksi 
                 WHERE user_id = ? GROUP BY dokter_id
             ) T2 ON T1.dokter_id = T2.dokter_id AND T1.paid_at = T2.waktu_terbaru
-            LEFT JOIN log_rating L ON T1.id_chat = L.id_chat
-            JOIN m_dokter D ON T1.id_dokter = D.id_dokter
-            WHERE T1.user_id = ?
-            ORDER BY T1.paid_at DESC;";
+            LEFT JOIN log_rating L ON T1.id_tr = L.idChat
+            JOIN m_dokter D ON T1.dokter_id = D.id_dokter
+            WHERE T1.user_id = ? and T1.paid_at >= date(now())
+            and T1.paid_at < date(now()), interval 1 DAY
+            ORDER BY waktu_mulai_terbaru DESC;";
             $param = [$idUser, $idUser];
         } elseif ($idDokter) {
             $sql = "SELECT 
-                T1.id_chat, 
+                T1.id_tr, 
                 T1.user_id, 
                 U.email AS user_email,
                 L.end AS waktu_selesai, 
@@ -480,10 +178,10 @@ class DAO_chat
                 FROM tr_transaksi 
                 WHERE dokter_id = ? GROUP BY user_id
             ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
-            LEFT JOIN log_rating L ON T1.id_chat = L.id_chat
+            LEFT JOIN log_rating L ON T1.id_tr = L.idChat
             JOIN m_pengguna U ON T1.user_id = U.id_pengguna
             WHERE T1.dokter_id = ?
-            ORDER BY T1.paid_at DESC;";
+            ORDER BY waktu_mulai_terbaru DESC;";
             $param = [$idDokter, $idDokter];
         } else {
             return [];
@@ -495,6 +193,7 @@ class DAO_chat
             if (empty($hasil)) {
                 return [];
             }
+            $idChats = array_column($hasil, 'idChat');
             $dto = [];
             foreach ($hasil as $dat) {
                 if ($idUser) {
@@ -514,9 +213,9 @@ class DAO_chat
                 }
                 $dto[] = $obj;
             }
-            return $dto;
+            return [$dto, $idChats];
         } catch (PDOException $e) {
-            custom_log("[DAO_others::getAllChats]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            custom_log("[DAO_others::getAllChats] {$idUser} or {$idDokter}: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }

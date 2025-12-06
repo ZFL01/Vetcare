@@ -74,14 +74,24 @@ if ($action) {
             $idUser = isset($_SESSION['user']) ? $_SESSION['user']->getIdUser() : null;
             $lat = $data['latitude'];
             $long = $data['longitude'];
+            $kota = $data['kota'] ?? '';
+            $prov = $data['prov'] ?? '';
             $koor = $lat . ', ' . $long;
-            $kotprov = apiControl::getCityProvince($lat, $long);
-            if (!$kotprov[0]) {
-                $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
-                $httpCode = 400;
-                break;
+            error_log("halo?");
+            if(empty($kota) || empty($prov)){
+                $kotprov = apiControl::getCityProvince($lat, $long);
+                if (!$kotprov[0]) {
+                    $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
+                    $httpCode = 400;
+                    break;
+                }else{
+                    $kota = $kotprov[0];
+                    $prov = $kotprov[1];
+                }
             }
-            $loc = new Location($idLoc, $koor, [$kotprov[0], $kotprov[1]], $idUser);
+
+            error_log("kota: $kota, prov: $prov");
+            $loc = new Location($idLoc, $koor, [$kota, $prov], $idUser);
             $status = DAO_location::insertLocation($loc);
             if (is_string($status)) {
                 $_SESSION['id_location'] = $status;

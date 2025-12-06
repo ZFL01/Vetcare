@@ -196,5 +196,31 @@ class DAO_MongoDB_Chat
             return "Gagal menyimpan formulir: " . $e->getMessage();
         }
     }
+
+    static function getConsultationForm(array $chatId)
+    {
+        $db = self::getDb();
+        if ($db === null) {
+            return 'Koneksi gagal';
+        }
+
+        try {
+            $formsCollection = $db->selectCollection('Konsultasi_forms');
+            $filter = [
+                '_id' => [
+                    '$in' => $chatId
+                ]
+            ];
+
+            $cursor = $formsCollection->find($filter);
+            $documents = $cursor->toArray();
+
+            return $documents;
+        } catch (\Exception $e) {
+            custom_log("MongoDB Form getConsultationForm Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return "Gagal mengambil formulir: " . $e->getMessage();
+        }
+    }
+
 }
 ?>
