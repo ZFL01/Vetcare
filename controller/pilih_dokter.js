@@ -341,6 +341,9 @@ function renderDokters(dokters) {
 
     // Foto Profile
     const fotoFilename = dokter.foto || dokter.urlFoto;
+
+    localStorage.setItem('fotoDokter', `public/img/dokter-profil/${fotoFilename}`);
+
     let imgHtml;
     if (fotoFilename) {
       imgHtml = `<img src="public/img/dokter-profil/${escapeHtml(fotoFilename)}" alt="${nama}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-3xl\'>👨‍⚕️</div>';"/>`;
@@ -473,6 +476,8 @@ async function showModal(idDokter) {
   // Foto
   const fotoFilename = dokter.foto || dokter.urlFoto;
   const fotoUrl = fotoFilename ? `public/img/dokter-profil/${fotoFilename}` : null;
+
+  localStorage.setItem('fotoDokter', fotoUrl);
 
   // Jadwal (Sudah ada di data dasar, jadi langsung render)
   let jadwalHtml = '';
