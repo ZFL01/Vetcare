@@ -146,7 +146,7 @@ class DAO_location
 class DAO_chat
 {
     private const sesi_durasi = '+12 hours';
-    static function getAllChats(?int $idUser = null, ?int $idDokter = null)
+    static function getAllChats(?int $idUser = null, ?int $idDokter = null, ?bool $now = false)
     {
         $conn = Database::getConnection();
         $sql = "";
@@ -161,28 +161,48 @@ class DAO_chat
             ) T2 ON T1.dokter_id = T2.dokter_id AND T1.paid_at = T2.waktu_terbaru
             LEFT JOIN log_rating L ON T1.id_tr = L.idChat
             JOIN m_dokter D ON T1.dokter_id = D.id_dokter
-            WHERE T1.user_id = ? and T1.paid_at >= date(now())
-            and T1.paid_at < date(now()), interval 1 DAY
+            WHERE T1.user_id = ?
             ORDER BY waktu_mulai_terbaru DESC;";
             $param = [$idUser, $idUser];
         } elseif ($idDokter) {
-            $sql = "SELECT 
-                T1.id_tr, 
-                T1.user_id, 
-                U.email AS user_email,
-                L.end AS waktu_selesai, 
-                T1.paid_at AS waktu_mulai_terbaru
-            FROM tr_transaksi T1
-            JOIN (
-                SELECT user_id, MAX(paid_at) AS waktu_terbaru 
-                FROM tr_transaksi 
-                WHERE dokter_id = ? GROUP BY user_id
-            ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
-            LEFT JOIN log_rating L ON T1.id_tr = L.idChat
-            JOIN m_pengguna U ON T1.user_id = U.id_pengguna
-            WHERE T1.dokter_id = ?
-            ORDER BY waktu_mulai_terbaru DESC;";
-            $param = [$idDokter, $idDokter];
+            if ($now) {
+                $sql = "SELECT 
+                    T1.id_tr, 
+                    T1.user_id, 
+                    U.email AS user_email,
+                    L.end AS waktu_selesai, 
+                    T1.paid_at AS waktu_mulai_terbaru
+                FROM tr_transaksi T1
+                JOIN (
+                    SELECT user_id, MAX(paid_at) AS waktu_terbaru 
+                    FROM tr_transaksi 
+                    WHERE dokter_id = ? GROUP BY user_id
+                ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
+                LEFT JOIN log_rating L ON T1.id_tr = L.idChat
+                JOIN m_pengguna U ON T1.user_id = U.id_pengguna
+                WHERE T1.dokter_id = ? and T1.paid_at >= date(now())
+                and T1.paid_at < date(now()), interval 1 DAY
+                ORDER BY waktu_mulai_terbaru DESC;";
+                $param = [$idDokter, $idDokter];
+            } else {
+                $sql = "SELECT 
+                    T1.id_tr, 
+                    T1.user_id, 
+                    U.email AS user_email,
+                    L.end AS waktu_selesai, 
+                    T1.paid_at AS waktu_mulai_terbaru
+                FROM tr_transaksi T1
+                JOIN (
+                    SELECT user_id, MAX(paid_at) AS waktu_terbaru 
+                    FROM tr_transaksi 
+                    WHERE dokter_id = ? GROUP BY user_id
+                ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
+                LEFT JOIN log_rating L ON T1.id_tr = L.idChat
+                JOIN m_pengguna U ON T1.user_id = U.id_pengguna
+                WHERE T1.dokter_id = ?
+                ORDER BY waktu_mulai_terbaru DESC;";
+                $param = [$idDokter, $idDokter];
+            }
         } else {
             return [];
         }
