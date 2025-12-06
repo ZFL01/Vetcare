@@ -63,7 +63,6 @@
                     <div
                         class="absolute -bottom-8 -left-4 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-glow">
                     </div>
-
                     <!-- Doctor Card -->
                     <div
                         class="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-hero p-8 border border-purple-100">
@@ -82,6 +81,10 @@
                                 <div class="slide text-center space-y-4 flex flex-col justify-center items-center">
                                     <div class="text-6xl">🧑‍⚕️</div>
                                     <p class="text-gray-400 text-sm px-4">Dokter spesialis ternak</p>
+                                </div>
+                                <div class="slide text-center space-y-4 flex flex-col justify-center items-center">
+                                    <div class="text-6xl">👨‍🔬</div>
+                                    <p class="text-gray-400 text-sm px-4">Dokter spesialis bedah</p>
                                 </div>
                             </div>
                         </div>
@@ -103,6 +106,8 @@
                             <div class="flex flex-wrap gap-2">
                                 <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm"
                                     id="doctor-experience">12+ Tahun</span>
+                                <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
+                                    id="doctor-status">🟢 Tersedia</span>
                             </div>
 
                             <p class="text-gray-600 text-sm" id="doctor-description">
@@ -110,7 +115,7 @@
                                 berbagai jenis penyakit hewan.
                             </p>
 
-                            <button onclick="navigateTo('?route=pilih-dokter')"
+                            <button onclick="navigateTo('?route=konsultasi-dokter')"
                                 class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-6 py-3 rounded-xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-card">
                                 <span class="mr-2">💬</span>
                                 Chat Sekarang

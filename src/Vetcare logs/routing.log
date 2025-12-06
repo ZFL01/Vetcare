@@ -20,3 +20,12 @@
 [2025-12-06 14:08:48] Route {auth} accessed on root :D:\VsCode\Klinik\Vetcare/pages/auth.php
 [2025-12-06 14:08:55] Route {auth} accessed on root :D:\VsCode\Klinik\Vetcare/pages/auth.php
 [2025-12-06 14:09:07] Route {pilih-dokter} accessed on root :D:\VsCode\Klinik\Vetcare/pages/pilih-dokter.php
+[2025-12-06 22:14:25] Route {logout} :
+[2025-12-06 22:14:27] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 22:14:34] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 22:15:23] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-06 22:15:24] Route {dashboard-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/dokter/home_dokter.php
+[2025-12-07 00:22:34] Route {dashboard-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/dokter/home_dokter.php
+[2025-12-07 00:22:42] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php
+[2025-12-07 00:25:19] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php
+[2025-12-07 00:35:41] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php

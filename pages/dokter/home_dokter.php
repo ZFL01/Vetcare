@@ -2,22 +2,6 @@
 $pageTitle = "Dashboard - VetCare";
 include 'header-dokter.php'; // Header tetap di-include
 
-$origin = true;
-if (isset($_GET['tab'])) {
-    switch ($_GET['tab']) {
-        case 'consultations':
-            include_once 'home-konsultasi.php';
-            break;
-        case 'analytics':
-            include_once 'home-analitik.php';
-            break;
-        case 'overview':
-            break;
-    }
-    exit();
-}
-
-
 // --- LOGIKA DATA (PHP) ---
 $doctorId = $_SESSION['dokter']->getId();
 $doctorInfo = [
@@ -35,7 +19,7 @@ $chats = DAO_chat::getAllChats(idDokter: $doctorId, now: true);
 if (!empty($chats)) {
     $allChats = $chats[0];
     $idChats = $allChats[1];
-    $consultation = DAO_MongoDB_Chat::getConsultationForm($idChats);
+    $consultations = DAO_MongoDB_Chat::getConsultationForm($idChats) ?? [];
 }
 
 $stats = [
@@ -55,6 +39,23 @@ $monthlyData = [];
 $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
 for ($i = 0; $i < 6; $i++)
     $monthlyData[] = ['name' => $monthNames[$i], 'konsultasi' => rand(100, 250)];
+
+$origin = true;
+if (isset($_GET['tab'])) {
+    switch ($_GET['tab']) {
+        case 'consultations':
+            include_once 'home-konsultasi.php';
+            break;
+        case 'analytics':
+            include_once 'home-analitik.php';
+            break;
+        case 'overview':
+            break;
+    }
+    exit();
+}
+
+
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -139,149 +140,149 @@ for ($i = 0; $i < 6; $i++)
             </div>
         </div>
 
-            <div id="content-overview" class="tab-content fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div id="content-overview" class="tab-content fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div
+                    class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
+                    <div>
+                        <p class="text-blue-100 text-sm font-medium mb-1 opacity-90">Konsultasi Hari Ini</p>
+                        <h3 class="text-4xl font-bold"><?php echo $stats['todayConsultations']; ?></h3>
+                    </div>
                     <div
-                        class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
-                        <div>
-                            <p class="text-blue-100 text-sm font-medium mb-1 opacity-90">Konsultasi Hari Ini</p>
-                            <h3 class="text-4xl font-bold"><?php echo $stats['todayConsultations']; ?></h3>
-                        </div>
-                        <div
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <i class="fas fa-comment-alt text-xl"></i>
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-comment-alt text-xl"></i>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-[#00C46F] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
+                    <div>
+                        <p class="text-green-100 text-sm font-medium mb-1 opacity-90">Total Pasien</p>
+                        <h3 class="text-4xl font-bold"><?php echo $stats['totalPatients']; ?></h3>
+                    </div>
+                    <div
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gradient-to-r from-[#D946EF] to-[#EC4899] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
+                    <div>
+                        <p class="text-purple-100 text-sm font-medium mb-1 opacity-90">Rating Rata-rata</p>
+                        <div class="flex items-center">
+                            <h3 class="text-4xl font-bold"><?php echo $stats['avgRating']; ?></h3>
+                            <i class="fas fa-star text-white ml-2 text-lg"></i>
                         </div>
                     </div>
-
                     <div
-                        class="bg-[#00C46F] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
-                        <div>
-                            <p class="text-green-100 text-sm font-medium mb-1 opacity-90">Total Pasien</p>
-                            <h3 class="text-4xl font-bold"><?php echo $stats['totalPatients']; ?></h3>
-                        </div>
-                        <div
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <i class="fas fa-users text-xl"></i>
-                        </div>
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-line text-xl"></i>
                     </div>
+                </div>
+            </div>
 
-                    <div
-                        class="bg-gradient-to-r from-[#D946EF] to-[#EC4899] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
-                        <div>
-                            <p class="text-purple-100 text-sm font-medium mb-1 opacity-90">Rating Rata-rata</p>
-                            <div class="flex items-center">
-                                <h3 class="text-4xl font-bold"><?php echo $stats['avgRating']; ?></h3>
-                                <i class="fas fa-star text-white ml-2 text-lg"></i>
-                            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                                Konsultasi Aktif
+                            </h2>
+                            <button onclick="switchTab('consultations')"
+                                class="px-4 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                                Lihat Semua
+                            </button>
                         </div>
-                        <div
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-line text-xl"></i>
+
+                        <div class="p-6 h-[500px] overflow-y-auto custom-scroll bg-[#F9FAFB]">
+                            <?php if (empty($consultations)): ?>
+                                <div class="h-full flex flex-col items-center justify-center text-gray-400">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-3">
+                                        <i class="fas fa-inbox text-2xl opacity-40"></i>
+                                    </div>
+                                    <p class="text-sm">Tidak ada konsultasi aktif.</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="space-y-4">
+                                    <?php foreach ($consultations as $consultation): ?>
+                                        <div class="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
+                                            onclick="startChat('<?php echo $consultation['id']; ?>')">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex items-start gap-4 flex-1">
+                                                    <div class="relative shrink-0">
+                                                        <img src="<?php echo $consultation['avatar']; ?>"
+                                                            class="w-14 h-14 rounded-full object-cover border border-gray-200">
+                                                    </div>
+
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center flex-wrap gap-2 mb-1">
+                                                            <h4 class="font-bold text-gray-900 text-base">
+                                                                <?php echo htmlspecialchars($consultation['patientName']); ?>
+                                                            </h4>
+                                                            <span
+                                                                class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-md border border-gray-200">
+                                                                <?php echo htmlspecialchars($consultation['petType']); ?>
+                                                            </span>
+                                                        </div>
+
+                                                        <p class="text-sm text-gray-500 mb-2">
+                                                            Hewan: <span
+                                                                class="font-medium text-gray-700"><?php echo htmlspecialchars($consultation['petName']); ?></span>
+                                                        </p>
+
+                                                        <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                                                            <?php echo htmlspecialchars($consultation['complaint']); ?>
+                                                        </p>
+
+                                                        <div
+                                                            class="flex items-center gap-3 mt-4 text-xs text-gray-500 font-medium">
+                                                            <span class="flex items-center">
+                                                                <i class="far fa-clock mr-1.5"></i>
+                                                                <?php echo $consultation['time']; ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="ml-4 flex flex-col items-end justify-center">
+                                                    <button
+                                                        class="bg-[#00A99D] hover:bg-teal-700 text-white font-medium rounded-lg px-6 py-2 transition flex items-center text-sm shadow-sm">
+                                                        <i class="fas fa-comment-dots mr-2"></i> Chat
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                                <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                                    Konsultasi Aktif
-                                </h2>
-                                <button onclick="switchTab('consultations')"
-                                    class="px-4 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                                    Lihat Semua
-                                </button>
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-teal-700 font-bold mb-4 text-xs uppercase tracking-wider">Statistik Minggu Ini
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span class="text-sm text-gray-600">Konsultasi Selesai</span>
+                                <span class="font-bold text-gray-900">131</span>
                             </div>
-
-                            <div class="p-6 h-[500px] overflow-y-auto custom-scroll bg-[#F9FAFB]">
-                                <?php if (empty($consultations)): ?>
-                                    <div class="h-full flex flex-col items-center justify-center text-gray-400">
-                                        <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-3">
-                                            <i class="fas fa-inbox text-2xl opacity-40"></i>
-                                        </div>
-                                        <p class="text-sm">Tidak ada konsultasi aktif.</p>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="space-y-4">
-                                        <?php foreach ($consultations as $consultation): ?>
-                                            <div class="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
-                                                onclick="startChat('<?php echo $consultation['id']; ?>')">
-                                                <div class="flex items-start justify-between">
-                                                    <div class="flex items-start gap-4 flex-1">
-                                                        <div class="relative shrink-0">
-                                                            <img src="<?php echo $consultation['avatar']; ?>"
-                                                                class="w-14 h-14 rounded-full object-cover border border-gray-200">
-                                                        </div>
-
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="flex items-center flex-wrap gap-2 mb-1">
-                                                                <h4 class="font-bold text-gray-900 text-base">
-                                                                    <?php echo htmlspecialchars($consultation['patientName']); ?>
-                                                                </h4>
-                                                                <span
-                                                                    class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-md border border-gray-200">
-                                                                    <?php echo htmlspecialchars($consultation['petType']); ?>
-                                                                </span>
-                                                            </div>
-
-                                                            <p class="text-sm text-gray-500 mb-2">
-                                                                Hewan: <span
-                                                                    class="font-medium text-gray-700"><?php echo htmlspecialchars($consultation['petName']); ?></span>
-                                                            </p>
-
-                                                            <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                                                                <?php echo htmlspecialchars($consultation['complaint']); ?>
-                                                            </p>
-
-                                                            <div
-                                                                class="flex items-center gap-3 mt-4 text-xs text-gray-500 font-medium">
-                                                                <span class="flex items-center">
-                                                                    <i class="far fa-clock mr-1.5"></i>
-                                                                    <?php echo $consultation['time']; ?>
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="ml-4 flex flex-col items-end justify-center">
-                                                        <button
-                                                            class="bg-[#00A99D] hover:bg-teal-700 text-white font-medium rounded-lg px-6 py-2 transition flex items-center text-sm shadow-sm">
-                                                            <i class="fas fa-comment-dots mr-2"></i> Chat
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span class="text-sm text-gray-600">Pasien Kembali</span>
+                                <span class="font-bold text-gray-900">87</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="text-teal-700 font-bold mb-4 text-xs uppercase tracking-wider">Statistik Minggu Ini
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <span class="text-sm text-gray-600">Konsultasi Selesai</span>
-                                    <span class="font-bold text-gray-900">131</span>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <span class="text-sm text-gray-600">Pasien Kembali</span>
-                                    <span class="font-bold text-gray-900">87</span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-3 bg-teal-50 rounded-lg border border-teal-100">
-                                    <span class="text-sm text-teal-800 font-medium">Pendapatan</span>
-                                    <span class="font-bold text-teal-700"><?php echo $stats['revenue']; ?></span>
-                                </div>
+                            <div
+                                class="flex items-center justify-between p-3 bg-teal-50 rounded-lg border border-teal-100">
+                                <span class="text-sm text-teal-800 font-medium">Pendapatan</span>
+                                <span class="font-bold text-teal-700"><?php echo $stats['revenue']; ?></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
         <div id="tabContent" class="tab-content fade-in">
         </div>
@@ -301,7 +302,7 @@ for ($i = 0; $i < 6; $i++)
         `;
         if (tabName === 'overview') {
             contentOverview.classList.remove('hidden');
-        }else{
+        } else {
             contentOverview.classList.add('hidden');
         }
 
@@ -309,6 +310,9 @@ for ($i = 0; $i < 6; $i++)
             .then(response => response.text())
             .then(html => {
                 tabContent.innerHTML = html;
+                if (typeof initCharts === 'function') {
+                    initCharts();
+                }
             })
             .catch(error => {
                 tabContent.innerHTML = `<div class="text-center p-8 text-red-600">❌ Error: ${error.message}</div>`;
