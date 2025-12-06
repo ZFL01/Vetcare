@@ -7,11 +7,6 @@
 // Include database class
 require_once __DIR__ . '/../../includes/database.php';
 
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
 
@@ -20,25 +15,34 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVE
 
 $host = $_SERVER['HTTP_HOST'];
 
-$baseDir = dirname($_SERVER['PHP_SELF']);
-if ($baseDir === '/' || $baseDir === '\\') {
-    $baseUrlPath = '';
-} else {
-    $baseUrlPath = $baseDir;
-}
-$baseUrlPath = rtrim($baseUrlPath, '/\\');
-$dynamicBaseUrl = $protocol . $host . $baseUrlPath;
+$script_filename = $_SERVER['SCRIPT_FILENAME'];
 
-// Base URL
+$script_name = $_SERVER['SCRIPT_NAME'];
+$base_path = str_replace(basename($script_name), '', $script_name);
+
+$base_path = rtrim($base_path, '/\\');
+if ($base_path === '/' || $base_path === '\\') {
+    $base_path = '';
+}
+$dynamicBaseUrl = $protocol . $host . $base_path . '/';
+
+// Define Global Base URL
 define('BASE_URL', $dynamicBaseUrl);
+
+define('ROOT_DIR', dirname(dirname(__DIR__)));
 
 // Upload directories
 define('UPLOAD_DIR', __DIR__ . '/../../public/img/');
-define('PROFILE_DIR', UPLOAD_DIR . 'dokter/');
+define('PROFILE_DIR', UPLOAD_DIR . 'dokter-profil/');
 define('ARTIKEL_DIR', UPLOAD_DIR . 'artikel/');
-define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/dokter');
+define('DOCUMENTS_DIR', __DIR__ . '/../../public/docs/');
 define('STRV_DIR', DOCUMENTS_DIR . 'strv/');
 define('SIP_DIR', DOCUMENTS_DIR . 'sip/');
+
+define('URL_FOTO', BASE_URL . 'public/img/');
+define('FOTO_DI_DOKTER', BASE_URL . '../../public/img/dokter-profil/');
+define('URL_SIP_DOC', BASE_URL . 'public/docs/sip/');
+define('URL_STRV_DOC', BASE_URL . 'public/docs/strv/');
 
 // Allowed file types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']);
@@ -67,10 +71,11 @@ define('GOOGLE_MAPS_API_KEY', '');
 /**
  * Check if user is logged in
  */
-function isLoggedIn(bool $dokter) {
-    if($dokter){
+function isLoggedIn(bool $isDokter)
+{
+    if ($isDokter) {
         return isset($_SESSION['dokter']) && isset($_SESSION['user']);
-    }else{
+    } else {
         return isset($_SESSION['user']);
     }
 }
@@ -78,14 +83,22 @@ function isLoggedIn(bool $dokter) {
 /**
  * Redirect if not logged in
  */
-function requireLogin(bool $dokter, string $onPage='') {
-    if (!isLoggedIn($dokter)) {
-        error_log("ada di ".$onPage);
-        if($onPage){
+function requireLogin(bool $isDokter, string $onPage = '')
+{
+    if (!isLoggedIn($isDokter)) {
+        error_log("ada di " . $onPage);
+        if ($onPage) {
             $_SESSION['prev_page'] = $onPage;
         }
         setFlash('Autentikasi dibutuhkan!', 'Silahkan login terlebih dahulu.');
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?route=auth');
+        header('Location: ' . ROOT_DIR . '/index.php?route=auth');
+        exit();
+    }
+}
+function dokterAllowed(bool $allow)
+{
+    if (!$allow && isLoggedIn(true)) {
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?route=dashboard-dokter');
         exit();
     }
 }
@@ -93,7 +106,8 @@ function requireLogin(bool $dokter, string $onPage='') {
 /**
  * Set flash message
  */
-function setFlash($type, $message) {
+function setFlash($type, $message)
+{
     $_SESSION['flash_type'] = $type;
     $_SESSION['flash_message'] = $message;
 }
@@ -101,7 +115,8 @@ function setFlash($type, $message) {
 /**
  * Get and clear flash message
  */
-function getFlash() {
+function getFlash()
+{
     if (isset($_SESSION['flash_message'])) {
         $flash = [
             'type' => $_SESSION['flash_type'],
@@ -117,38 +132,64 @@ function getFlash() {
 /**
  * Sanitize input
  */
-function clean($data) {
+function clean($data)
+{
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
     return $data;
 }
 
-/**
- * Format tanggal Indonesia
- */
-function formatTanggal($date, $format = 'd M Y') {
+define('HARI_ID', [
+    0 => 'Minggu',
+    1 => 'Senin',
+    2 => 'Selasa',
+    3 => 'Rabu',
+    4 => 'Kamis',
+    5 => 'Jumat',
+    6 => 'Sabtu'
+]);
+
+function formatRupiah($angka)
+{
+    $rupiah = 'Rp' . number_format($angka, 0, ',', '.');
+    return $rupiah;
+}
+
+function formatTanggal($date, $format = 'd M Y')
+{
     $bulan = [
-        1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+        1 => 'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Ags',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des'
     ];
-    
+
     $timestamp = strtotime($date);
     $formatted = date($format, $timestamp);
-    
+
     // Replace month with Indonesian
     foreach ($bulan as $key => $value) {
         $formatted = str_replace(date('M', $timestamp), $value, $formatted);
     }
-    
+
     return $formatted;
 }
 
-function previousPage(){
-    if(isset($_SESSION['prev_page']) && $_SESSION['prev_page'] !== ''){
+function previousPage()
+{
+    if (isset($_SESSION['prev_page']) && $_SESSION['prev_page'] !== '') {
         error_log($_SESSION['prev_page']);
         header('Location: ' . BASE_URL . '?route=' . $_SESSION['prev_page']);
-        unset($_SESSION['prev_page']);
+        // unset($_SESSION['prev_page']);
         exit;
     }
 }
@@ -156,10 +197,11 @@ function previousPage(){
 /**
  * Time ago function
  */
-function timeAgo($datetime) {
+function timeAgo($datetime)
+{
     $timestamp = strtotime($datetime);
     $diff = time() - $timestamp;
-    
+
     if ($diff < 60) {
         return 'Baru saja';
     } elseif ($diff < 3600) {
@@ -179,42 +221,44 @@ function timeAgo($datetime) {
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory) {
+function uploadImage($file, $directory, $prefix)
+{
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
     }
-    
+
     // Check file type
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
-    
+
     if (!in_array($mime, ALLOWED_IMAGE_TYPES)) {
         return ['success' => false, 'message' => 'Tipe file tidak diizinkan'];
     }
-    
+
     // Check file size
     if ($file['size'] > MAX_FILE_SIZE) {
         return ['success' => false, 'message' => 'Ukuran file terlalu besar (max 5MB)'];
     }
-    
+
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'doc_' . uniqid() . '_' . time() . '.' . $extension;
+    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
-    
+
     // Move file
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
         return ['success' => true, 'filename' => $filename];
     }
-    
+
     return ['success' => false, 'message' => 'Gagal mengupload file'];
 }
 
 /**
  * Delete image helper
  */
-function deleteImage($filename, $directory) {
+function deleteImage($filename, $directory)
+{
     $filepath = $directory . $filename;
     if (file_exists($filepath) && $filename != 'default-profile.jpg') {
         return unlink($filepath);
@@ -222,7 +266,8 @@ function deleteImage($filename, $directory) {
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix = 'doc_') {
+function uploadDocument($file, $target_dir, $prefix)
+{
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
     // Check if file is uploaded
@@ -258,7 +303,7 @@ function uploadDocument($file, $target_dir, $prefix = 'doc_') {
 
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = uniqid($prefix, true) . '.' . $file_extension;
+    $new_filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists
@@ -275,6 +320,36 @@ function uploadDocument($file, $target_dir, $prefix = 'doc_') {
     }
 
     return $result;
+}
+
+define('LOCATIONIQ_API', 'pk.f36f3d13ab6674ab62602323da859b26');
+define('MONGODB_URI', "mongodb+srv://klinikH:QZ6Bqc8HAH5LPa7g@cluster0.rgxz9ub.mongodb.net/?appName=Cluster0");
+define('MONGODB_DBNAME', 'klinikH');
+
+define('SALT_HASH', 'iniSaltHashKlinikH');
+define('HASH_LENGTH', 8);
+
+
+define('ACTIVITY_LOG_FILE', __DIR__ . '/../VetCare logs/activity.log');
+define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
+define('ROUTING_LOG_FILE', __DIR__ . '/../Vetcare logs/routing.log');
+
+enum LOG_TYPE{
+    case ACTIVITY;
+    case ERROR;
+    case ROUTING;
+}
+
+function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR) {
+    $timestamp = date('Y-m-d H:i:s');
+    $log_entry = "[{$timestamp}] {$message}\n"; // Format + newline
+    $dest = match ($type) {
+        LOG_TYPE::ACTIVITY => ACTIVITY_LOG_FILE,
+        LOG_TYPE::ERROR => ERROR_LOG_FILE,
+        LOG_TYPE::ROUTING => ROUTING_LOG_FILE,
+    };
+
+    error_log($log_entry, 3, $dest);
 }
 
 ?>
