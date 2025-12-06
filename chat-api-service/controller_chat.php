@@ -1,10 +1,14 @@
 <?php
 require_once __DIR__ . '/dao_chat.php';
-require_once __DIR__ . '/../includes/DAO_User.php';
-require_once __DIR__ . '/../includes/DAO_Dokter.php';
+require_once __DIR__ . '/../includes/DAO_user.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
 require_once __DIR__ . '/../src/config/config.php';
 
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 function initChat($idChat, $idDokter, $idUser, $formKonsul)
 {
@@ -28,6 +32,7 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
     } elseif ($exist === null || $ended) {
         $FormatNow = date('Y-m-d H:i:s', $now);
         $hasil = DAO_chat::registChatRoom($idChat, $idUser, $idDokter, $FormatNow);
+        $message = 'berjalan di sini sebelum hasil';
         if ($hasil) {
             $form = DAO_MongoDB_Chat::insertConsultationForm($idChat, $formKonsul);
             if ($form === true) {
@@ -35,12 +40,12 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
                 $message = "Chat room berhasil dibuat dan formulir tersimpan.";
             } else {
                 // Penanganan jika simpan form gagal, tapi chat sudah dibuat di MySQL
-                error_log("Gagal menyimpan form ke MongoDB: " . $form);
+                custom_log("Gagal menyimpan form ke MongoDB: " . $form, LOG_TYPE::ERROR);
                 return ['success' => false, 'message' => 'Gagal membuat Formulir.'];
             }
             $chatId = $idChat;
         } else {
-            return ['success' => false, 'message' => 'Gagal membuat chat room.'];
+            return ['success' => false, 'message' => 'Gagal membuat Chat Room.'];
         }
     }
 
@@ -73,18 +78,21 @@ if (isset($_GET['action'])) {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
-        // Asumsi: ID pengguna sudah ada di session
         $idUser = $_SESSION['user']->getIdUser();
-        $idDokter = $data['id_dokter'] ?? null;
+        $dokterId = $data['id_dokter'] ?? null;
         $idChat = $data['id_chat'] ?? null;
         $formKonsul = $data['formKonsul'] ?? null;
 
         // Safety check untuk idDokter
-        if (empty($idDokter) || $idUser != $data['id_user'] || empty($idChat) || empty($formKonsul)) {
+        if (empty($dokterId) || $idUser != $data['id_user'] || empty($idChat) || empty($formKonsul)) {
             $response = ['success' => false, 'message' => 'ID tidak valid atau form kosong.'];
             $httpCode = 400;
         } else {
-            $result = initChat($idChat, $idDokter, $idUser, $formKonsul);
+            $idDokter = hashId($dokterId, false);
+            $idChat .= $idDokter;
+            custom_log("ini id chat : " . $idChat, LOG_TYPE::ACTIVITY);
+            $hashedIdChat = md5($idChat);
+            $result = initChat($hashedIdChat, $idDokter, $idUser, $formKonsul);
             $response = $result;
             $httpCode = $result['success'] ? 200 : 500;
         }

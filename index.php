@@ -3,7 +3,6 @@
 require_once __DIR__ . '/includes/DAO_user.php';
 require_once __DIR__ . '/includes/DAO_dokter.php';
 require_once __DIR__ . '/src/config/config.php';
-require_once __DIR__ . '/includes/DAO_Article.php';
 require_once __DIR__ . '/includes/DAO_others.php';
 require_once __DIR__ . '/includes/userService.php';
 require_once __DIR__ . '/chat-api-service/dao_chat.php';
@@ -12,8 +11,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 // Main entry point for PHP application
-$route = isset($_GET['route']) ? $_GET['route'] : '';
-$action = isset($_GET['aksi']) ? $_GET['aksi'] : '';
+$dokter = isset($_SESSION['dokter']);
+
+$route = isset($_GET['route']) ? $_GET['route'] : ($dokter ? 'dashboard-dokter' : '');
+$action = isset($_GET['aksi']) ? $_GET['aksi'] : ''; //permintaan ajax (JS)
 
 // Define page variables
 $pageTitle = '';
@@ -27,6 +28,28 @@ $data = null;
 //logika controller
 if ($action) {
     header('Content-Type: application/json');
+
+    if ($action === 'sendComplaint') {
+        $head = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        if (empty($head) || strtolower($head) !== 'xmlhttprequest') {
+            http_response_code(403);
+            exit();
+        }
+        $email = $_POST['email'] ?? '';
+        $pesan = $_POST['pesan'] ?? '';
+        $reason = $email . '<br><br>' . $pesan;
+
+        $dat = new DTO_pengguna(email: $email);
+        $status = emailService::sendEmail($dat, index_email::COMPLAINT->getData($reason));
+
+        if ($status) {
+            echo json_encode(['success' => true, 'message' => "Komplain Anda sudah kami terima, Terima kasih atas perhatiannya"]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Silahkan hubungi lewat nomor WA yang tercantum.']);
+        }
+        exit();
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
@@ -51,14 +74,24 @@ if ($action) {
             $idUser = isset($_SESSION['user']) ? $_SESSION['user']->getIdUser() : null;
             $lat = $data['latitude'];
             $long = $data['longitude'];
+            $kota = $data['kota'] ?? '';
+            $prov = $data['prov'] ?? '';
             $koor = $lat . ', ' . $long;
-            $kotprov = apiControl::getCityProvince($lat, $long);
-            if (!$kotprov[0]) {
-                $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
-                $httpCode = 400;
-                break;
+            error_log("halo?");
+            if(empty($kota) || empty($prov)){
+                $kotprov = apiControl::getCityProvince($lat, $long);
+                if (!$kotprov[0]) {
+                    $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
+                    $httpCode = 400;
+                    break;
+                }else{
+                    $kota = $kotprov[0];
+                    $prov = $kotprov[1];
+                }
             }
-            $loc = new Location($idLoc, $koor, [$kotprov[0], $kotprov[1]], $idUser);
+
+            error_log("kota: $kota, prov: $prov");
+            $loc = new Location($idLoc, $koor, [$kota, $prov], $idUser);
             $status = DAO_location::insertLocation($loc);
             if (is_string($status)) {
                 $_SESSION['id_location'] = $status;
@@ -87,7 +120,7 @@ if ($action) {
                     $response['message'] = 'Gagal menyimpan pesan: ' . $result;
                     $httpCode = 500;
                 }
-            }else{
+            } else {
                 $response['message'] = 'Data tidak lengkap.';
                 $httpCode = 400;
             }
@@ -103,7 +136,7 @@ if ($action) {
                 if (is_array($messagesOrError)) {
                     $response = [
                         'success' => true,
-                        'serverTimestamp'=>(new DateTime())->format(DateTime::ISO8601),
+                        'serverTimestamp' => (new DateTime())->format(DateTime::ISO8601),
                         'messages' => $messagesOrError,
                         'message' => 'Pesan baru berhasil diambil.'
                     ];
@@ -117,7 +150,12 @@ if ($action) {
                 $httpCode = 400;
             }
             break;
-
+        case 'logout':
+            session_unset();
+            session_destroy();
+            $response = ['success' => true, 'message' => 'berrhasil logout'];
+            $httpCode = 200;
+            break;
         default:
             $response = ['success' => false, 'message' => 'Aksi tidak valid.'];
             $httpCode = 404;
@@ -134,6 +172,7 @@ switch ($route) {
         $pageDescription = 'Masuk atau daftar akun VetCare';
         $contentFile = 'pages/auth.php';
         $noHeaderFooter = true;
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'auth-dokter':
         $pageTitle = 'Masuk/Daftar Dokter - VetCare';
@@ -141,53 +180,63 @@ switch ($route) {
         $contentFile = 'pages/auth-dokter.php';
         $noHeaderFooter = true;
         $ajaxLoad = true;
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'dashboard-dokter':
-        $pageTitle = 'Dashboard Dokter - VetCare';
-        $pageDescription = 'Dashboard utama dokter VetCare';
-        $contentFile = 'pages/dashboard-dokter.php';
-        break;
+        requireLogin(true);
+        dokterAllowed(true);
+        $_SESSION['prev_page'] = $route;
+        $contentFile = 'pages/dokter/home_dokter.php';
+        header('Location: '. $contentFile);
+        custom_log("Route {". $route. "} accessed on root :". ROOT_DIR. '/'. $contentFile, LOG_TYPE::ROUTING);
+        exit();
     case 'logout':
+        session_unset();
         session_destroy();
-        header('Location: ?route='); // Redirect akan bekerja
+        header('Location: ?route=');
+        custom_log("Route {". $route. "} :", LOG_TYPE::ROUTING);
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
         $pageTitle = 'Dashboard Member - VetCare';
         $pageDescription = 'Area akun member dan riwayat konsultasi.';
         $contentFile = 'pages/home.php';
-        break;
-    case 'dashboard_dokter':
-        $pageTitle = 'Dashboard Dokter - VetCare';
-        $pageDescription = 'Area pengelolaan jadwal dan konsultasi dokter.';
-        $contentFile = 'pages/dashboard_dokter.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'pilih-dokter':
         $pageTitle = 'Pilih Dokter - VetCare';
         $pageDescription = 'Daftar dokter berdasarkan kategori yang dipilih';
         $contentFile = 'pages/pilih-dokter.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'admin':
         header('Location: ' . BASE_URL . 'admin/');
         exit();
     case 'tanya-jawab':
+        requireLogin(false);
+        dokterAllowed(false);
         $pageTitle = 'Tanya Jawab - VetCare';
         $pageDescription = 'Ajukan pertanyaan seputar kesehatan hewan peliharaan Anda';
         $contentFile = 'pages/Tanya-Jawab.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'chat':
+        requireLogin(false);
+        dokterAllowed(false);
         $pageTitle = 'Chat dengan Dokter - VetCare';
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'profil':
+        requireLogin(true);
+        dokterAllowed(true);
+        $_SESSION['prev_page'] = $route;
         $pageTitle = 'Profil - VetCare';
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
+        $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
-        if(isset($_POST['action'])){
-            $noHeaderFooter=true;
-            $ajaxLoad=true;
-        }
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -199,12 +248,14 @@ switch ($route) {
         $pageTitle = 'Mencari Klinik Hewan Terdekat - VetCare';
         $pageDescription = 'Temukan klinik hewan terdekat dari lokasi Anda';
         $contentFile = 'pages/klinik-terdekat.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // ...
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';
         $pageDescription = 'Halaman yang Anda cari tidak ditemukan';
         $contentFile = '404.php';
+        custom_log("Route {" . $route . "} not found accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
 }
 

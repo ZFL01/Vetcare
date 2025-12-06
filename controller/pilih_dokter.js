@@ -307,12 +307,14 @@ function showEmptyState() {
 function renderDokters(dokters) {
   if (!doktersContainer) return;
 
+  // Helper untuk mendapatkan nama hari ini dalam Bahasa Indonesia
+  const daysMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const todayName = daysMap[new Date().getDay()];
+
   const html = dokters.map(dokter => {
     // --- 1. DATA PREPARATION ---
     const idForModal = getDokId(dokter);
     const nama = escapeHtml(getDokName(dokter) || 'Dokter');
-
-    // Kategori
     const kategs = getDokKategs(dokter);
     const kategoriList = escapeHtml(kategs.join(', ') || 'Umum');
     sessionStorage.setItem('listKategDokter', JSON.stringify(kategoriList));
@@ -328,8 +330,8 @@ function renderDokters(dokters) {
     if (rateVal <= 1 && rateVal > 0) rateVal = rateVal * 5;
     const displayRate = rateVal.toFixed(1);
 
-    // Lokasi
-    const namaKlinik = escapeHtml(dokter.klinik || dokter.namaKlinik || 'Klinik belum diatur');
+    // Lokasi (Ambil dari data yang sudah di-JOIN di DAO)
+    const namaKlinik = escapeHtml(dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || 'Klinik belum diatur');
     const kab = dokter.kabupaten || dokter.kab || '';
     const prov = dokter.provinsi || dokter.prov || '';
     let alamatFull = 'Indonesia';
@@ -341,44 +343,43 @@ function renderDokters(dokters) {
     const fotoFilename = dokter.foto || dokter.urlFoto;
     let imgHtml;
     if (fotoFilename) {
-      imgHtml = `
-        <img 
-          src="public/img/dokter-profil/${escapeHtml(fotoFilename)}" 
-          alt="${nama}" 
-          class="w-full h-full object-cover"
-          onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-3xl\'>👨‍⚕️</div>';"
-        />`;
+      imgHtml = `<img src="public/img/dokter-profil/${escapeHtml(fotoFilename)}" alt="${nama}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-3xl\'>👨‍⚕️</div>';"/>`;
     } else {
       imgHtml = `<div class="w-full h-full flex items-center justify-center text-purple-600 text-3xl font-bold bg-purple-50">${nama.charAt(0)}</div>`;
     }
 
-    // --- 2. LOGIKA WARNA STATUS (3 WARNA) ---
+    // --- 2. LOGIKA JADWAL HARI INI (FIX) ---
+    // Kita cari jadwal hari ini langsung dari raw data, tidak peduli statusnya apa
+    let jamTayang = 'Tidak praktik hari ini';
+
+    if (dokter.jadwal && dokter.jadwal[todayName] && dokter.jadwal[todayName].length > 0) {
+      // Ambil slot pertama hari ini
+      const slot = dokter.jadwal[todayName][0];
+      const buka = slot.buka ? slot.buka.substring(0, 5) : '';
+      const tutup = slot.tutup ? slot.tutup.substring(0, 5) : '';
+      jamTayang = `${buka} - ${tutup}`;
+    }
+
+    // --- 3. LOGIKA STATUS WARNA ---
     const statusText = escapeHtml(dokter.status_text || 'Tutup hari ini');
     const isAvailable = dokter.available_now === true;
-
-    let statusClass = '';
+    let statusClass = 'text-gray-500 bg-gray-100 border-gray-200'; // Default Abu
 
     if (isAvailable) {
-      // HIJAU (Tersedia Sekarang)
-      statusClass = 'text-green-700 bg-green-100 border-green-200';
+      statusClass = 'text-green-700 bg-green-100 border-green-200'; // Hijau
     } else if (statusText.toLowerCase().includes('kembali')) {
-      // KUNING (Tersedia Nanti/Waiting)
-      statusClass = 'text-yellow-700 bg-yellow-100 border-yellow-200';
-    } else {
-      // KELABU (Tutup)
-      statusClass = 'text-gray-500 bg-gray-100 border-gray-200';
+      statusClass = 'text-yellow-700 bg-yellow-100 border-yellow-200'; // Kuning
     }
 
     const harga = formatRupiah(dokter.harga);
 
-    // --- 3. HTML STRUCTURE ---
+    // --- 4. HTML STRUCTURE ---
     return `
       <div 
-        onclick="showModal(${idForModal})"
+        onclick="showModal('${idForModal}')"
         class="bg-white rounded-2xl p-6 shadow-card hover:shadow-xl transition-all duration-300 group cursor-pointer relative flex flex-col h-full border border-gray-100">
         
         <div class="flex gap-6 mb-4">
-          
           <div class="flex-shrink-0">
             <div class="w-20 h-20 rounded-full overflow-hidden ring-4 ring-gray-50 group-hover:ring-purple-100 transition-all shadow-sm">
               ${imgHtml}
@@ -399,8 +400,8 @@ function renderDokters(dokters) {
           </div>
         </div>
 
-        <div class="flex-1 space-y-3 mb-6">
-            <div class="flex items-center gap-3 text-sm text-gray-600">
+        <div class="flex-1 mb-4">
+            <div class="flex items-center gap-3 text-sm text-gray-600 mb-4">
               <span class="flex items-center gap-1 font-bold text-yellow-500 bg-yellow-50 px-2 py-0.5 rounded-md">
                 ⭐ ${displayRate}
               </span>
@@ -409,11 +410,21 @@ function renderDokters(dokters) {
               </span>
             </div>
 
-            <div class="text-sm text-gray-500 border-t border-dashed border-gray-100 pt-3">
-               <div class="font-bold text-gray-700 flex items-center gap-1.5 mb-0.5">
-                 <span class="text-red-400">📍</span> ${namaKlinik}
+            <div class="text-sm text-gray-500 border-t border-dashed border-gray-100 pt-3 flex flex-col gap-2">
+               
+               <div class="flex items-start gap-2 text-gray-700">
+                 <svg class="w-4 h-4 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                 <span class="font-medium text-xs">Jadwal hari ini : ${jamTayang}</span>
                </div>
-               <div class="truncate text-gray-400 ml-5 text-xs">${escapeHtml(alamatFull)}</div>
+
+               <div class="flex items-start gap-2">
+                 <span class="text-red-400 mt-0.5">📍</span> 
+                 <div class="flex flex-col">
+                    <span class="font-bold text-gray-700 text-xs">${namaKlinik}</span>
+                    <span class="truncate text-gray-400 text-[10px]">${escapeHtml(alamatFull)}</span>
+                 </div>
+               </div>
+
             </div>
         </div>
 
@@ -421,9 +432,8 @@ function renderDokters(dokters) {
           <div class="flex flex-col">
              <span class="text-purple-700 font-bold text-xl">Rp ${harga}</span>
           </div>
-          
           <button 
-            onclick="event.stopPropagation(); window.currentDokterId=${idForModal}; openKonsultasiModal()"
+            onclick="event.stopPropagation(); window.currentDokterId='${idForModal}'; openKonsultasiModal()"
             class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-purple-200 transition-transform active:scale-95 transform hover:-translate-y-0.5">
             Chat Sekarang
           </button>
@@ -542,7 +552,7 @@ async function showModal(idDokter) {
              <button onclick="closeModal()" class="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition">
                 Tutup
              </button>
-             <button onclick="window.currentDokterId=${idDokter}; openKonsultasiModal()" class="px-8 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
+             <button onclick="window.currentDokterId='${idDokter}'; openKonsultasiModal()" class="px-8 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5">
                 Chat
              </button>
         </div>
