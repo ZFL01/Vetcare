@@ -135,7 +135,7 @@
             </p>
         </div>
 
-        <div class="grid md:grid-cols-3 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-12 max-w-4xl mx-auto">
             <!-- Konsultasi Dokter -->
             <a href="?route=pilih-dokter" class="group service-card animate-slide-up">
                 <div

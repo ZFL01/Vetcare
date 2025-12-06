@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user'] = $objUser;
                 if ($objUser->getRole() === 'Member') {
-                    header('Location: '.BASE_URL.'?route=');
+                    header('Location: ' . BASE_URL . '?route=');
                     exit;
                 } elseif ($objUser->getRole() === 'Dokter') {
                     $objDokter = DAO_dokter::getProfilDokter($objUser, true);
@@ -384,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="<?php echo BASE_URL;?>/public/service.js"></script>
+<script src="/public/service.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const expiryTimeInput = document.getElementById('cooldownExpiry');

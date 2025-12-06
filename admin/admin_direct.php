@@ -1,8 +1,26 @@
 <?php
+// Ensure all required classes are loaded
+require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/DAO_user.php';
+require_once __DIR__ . '/../includes/DAO_dokter.php';
+require_once __DIR__ . '/../src/config/config.php';
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if user is logged in and is admin
+if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {
+    header('Location: login.php');
+    exit;
+}
+
+// Handle logout
 if (isset($_POST['admin-logout'])) {
     session_destroy();
-    header('Location: login.php');
+    // Redirect to member homepage (go up one directory from /admin/)
+    header('Location: ../');
     exit;
 }
 
@@ -10,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-add_category'])
     $new_name = trim($_POST['name']);
 
     if (!empty($new_name)) {
-        $stmt = $pdo->prepare('INSERT INTO m_kategori (nama_kateg) VALUES (:name)');
-        $stmt->execute([
-            ':name' => $new_name,
-        ]);
+        // Use existing DAO method to add category
+        $newKategori = new DTO_kateg(0, $new_name);
+        DAO_kategori::newKategori($newKategori);
+
         header('Location: admin_direct.php?tab=categories');
         exit;
     }
@@ -23,18 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-delete_category
     $id_del = (int) $_POST['admin-delete_category'];
 
     try {
+        // Use existing DAO method to delete category
+        $kategoriToDelete = new DTO_kateg($id_del, '');
+        DAO_kategori::delKateg($kategoriToDelete);
 
         header('Location: admin_direct.php?tab=categories');
         exit;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         die("Gagal menghapus kategori. Pastikan kategori tidak sedang digunakan oleh data dokter. Error: " . $e->getMessage());
     }
 }
 
-$vets = DAO_dokter::tabelAdmin();
-
-
-// Handle approve/reject FIRST - before using $vets
+// Handle approve/reject
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-action'])) {
     $id_dokter = (int) ($_POST['id_dokter'] ?? 0);
     $action = $_POST['admin-action'];
@@ -46,33 +64,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-action'])) {
             $exp_strv = $_POST['exp_strv'] ?? '';
             $exp_sip = $_POST['exp_sip'] ?? '';
 
-            // Update m_dokter with status and numbers (from document verification)
-            $updateQuery = "UPDATE m_dokter SET status = 'aktif', strv = :strv, exp_strv = :exp_strv, sip = :sip, exp_sip = :exp_sip WHERE id_dokter = :id";
-            $stmt = $pdo->prepare($updateQuery);
-            $stmt->execute([
-                ':strv' => $no_strv,
-                ':exp_strv' => $exp_strv,
-                ':sip' => $no_sip,
-                ':exp_sip' => $exp_sip,
-                ':id' => $id_dokter
-            ]);
+            $dokterData = new DTO_dokter($id_dokter, '', '');
+            $dokterData->setDoc($no_sip, $exp_sip, $no_strv, $exp_strv);
+
+            DAO_dokter::updateDokter($id_dokter, $dokterData, 'aktif', true);
+
         } elseif ($action === 'reject') {
-            $updateQuery = "UPDATE m_dokter SET status = 'nonaktif' WHERE id_dokter = :id";
-            $stmt = $pdo->prepare($updateQuery);
-            $stmt->execute([':id' => $id_dokter]);
+            $dokterData = new DTO_dokter($id_dokter, '', '');
+
+            DAO_dokter::updateDokter($id_dokter, $dokterData, 'pending', true);
         }
 
-        // Re-query data after update
-
-
-        // Set success message and redirect
         $_SESSION['success'] = $action === 'approve' ? 'Dokter berhasil disetujui!' : 'Dokter berhasil ditolak!';
         header('Location: admin_direct.php?tab=authentication');
         exit;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         die("Error: " . $e->getMessage());
     }
 }
+
+// Load doctor data AFTER all POST processing to get fresh data
+$vets = DAO_dokter::tabelAdmin();
 
 // Calculate stats
 $stats['total'] = count($vets);
@@ -81,12 +93,18 @@ $stats['approved'] = 0;
 $pendingVets = [];
 $activeVets = [];
 foreach ($vets as $vet) {
-    $stats['pending'] += $vet->getStatus() == 'pending' ? 1 : 0;
-    $stats['approved'] += $vet->getStatus() == 'aktif' ? 1 : 0;
+    $status = $vet->getStatus();
 
-    if ($vet->getStatus() === 'pending') {
+    // Check for both 'pending' and 'nonaktif' as pending status
+    $isPending = ($status == 'pending' || $status == 'nonaktif');
+    $isActive = ($status == 'aktif');
+
+    $stats['pending'] += $isPending ? 1 : 0;
+    $stats['approved'] += $isActive ? 1 : 0;
+
+    if ($isPending) {
         $pendingVets[] = $vet;
-    } elseif ($vet->getStatus() === 'aktif') {
+    } elseif ($isActive) {
         $activeVets[] = $vet;
     }
 }
@@ -98,8 +116,9 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
 <div class="flex min-h-screen">
     <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-    <div class="flex-1">
-        <div class="bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 shadow-lg">
+    <div class="flex-1 md:ml-64">
+        <div
+            class="bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 shadow-lg fixed top-0 left-0 right-0 md:left-64 z-40">
             <div class="px-8 py-4">
                 <div class="flex items-center justify-between">
                     <div>
@@ -127,7 +146,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
             </div>
         </div>
 
-        <div class="p-8">
+        <div class="p-8 pt-24">
 
             <?php if ($activeTab === 'dashboard'): ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -139,10 +158,13 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                                 <p class="text-purple-100 text-xs mt-2">Terdaftar</p>
                             </div>
                             <div class="bg-white/20 p-3 rounded-xl">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 4.75c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 10c-3.7 0-7 2-7 4.5v.75c0 .6.4 1 1 1h12c.6 0 1-.4 1-1v-.75c0-2.5-3.3-4.5-7-4.5z" />
                                 </svg>
+
+
                             </div>
                         </div>
                     </div>
@@ -181,9 +203,30 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                 </div>
 
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🗺️ Sebaran Lokasi Praktik Dokter</h2>
-                    <div id="mapContainer"
-                        class="w-full h-96 rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg"></div>
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
+                            <span class="text-4xl">📊</span>
+                            Dashboard Analitik Dokter
+                        </h2>
+                        <div class="w-24 h-1 bg-gradient-to-r from-purple-500 to-violet-600 mx-auto mt-4 rounded-full">
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div
+                            class="w-full h-[600px] rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg bg-gray-50">
+                            <iframe title="visualisasi_data_all" class="w-full h-full"
+                                src="https://app.powerbi.com/view?r=eyJrIjoiOWQ2NGZmZjEtMjhkNi00MGMzLTlmMjItN2IwZjhhYzE5NzJjIiwidCI6ImE2OWUxOWU4LWYwYTQtNGU3Ny1iZmY2LTk1NjRjODgxOWIxNCJ9"
+                                frameborder="0" allowFullScreen="true" loading="lazy" style="zoom: 0.7;"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-center">
+                        <p class="text-gray-500 text-sm mb-4">
+                            Dashboard Power BI menampilkan analisis lengkap sebaran lokasi, kategori Terpopuler, dan
+                            statistik kepuasan pelanggan.
+                        </p>
+                    </div>
                 </div>
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
                     <div class="flex items-center justify-between mb-6">
@@ -216,7 +259,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                                             </td>
                                             <td class="px-6 py-4">
                                                 <button
-                                                    onclick="showModal(<?= $vet->getId() ?>, '<?= htmlspecialchars($vet->getNama()) ?>', '<?= htmlspecialchars($vet->getSIP()) ?>', '<?= htmlspecialchars($vet->getSTRV()) ?>', '<?= htmlspecialchars($vet->getExp_SIP()) ?>', '<?= htmlspecialchars($vet->getExp_STRV()) ?>')"
+                                                    onclick="showModal(<?= $vet->getId() ?>, '<?= htmlspecialchars($vet->getNama()) ?>', '<?= htmlspecialchars($vet->getSIP() ?? '') ?>', '<?= htmlspecialchars($vet->getSTRV() ?? '') ?>', '<?= htmlspecialchars($vet->getExp_SIP() ?? '') ?>', '<?= htmlspecialchars($vet->getExp_STRV() ?? '') ?>')"
                                                     class="px-4 py-2 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg hover:from-purple-600 hover:to-violet-700 font-medium transition shadow-md hover:shadow-lg">
                                                     Lihat Detail →
                                                 </button>
@@ -279,7 +322,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                                     </div>
 
                                     <button
-                                        onclick="showModal(<?= $vet->getId() ?>, '<?= htmlspecialchars($vet->getNama()) ?>', '<?= htmlspecialchars($vet->getSIP()) ?>', '<?= htmlspecialchars($vet->getSTRV()) ?>', '<?= htmlspecialchars($vet->getExp_SIP()) ?>', '<?= htmlspecialchars($vet->getExp_STRV()) ?>')"
+                                        onclick="showModal(<?= $vet->getId() ?>, '<?= htmlspecialchars($vet->getNama()) ?>', '<?= htmlspecialchars($vet->getSIP() ?? '') ?>', '<?= htmlspecialchars($vet->getSTRV() ?? '') ?>', '<?= htmlspecialchars($vet->getExp_SIP() ?? '') ?>', '<?= htmlspecialchars($vet->getExp_STRV() ?? '') ?>')"
                                         class="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg hover:from-purple-600 hover:to-violet-700 font-semibold transition shadow-md hover:shadow-lg text-sm">
                                         🔍 Verifikasi
                                     </button>
@@ -402,8 +445,8 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                     </div>
                 </div>
             </div>
-            <?php if ($activeTab === 'categories'): 
-                $categories = DAO_kategori::getAllKategori();?>
+            <?php if ($activeTab === 'categories'):
+                $categories = DAO_kategori::getAllKategori(); ?>
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
                     <div class="flex justify-between items-center mb-8 pb-6 border-b-2 border-purple-200">
                         <div>
@@ -427,9 +470,11 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                                 class="group bg-gradient-to-br from-white to-purple-50 border-2 border-purple-200 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition transform duration-300">
                                 <div class="mb-4">
                                     <h3 class="font-bold text-xl text-gray-900 mb-2">
-                                        <?= htmlspecialchars($cat->getNamaKateg()) ?></h3>
+                                        <?= htmlspecialchars($cat->getNamaKateg()) ?>
+                                    </h3>
                                     <p class="text-sm text-gray-600 leading-relaxed">Spesialisasi dokter hewan dalam bidang
-                                        <?= strtolower(htmlspecialchars($cat->getNamaKateg())) ?></p>
+                                        <?= strtolower(htmlspecialchars($cat->getNamaKateg())) ?>
+                                    </p>
                                 </div>
 
                                 <div class="pt-4 border-t border-purple-200">
@@ -564,18 +609,21 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                     document.getElementById('expSip').value = expSip;
                     document.getElementById('expStrv').value = expStrv;
 
+                    const pathsip = '../public/docs/sip/';
+                    const pathstrv = '../public/docs/strv/';
+
                     // Fetch file paths from server
                     fetch('get_doctor_files.php?doctor_id=' + id)
                         .then(response => response.json())
                         .then(data => {
                             if (data.path_sip) {
-                                document.getElementById('sipFileDisplay').innerHTML = '<a href="' + data.path_sip + '" target="_blank" class="hover:underline">📎 ' + data.path_sip.split('/').pop() + '</a>';
+                                document.getElementById('sipFileDisplay').innerHTML = '<a href="' + pathsip + data.path_sip + '" target="_blank" class="hover:underline">📎 ' + data.path_sip.split('/').pop() + '</a>';
                             } else {
                                 document.getElementById('sipFileDisplay').innerHTML = '<span class="text-gray-400">Belum ada file SIP</span>';
                             }
 
                             if (data.path_strv) {
-                                document.getElementById('strvFileDisplay').innerHTML = '<a href="' + data.path_strv + '" target="_blank" class="hover:underline">📎 ' + data.path_strv.split('/').pop() + '</a>';
+                                document.getElementById('strvFileDisplay').innerHTML = '<a href="' + pathstrv + data.path_strv + '" target="_blank" class="hover:underline">📎 ' + data.path_strv.split('/').pop() + '</a>';
                             } else {
                                 document.getElementById('strvFileDisplay').innerHTML = '<span class="text-gray-400">Belum ada file STRV</span>';
                             }
@@ -594,31 +642,6 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         modal.style.display = 'none';
                     }
                 }
-
-                // Initialize Map on Dashboard Tab
-                <?php if ($activeTab === 'dashboard' && !empty($locations = DAO_dokter::allDoktersLocations())): ?>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        // Center of Jakarta
-                        const map = L.map('mapContainer').setView([-6.2088, 106.8456], 12);
-
-                        // Add OpenStreetMap tiles
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '© OpenStreetMap contributors',
-                            maxZoom: 19
-                        }).addTo(map);
-
-                        // Add markers for each doctor location
-                        const locations = <?= json_encode($locations) ?>;
-                        locations.forEach(function (loc) {
-                            const marker = L.marker([parseFloat(loc.lat), parseFloat(loc.long)]).addTo(map);
-                            marker.bindPopup(`
-            <div class="font-bold text-gray-900">${loc.nama_dokter}</div>
-            <div class="text-sm text-gray-700 mt-1">${loc.nama_klinik}</div>
-            <div class="text-xs text-gray-600 mt-1">${loc.alamat}</div>
-        `);
-                        });
-                    });
-                <?php endif; ?>
             </script>
 
             <?php include __DIR__ . '/includes/footer.php'; ?>

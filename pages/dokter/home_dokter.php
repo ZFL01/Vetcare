@@ -23,8 +23,8 @@ if (!empty($chats)) {
 }
 
 $stats = [
-    'todayConsultations' => count($consultations),
-    'totalPatients' => $doctorInfo['totalPatients'], // Hitung total dari real + dummy
+    'todayConsultations' => count($consultations), // Termasuk dummy
+    'totalPatients' => $doctorInfo['totalPatients'] + 1, // +1 dummy
     'avgRating' => $doctorInfo['rating'],
     'revenue' => 'Rp ' . number_format(count($consultations) * 75000, 0, ',', '.')
 ];
@@ -44,30 +44,25 @@ for ($i = 0; $i < 6; $i++)
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    /* Styling Navigasi Kapsul (Pill) */
+    /* Styling Navigasi Kapsul (Pill) - FIX: display inline-flex */
     .pill-container {
         display: inline-flex;
         background-color: #F3F4F6;
-        /* Gray-100 */
         padding: 0.375rem;
-        /* p-1.5 */
         border-radius: 9999px;
-        /* rounded-full */
+        white-space: nowrap;
+        /* Mencegah turun ke bawah */
     }
 
     .pill-item {
+        display: inline-block;
         padding: 0.5rem 1.5rem;
-        /* py-2 px-6 */
         border-radius: 9999px;
-        /* rounded-full */
         font-size: 0.875rem;
-        /* text-sm */
         font-weight: 500;
-        /* font-medium */
         cursor: pointer;
         transition: all 0.2s;
         color: #6B7280;
-        /* text-gray-500 */
         background-color: transparent;
         border: none;
     }
@@ -75,17 +70,28 @@ for ($i = 0; $i < 6; $i++)
     .pill-item.active {
         background-color: white;
         color: #111827;
-        /* text-gray-900 */
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         font-weight: 700;
     }
 
     .pill-item:hover:not(.active) {
         color: #374151;
-        /* text-gray-700 */
     }
 
-    /* Animasi Fade */
+    /* Scrollbar Halus */
+    .custom-scroll::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
     .fade-in {
         animation: fadeIn 0.3s ease-in-out;
     }
@@ -100,20 +106,6 @@ for ($i = 0; $i < 6; $i++)
             opacity: 1;
             transform: translateY(0);
         }
-    }
-
-    /* Scrollbar */
-    .custom-scroll::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .custom-scroll::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
     }
 </style>
 
@@ -235,7 +227,7 @@ for ($i = 0; $i < 6; $i++)
                                                     </div>
                                                 </div>
 
-                                                <div class="ml-4 flex flex-col items-end">
+                                                <div class="ml-4 flex flex-col items-end justify-center">
                                                     <button
                                                         class="bg-[#00A99D] hover:bg-teal-700 text-white font-medium rounded-lg px-6 py-2 transition flex items-center text-sm shadow-sm">
                                                         <i class="fas fa-comment-dots mr-2"></i> Chat
@@ -309,6 +301,27 @@ for ($i = 0; $i < 6; $i++)
         </div>
 
         <div id="content-analytics" class="tab-content hidden fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div
+                    class="bg-gradient-to-br from-teal-400 to-cyan-600 rounded-2xl p-6 text-white shadow-md text-center">
+                    <p class="text-sm font-medium opacity-90 mb-2">Total Konsultasi</p>
+                    <h3 class="text-4xl font-bold mb-1"><?php echo count($consultations) + 1200; // Dummy total ?></h3>
+                    <p class="text-xs opacity-75">Sejak Bergabung</p>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-md text-center">
+                    <p class="text-sm font-medium opacity-90 mb-2">Pasien Kembali</p>
+                    <h3 class="text-4xl font-bold mb-1">782</h3>
+                    <p class="text-xs opacity-75">62% dari total pasien</p>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-md text-center">
+                    <p class="text-sm font-medium opacity-90 mb-2">Total Pendapatan</p>
+                    <h3 class="text-3xl font-bold mb-1">Rp 93.750.000</h3>
+                    <p class="text-xs opacity-75">Sejak Bergabung</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="text-gray-700 font-bold mb-6 flex items-center">
@@ -330,7 +343,6 @@ for ($i = 0; $i < 6; $i++)
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Tab Logic
     function switchTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.getElementById('content-' + tabName).classList.remove('hidden');
@@ -341,12 +353,10 @@ for ($i = 0; $i < 6; $i++)
         if (tabName === 'analytics') setTimeout(initCharts, 100);
     }
 
-    // Chat Navigation
     function startChat(chatId) {
         window.location.href = '/?route=dokter-chat&chat_id=' + chatId;
     }
 
-    // Chart.js Setup
     let weeklyChart, monthlyChart;
     function initCharts() {
         if (weeklyChart) weeklyChart.destroy();
@@ -362,7 +372,7 @@ for ($i = 0; $i < 6; $i++)
                     datasets: [{
                         label: 'Konsultasi',
                         data: <?php echo json_encode(array_column($weeklyData, 'konsultasi')); ?>,
-                        backgroundColor: '#14b8a6', // Teal
+                        backgroundColor: '#14b8a6',
                         borderRadius: 6,
                         barThickness: 30
                     }]
@@ -389,7 +399,7 @@ for ($i = 0; $i < 6; $i++)
                     datasets: [{
                         label: 'Total',
                         data: <?php echo json_encode(array_column($monthlyData, 'konsultasi')); ?>,
-                        borderColor: '#d946ef', // Fuchsia
+                        borderColor: '#d946ef',
                         backgroundColor: 'rgba(217, 70, 239, 0.1)',
                         borderWidth: 3,
                         pointBackgroundColor: '#fff',

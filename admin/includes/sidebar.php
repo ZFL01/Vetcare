@@ -3,7 +3,7 @@
 // You may need a small script to toggle sidebar collapse on small screens (included here)
 ?>
 
-<div id="sidebar" class="w-64 bg-white/90 backdrop-blur-md border-r border-purple-300 min-h-screen p-5 shadow-md fixed md:relative z-30 transform md:translate-x-0 transition-transform duration-300 ease-in-out">
+<div id="sidebar" class="w-64 bg-white/90 backdrop-blur-md border-r border-purple-300 min-h-screen p-5 shadow-md relative md:fixed z-30 transform md:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Mobile hamburger button -->
     <div class="md:hidden flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-purple-700 flex items-center gap-2">
