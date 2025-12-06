@@ -41,6 +41,7 @@ class DTO_chat implements JsonSerializable
         private string|int|null $idDokter = null,
         private ?string $email = null,
         private ?string $namaDokter = null,
+        private ?string $fotoDokter = null,
         private ?string $waktuSelesai = null,
         private ?string $status = null,
         private ?string $waktuMulai = null,
@@ -66,6 +67,10 @@ class DTO_chat implements JsonSerializable
     {
         return $this->namaDokter;
     }
+    function getFotoDokter()
+    {
+        return $this->fotoDokter;
+    }
     function getStatus()
     {
         return $this->status;
@@ -86,6 +91,7 @@ class DTO_chat implements JsonSerializable
             'idDokter' => $this->idDokter,
             'email' => censorEmail($this->email),
             'namaDokter' => $this->namaDokter,
+            'fotoDokter' => $this->fotoDokter,
             'waktuSelesai' => $this->waktuSelesai,
             'status' => $this->status,
             'waktuMulai' => $this->waktuMulai
@@ -251,7 +257,7 @@ class DAO_chat
     static function thisChatRoom($idChat, $idUser, $idDokter = null)
     {
         $conn = Database::getConnection();
-        $sql = 'select d.nama_dokter, u.email, t.created, t.status, t.user_id, t.dokter_id from tr_transaksi as t
+        $sql = 'select d.nama_dokter, d.foto, u.email, t.created, t.status, t.user_id, t.dokter_id from tr_transaksi as t
         inner join m_dokter as d on t.dokter_id=d.id_dokter
         inner join m_pengguna as u on t.user_id=u.id_pengguna where t.id_tr=?';
         try {
@@ -279,6 +285,7 @@ class DAO_chat
                     hashId($hasil['dokter_id'], true),
                     email: $hasil['email'],
                     namaDokter: $hasil['nama_dokter'],
+                    fotoDokter: $hasil['foto'],
                     status: $hasil['status'],
                     waktuSelesai: $end,
                     waktuMulai: $created

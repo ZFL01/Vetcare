@@ -31,7 +31,7 @@
 
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    <img src="public/placeholder.svg" alt="Dokter"
+                    <img id="fotoProfilDokter" src="public/placeholder.svg" alt="Dokter"
                         class="w-10 h-10 rounded-full object-cover border border-gray-100">
                     <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
                     </div>
@@ -133,6 +133,7 @@
 </style>
 
 <script>
+
     window.lastMessageTime = 0;
     let pollingInterval;
 
@@ -151,6 +152,7 @@
         const chatMessages = document.getElementById('chat-messages');
         const chatInput = document.getElementById('chat-input');
         const sendButton = document.getElementById('send-button');
+        const fotoProfilDokter = document.getElementById('fotoProfilDokter');
         const chatDoctorName = document.getElementById('chat-doctor-name');
         const chatDoctorSpecialty = document.getElementById('chat-doctor-specialty');
         const quickQuestions = document.querySelectorAll('.quick-question');
@@ -170,8 +172,9 @@
 
             let html = '';
             if (!isUser) {
+                const foto = window.fotoDokterSession;
                 html += `
-                <img src="public/placeholder.svg" alt="Dokter" class="w-8 h-8 rounded-full mr-2 self-end mb-1">
+                <img src="${foto}" alt="Dokter" class="w-8 h-8 rounded-full mr-2 self-end mb-1">
             `;
             }
 
@@ -194,16 +197,28 @@
 
         function displayConsultationSummary(data) {
             const summaryHtml = `
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800">
-                    <h5 class="font-semibold mb-2 flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 shadow-sm">
+                    <h5 class="font-semibold text-blue-900 mb-3 text-sm flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         Ringkasan Konsultasi
                     </h5>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <span class="text-blue-600/70">Hewan:</span> <span class="font-medium">${escapeHtml(data.nama_hewan)} (${escapeHtml(data.jenis_hewan)})</span>
-                        <span class="text-blue-600/70">Usia:</span> <span class="font-medium">${escapeHtml(data.usia_hewan)}</span>
-                        <span class="text-blue-600/70 col-span-2 mt-1">Keluhan:</span>
-                        <span class="col-span-2 font-medium italic">"${escapeHtml(data.keluhan_gejala)}"</span>
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        <div class="flex flex-col">
+                            <span class="text-blue-600 mb-0.5">Nama:</span>
+                            <span class="text-blue-900 font-medium">${escapeHtml(data.nama_hewan)}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-blue-600 mb-0.5">Jenis:</span>
+                            <span class="text-blue-900 font-medium">${escapeHtml(data.jenis_hewan)}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-blue-600 mb-0.5">Usia:</span>
+                            <span class="text-blue-900 font-medium">${escapeHtml(data.usia_hewan)}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-blue-600 mb-0.5">Keluhan:</span>
+                            <span class="text-blue-900 font-medium">${escapeHtml(data.keluhan_gejala)}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -220,7 +235,7 @@
         function appendSendingIndicator(text) {
             const div = document.createElement('div');
             // Tambahkan kelas unik agar mudah dihapus
-            div.className = 'flex w-full mb-4 justify-end message-sending-indicator'; 
+            div.className = 'flex w-full mb-4 justify-end message-sending-indicator';
 
             const html = `
                 <div class="max-w-[75%] bg-purple-200 text-purple-900 px-4 py-2.5 rounded-2xl rounded-br-none border border-purple-300">
@@ -368,7 +383,7 @@
             window.currentChatId = chatId;
 
             // Fetch data dokter
-            const apiUrl = `chat-api-service/controller_chat.php?action=getChatSession&chat_id=${chatId}`;
+            const apiUrl = `/chat-api-service/controller_chat.php?action=getChatSession&chat_id=${chatId}`;
             fetch(apiUrl)
                 .then(res => {
                     if (!res.ok) {
@@ -382,6 +397,15 @@
                         window.chatSessionData = session;
 
                         chatDoctorName.textContent = session.namaDokter;
+
+                        // Use foto from API response
+                        const fotoUrl = session.fotoDokter
+                            ? `public/img/dokter-profil/${session.fotoDokter}`
+                            : 'public/placeholder.svg';
+
+                        fotoProfilDokter.src = fotoUrl;
+                        window.fotoDokterSession = fotoUrl;
+
                         //textcontent = 'sesi aktif hingga'+new Date(session.waktuSelesai).toLocaleString();
 
                         loadChatHistory(chatId);
