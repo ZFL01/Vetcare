@@ -2,6 +2,21 @@
 $pageTitle = "Dashboard - VetCare";
 include 'header-dokter.php'; // Header tetap di-include
 
+$origin = true;
+if (isset($_GET['tab'])) {
+    switch ($_GET['tab']) {
+        case 'consultations':
+            include_once 'home-konsultasi.php';
+            break;
+        case 'analytics':
+            include_once 'home-analitik.php';
+            break;
+        case 'overview':
+            break;
+    }
+    exit();
+}
+
 // --- LOGIKA DATA (PHP) ---
 $doctorId = $_SESSION['dokter']->getId();
 $doctorInfo = [
@@ -14,12 +29,28 @@ require_once __DIR__ . '/../../chat-api-service/dao_chat.php';
 
 $allChats = [];
 $consultations = [];
+$rating = 0; $WeekTr = 0;
+$idChats = [];
 
 $chats = DAO_chat::getAllChats(idDokter: $doctorId, now: true);
 if (!empty($chats)) {
     $allChats = $chats[0];
+    $idChats = $chats[1];
+    $consultations = DAO_MongoDB_Chat::getConsultationForm($idChats);
     $idChats = $allChats[1];
     $consultations = DAO_MongoDB_Chat::getConsultationForm($idChats) ?? [];
+}
+$countWeekday = count($idChats);
+
+$totalTransaksi = DAO_chat::getRating($doctorId);
+if (!empty($totalTransaksi)) {
+    if ($totalTransaksi['total'] > 0) {
+        $WeekTr = $totalTransaksi['total'];
+        $rating = round($totalTransaksi['total'] / $totalTransaksi['suka'], 2);
+    } else {
+        $WeekTr = 0;
+        $rating = 0;
+    }
 }
 
 $stats = [
@@ -145,6 +176,19 @@ if (isset($_GET['tab'])) {
                 <div
                     class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
                     <div>
+                        <p class="text-blue-100 text-sm font-medium mb-1 opacity-90">Konsultasi Minggu Ini</p>
+                        <h3 class="text-4xl font-bold"><?php echo $countWeekday; ?></h3>
+                    </div>
+                    <div
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-comment-alt text-xl"></i>
+                    </div>
+                </div>
+        <div id="content-overview" class="tab-content fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div
+                    class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
+                    <div>
                         <p class="text-blue-100 text-sm font-medium mb-1 opacity-90">Konsultasi Hari Ini</p>
                         <h3 class="text-4xl font-bold"><?php echo $stats['todayConsultations']; ?></h3>
                     </div>
@@ -154,6 +198,17 @@ if (isset($_GET['tab'])) {
                     </div>
                 </div>
 
+                <div
+                    class="bg-[#00C46F] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
+                    <div>
+                        <p class="text-green-100 text-sm font-medium mb-1 opacity-90">Total Transaksi Selesai</p>
+                        <h3 class="text-4xl font-bold"><?php echo $WeekTr; ?></h3>
+                    </div>
+                    <div
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                </div>
                 <div
                     class="bg-[#00C46F] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
                     <div>
@@ -171,6 +226,21 @@ if (isset($_GET['tab'])) {
                     <div>
                         <p class="text-purple-100 text-sm font-medium mb-1 opacity-90">Rating Rata-rata</p>
                         <div class="flex items-center">
+                            <h3 class="text-4xl font-bold"><?php echo $rating; ?></h3>
+                            <i class="fas fa-star text-white ml-2 text-lg"></i>
+                        </div>
+                    </div>
+                    <div
+                        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-line text-xl"></i>
+                    </div>
+                </div>
+            </div>
+                <div
+                    class="bg-gradient-to-r from-[#D946EF] to-[#EC4899] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between hover:scale-[1.01] transition-transform">
+                    <div>
+                        <p class="text-purple-100 text-sm font-medium mb-1 opacity-90">Rating Rata-rata</p>
+                        <div class="flex items-center">
                             <h3 class="text-4xl font-bold"><?php echo $stats['avgRating']; ?></h3>
                             <i class="fas fa-star text-white ml-2 text-lg"></i>
                         </div>
@@ -182,6 +252,18 @@ if (isset($_GET['tab'])) {
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                                Konsultasi Aktif
+                            </h2>
+                            <button onclick="switchTab('consultations')"
+                                class="px-4 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                                Lihat Semua
+                            </button>
+                        </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -214,7 +296,36 @@ if (isset($_GET['tab'])) {
                                                         <img src="<?php echo $consultation['avatar']; ?>"
                                                             class="w-14 h-14 rounded-full object-cover border border-gray-200">
                                                     </div>
+                        <div class="p-6 h-[500px] overflow-y-auto custom-scroll bg-[#F9FAFB]">
+                            <?php if (empty($consultations)): ?>
+                                <div class="h-full flex flex-col items-center justify-center text-gray-400">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-3">
+                                        <i class="fas fa-inbox text-2xl opacity-40"></i>
+                                    </div>
+                                    <p class="text-sm">Tidak ada konsultasi aktif.</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="space-y-4">
+                                    <?php foreach ($consultations as $consultation): ?>
+                                        <div class="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
+                                            onclick="startChat('<?php echo $consultation['id']; ?>')">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex items-start gap-4 flex-1">
+                                                    <div class="relative shrink-0">
+                                                        <img src="<?php echo $consultation['avatar']; ?>"
+                                                            class="w-14 h-14 rounded-full object-cover border border-gray-200">
+                                                    </div>
 
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center flex-wrap gap-2 mb-1">
+                                                            <h4 class="font-bold text-gray-900 text-base">
+                                                                <?php echo htmlspecialchars($consultation['patientName']); ?>
+                                                            </h4>
+                                                            <span
+                                                                class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-md border border-gray-200">
+                                                                <?php echo htmlspecialchars($consultation['petType']); ?>
+                                                            </span>
+                                                        </div>
                                                     <div class="flex-1 min-w-0">
                                                         <div class="flex items-center flex-wrap gap-2 mb-1">
                                                             <h4 class="font-bold text-gray-900 text-base">
@@ -230,7 +341,14 @@ if (isset($_GET['tab'])) {
                                                             Hewan: <span
                                                                 class="font-medium text-gray-700"><?php echo htmlspecialchars($consultation['petName']); ?></span>
                                                         </p>
+                                                        <p class="text-sm text-gray-500 mb-2">
+                                                            Hewan: <span
+                                                                class="font-medium text-gray-700"><?php echo htmlspecialchars($consultation['petName']); ?></span>
+                                                        </p>
 
+                                                        <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                                                            <?php echo htmlspecialchars($consultation['complaint']); ?>
+                                                        </p>
                                                         <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                                                             <?php echo htmlspecialchars($consultation['complaint']); ?>
                                                         </p>
@@ -244,7 +362,32 @@ if (isset($_GET['tab'])) {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                        <div
+                                                            class="flex items-center gap-3 mt-4 text-xs text-gray-500 font-medium">
+                                                            <span class="flex items-center">
+                                                                <i class="far fa-clock mr-1.5"></i>
+                                                                <?php echo $consultation['time']; ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
+                                                <div class="ml-4 flex flex-col items-end justify-center">
+                                                    <button
+                                                        class="bg-[#00A99D] hover:bg-teal-700 text-white font-medium rounded-lg px-6 py-2 transition flex items-center text-sm shadow-sm">
+                                                        <i class="fas fa-comment-dots mr-2"></i> Chat
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
                                                 <div class="ml-4 flex flex-col items-end justify-center">
                                                     <button
                                                         class="bg-[#00A99D] hover:bg-teal-700 text-white font-medium rounded-lg px-6 py-2 transition flex items-center text-sm shadow-sm">
@@ -303,6 +446,7 @@ if (isset($_GET['tab'])) {
         if (tabName === 'overview') {
             contentOverview.classList.remove('hidden');
         } else {
+        } else {
             contentOverview.classList.add('hidden');
         }
 
@@ -322,70 +466,5 @@ if (isset($_GET['tab'])) {
 
     function startChat(chatId) {
         window.location.href = '/?route=dokter-chat&chat_id=' + chatId;
-    }
-
-    let weeklyChart, monthlyChart;
-    function initCharts() {
-        if (weeklyChart) weeklyChart.destroy();
-        if (monthlyChart) monthlyChart.destroy();
-
-        // Weekly Bar Chart
-        const ctx1 = document.getElementById('weeklyChart');
-        if (ctx1) {
-            weeklyChart = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: <?php echo json_encode(array_column($weeklyData, 'name')); ?>,
-                    datasets: [{
-                        label: 'Konsultasi',
-                        data: <?php echo json_encode(array_column($weeklyData, 'konsultasi')); ?>,
-                        backgroundColor: '#14b8a6',
-                        borderRadius: 6,
-                        barThickness: 30
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f3f4f6', borderDash: [5, 5] } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        // Monthly Line Chart
-        const ctx2 = document.getElementById('monthlyChart');
-        if (ctx2) {
-            monthlyChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: <?php echo json_encode(array_column($monthlyData, 'name')); ?>,
-                    datasets: [{
-                        label: 'Total',
-                        data: <?php echo json_encode(array_column($monthlyData, 'konsultasi')); ?>,
-                        borderColor: '#d946ef',
-                        backgroundColor: 'rgba(217, 70, 239, 0.1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#d946ef',
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f3f4f6', borderDash: [5, 5] } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
     }
 </script>
