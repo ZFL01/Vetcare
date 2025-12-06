@@ -156,22 +156,24 @@ function formatRupiah($angka)
     return $rupiah;
 }
 
+define('BULAN_ID', [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Ags',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des'
+]);
+
 function formatTanggal($date, $format = 'd M Y')
 {
-    $bulan = [
-        1 => 'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Ags',
-        'Sep',
-        'Okt',
-        'Nov',
-        'Des'
-    ];
+    $bulan = BULAN_ID;
 
     $timestamp = strtotime($date);
     $formatted = date($format, $timestamp);
