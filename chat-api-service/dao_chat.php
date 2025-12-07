@@ -211,13 +211,56 @@ class DAO_MongoDB_Chat
                     '$in' => $chatId
                 ]
             ];
-
             $cursor = $formsCollection->find($filter);
             $documents = $cursor->toArray();
 
-            return $documents;
+            return self::processedForms($documents);
         } catch (\Exception $e) {
             custom_log("MongoDB Form getConsultationForm Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return "Gagal mengambil formulir: " . $e->getMessage();
+        }
+    }
+
+    static function processedForms(array $documents)
+    {
+        $processedForms = [];
+        foreach ($documents as $doc) {
+            $idChat = $doc['chatId'];
+            $data = $doc['formData'];
+
+            $processedForms[] = [
+                'idChat' => $idChat,
+                'data' => $data,
+            ];
+        }
+        return $processedForms;
+    }
+
+    static function getChatForm(string $chatId)
+    {
+        $db = self::getDb();
+        if ($db === null) {
+            return 'Koneksi gagal';
+        }
+        try {
+            $formsCollection = $db->selectCollection('Konsultasi_forms');
+            $options = [
+                'typeMap' => [
+                    'root' => 'array',
+                    'document' => 'array',
+                    'array' => 'array',
+                ]
+            ];
+            $document = $formsCollection->findOne(['_id' => $chatId], $options);
+
+            if ($document && isset($document['timestamp']) && $document['timestamp'] instanceof MongoDB\BSON\UTCDateTime) {
+                $timestampMs = $document['timestamp']->toDateTime()->getTimestamp();
+                $document['timestamp'] = date('Y-m-d H:i:s', $timestampMs);
+            }
+
+            return $document;
+        } catch (\Exception $e) {
+            custom_log("MongoDB Form getChatForm Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Gagal mengambil formulir: " . $e->getMessage();
         }
     }
