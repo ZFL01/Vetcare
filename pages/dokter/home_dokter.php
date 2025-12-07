@@ -70,26 +70,6 @@ if (isset($_GET['tab'])) {
     exit();
 }
 
-
-
-
-
-$origin = true;
-if (isset($_GET['tab'])) {
-    switch ($_GET['tab']) {
-        case 'consultations':
-            include_once 'home-konsultasi.php';
-            break;
-        case 'analytics':
-            include_once 'home-analitik.php';
-            break;
-        case 'overview':
-            break;
-    }
-    exit();
-}
-
-
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -235,10 +215,11 @@ if (isset($_GET['tab'])) {
                                 </div>
                             <?php else: ?>
                                 <div class="space-y-4">
-                                    <?php foreach ($allChats as $chat): ?>
+                                    <?php foreach ($allChats as $chat):
+                                        $idChat = $chat->getIdChat();
+                                        ?>
                                         <div class="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer group"
-                                            onclick="startChat('<?php $idChat = $chat->getIdChat();
-                                            echo $idChat; ?>')">
+                                            onclick="startChat('<?php echo $idChat; ?>')">
                                             <div class="flex items-start justify-between">
                                                 <div class="flex items-start gap-4 flex-1">
 
