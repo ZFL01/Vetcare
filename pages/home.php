@@ -105,7 +105,7 @@ foreach ($topDokters as $doc) {
                                     id="doctor-status">...</span>
                             </div>
 
-                            <button onclick="navigateTo('?route=konsultasi-dokter')"
+                            <button id="hero-chat-btn" onclick="navigateTo('?route=pilih-dokter')"
                                 class="w-full font-display font-semibold bg-gradient-indigo-violet text-white px-6 py-3 rounded-xl hover:bg-gradient-violet-indigo transition-all duration-300 shadow-card">
                                 <span class="mr-2">💬</span> Chat Sekarang
                             </button>
@@ -402,6 +402,15 @@ foreach ($topDokters as $doc) {
                     statusEl.textContent = formattedBiaya;
                 } else {
                     document.getElementById('doctor-status').textContent = 'Hubungi Klinik';
+                }
+
+                // Update Chat Button Action
+                const chatBtn = document.getElementById('hero-chat-btn');
+                if (chatBtn) {
+                    chatBtn.onclick = function () {
+                        const searchParam = encodeURIComponent(data.name);
+                        navigateTo(`?route=pilih-dokter&search=${searchParam}`);
+                    };
                 }
 
 

@@ -185,6 +185,17 @@ function initDokters() {
     }
   }
 
+  // Handle Search Param from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSearch = urlParams.get('search');
+  if (urlSearch) {
+    searchKeyword = urlSearch;
+    if (searchInput) {
+      searchInput.value = urlSearch;
+    }
+    console.log('[INIT] Search param found:', searchKeyword);
+  }
+
   if (!searchInput || !doktersContainer || !loadingIndicator || !emptyState || !resultCount) {
     console.error('Error: Required DOM elements not found');
     return;
@@ -202,14 +213,19 @@ function initDokters() {
     debouncedFilter();
 
     // Update URL dengan parameter search
-    const urlParams = new URLSearchParams(window.location.search);
+    const currentUrl = new URL(window.location.href);
+    const urlParams = currentUrl.searchParams;
+
     if (searchKeyword) {
       urlParams.set('search', searchKeyword);
     } else {
       urlParams.delete('search');
     }
 
-    const newUrl = '?route=pilih-dokter&' + urlParams.toString();
+    // Ensure route is consistent
+    urlParams.set('route', 'pilih-dokter');
+
+    const newUrl = '?' + urlParams.toString();
     window.history.pushState({ path: newUrl }, '', newUrl);
   });
   filterAndDisplayDokters();
