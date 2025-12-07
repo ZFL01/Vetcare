@@ -216,7 +216,7 @@ $activeTab = $_GET['tab'] ?? 'dashboard';
                         <div
                             class="w-full h-[600px] rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg bg-gray-50">
                             <iframe title="visualisasi_data_all" class="w-full h-full"
-                                src="https://app.powerbi.com/view?r=eyJrIjoiOWQ2NGZmZjEtMjhkNi00MGMzLTlmMjItN2IwZjhhYzE5NzJjIiwidCI6ImE2OWUxOWU4LWYwYTQtNGU3Ny1iZmY2LTk1NjRjODgxOWIxNCJ9"
+                                src="https://app.powerbi.com/view?r=eyJrIjoiNWUxNDYzYTEtYzljNC00M2U1LWFiMDItNTQwYWM2ZTkwZjY3IiwidCI6ImE2OWUxOWU4LWYwYTQtNGU3Ny1iZmY2LTk1NjRjODgxOWIxNCJ9"
                                 frameborder="0" allowFullScreen="true" loading="lazy" style="zoom: 0.7;"></iframe>
                         </div>
                     </div>
