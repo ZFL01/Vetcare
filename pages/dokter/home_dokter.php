@@ -5,11 +5,6 @@ include 'header-dokter.php'; // Header tetap di-include
 
 // --- LOGIKA DATA (PHP) ---
 $doctorId = $_SESSION['dokter']->getId();
-$doctorInfo = [
-    'name' => $_SESSION['dokter']->getNama(),
-    'rating' => $_SESSION['dokter']->getRate() ?? 4.9,
-    'totalPatients' => 0
-];
 
 require_once __DIR__ . '/../../chat-api-service/dao_chat.php';
 
@@ -41,19 +36,12 @@ $totalTransaksi = DAO_chat::getRating($doctorId);
 if (!empty($totalTransaksi)) {
     if ($totalTransaksi['total'] > 0) {
         $WeekTr = $totalTransaksi['total'];
-        $rating = round($totalTransaksi['total'] / $totalTransaksi['suka'], 2);
+        $rating = (round($totalTransaksi['total'] / $totalTransaksi['suka'], 2) * 5);
     } else {
         $WeekTr = 0;
         $rating = 0;
     }
 }
-
-$stats = [
-    'todayConsultations' => count($consultations), // Termasuk dummy
-    'totalPatients' => $doctorInfo['totalPatients'] + 1, // +1 dummy
-    'avgRating' => $doctorInfo['rating'],
-    'revenue' => 'Rp ' . number_format(count($consultations) * 75000, 0, ',', '.')
-];
 
 $origin = true;
 if (isset($_GET['tab'])) {
@@ -153,9 +141,33 @@ if (isset($_GET['tab'])) {
                 <button class="pill-item" onclick="switchTab('analytics')" data-tab="tab-analytics">Analitik</button>
             </div>
         </div>
+        <div id="tabContent" class="tab-content fade-in">
+        </div>
+    </main>
+</div>
 
-        <div id="content-overview" class="tab-content fade-in">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="dokter-charts.js"></script>
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        switchTab('overview');
+    });
+
+    function switchTab(tabName) {
+        const tabContent = document.getElementById('tabContent');
+
+        // Update Pill Active State
+        document.querySelectorAll('.pill-item').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === 'tab-' + tabName) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Hide overview if not selected
+        if (tabName === 'overview') {
+            tabContent.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Card 1: Konsultasi Minggu Ini (NEW) -->
                 <div
                     class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
@@ -197,7 +209,7 @@ if (isset($_GET['tab'])) {
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
                             <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                                Konsultasi Aktif
+                                Konsultasi 7 Hari Terakhir
                             </h2>
                             <button onclick="switchTab('consultations')"
                                 class="px-4 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
@@ -258,45 +270,16 @@ if (isset($_GET['tab'])) {
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-                                <?php endforeach; ?>
+                                        <?php endforeach; ?>
+                                        </div>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
-            </div>
-        </div>
-</div>
-
-
-<div id="tabContent" class="tab-content fade-in">
-</div>
-
-</main>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="dokter-charts.js"></script>
-<script>
-    function switchTab(tabName) {
-        const tabContent = document.getElementById('tabContent');
-        const contentOverview = document.getElementById('content-overview');
-
-        // Update Pill Active State
-        document.querySelectorAll('.pill-item').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-tab') === 'tab-' + tabName) {
-                btn.classList.add('active');
-            }
-        });
-
-        // Hide overview if not selected
-        if (tabName === 'overview') {
-            contentOverview.classList.remove('hidden');
-            tabContent.innerHTML = ''; // Clear tab content
+            </div>`;
             return;
         } else {
-            contentOverview.classList.add('hidden');
+            tabContent.innerHTML = ''; // Clear tab content
         }
 
         tabContent.innerHTML = '<div class="text-center p-8"><i class="fas fa-spinner fa-spin text-2xl text-teal-500"></i></div>';
