@@ -44,24 +44,47 @@ $dokter = $_SESSION['dokter'];
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-purple-50 to-indigo-100">
-    <div class="gradient-bg p-3 text-white text-center">
-        <div class="flex items-center gap-3 mb-2 justify-center">
-            <i class="fas fa-paw text-2xl"></i>
-            <h2 class="text-2xl font-bold">VetChat</h2>
+<body class="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 min-h-screen">
+    <!-- Top Navigation Bar -->
+    <div class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-paw text-2xl"></i>
+                    <h1 class="text-xl font-bold">VetChat</h1>
+                </div>
+                    <button id="sidebar-toggle" class="md:hidden text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="flex h-screen">
-        <!-- Area Chat Utama -->
-        <div class="flex-1 flex flex-col">
-            <!-- Header Chat -->
-            <div class="gradient-bg text-white p-3 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="font-bold text-2xl flex items-center gap-2">
-                            <i class="fas fa-cat nama-hewan"></i>
-                        </h2>
-                        <p class="text-purple-100 text-sm mt-1 jenis-hewan">Kucing Persia</p>
+
+    <div class="flex h-[calc(100vh-73px)]">
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col relative">
+            <!-- Chat Header -->
+            <div class="bg-white border-b border-purple-100 shadow-sm">
+                <div class="container mx-auto px-4 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-50 rounded-full flex items-center justify-center shadow-sm">
+                                    <i class="fas fa-cat text-purple-600 text-xl nama-hewan-icon"></i>
+                                </div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-lg text-gray-900 nama-hewan">Memuat...</h2>
+                                <p class="text-purple-600 text-sm jenis-hewan">Memuat...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="sidebar-toggle-desktop" class="hidden md:block text-gray-400 hover:text-purple-600 p-2 rounded-lg hover:bg-purple-50 transition-colors">
+                                <i class="fas fa-info-circle text-lg"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,45 +114,82 @@ $dokter = $_SESSION['dokter'];
         </div>
 
         <!-- Sidebar Kanan - Info Pasien -->
-        <div class="w-96 bg-white shadow-xl overflow-y-auto chat-scroll">
+        <div id="patient-sidebar" class="w-96 bg-white shadow-xl overflow-y-auto chat-scroll hidden md:block">
+            <!-- Sidebar Header -->
             <div class="gradient-bg text-white p-6">
-                <h3 class="text-xl font-bold flex justify-center gap-2" style="font-size: 18px;">
-                    <i class="fas fa-info-circle"></i>
-                    Info Hewan Pasien
-                </h3>
-                <h3 id="nama-pemilik" class="text-xl font-bold flex justify-center gap-2" style="font-size: 18px;">
-                    <i class="fas fa-info-circle"></i>
-                </h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fas fa-info-circle"></i>
+                        Info Hewan Pasien
+                    </h3>
+                    <button id="sidebar-close" class="md:hidden text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="bg-white/10 rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-purple-100">Pemilik</p>
+                            <p id="nama-pemilik" class="font-semibold text-white">Memuat...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="p-6">
                 <!-- Foto Hewan -->
-                <div class="text-center mb-6">
-                    <div
-                        class="w-32 h-32 gradient-bg rounded-full mx-auto mb-4 flex items-center justify-center shadow-xl">
-                        <i class="fas fa-cat text-white text-6xl"></i>
+                <div class="text-center mb-8">
+                    <div class="relative">
+                        <div class="w-32 h-32 bg-gradient-to-br from-purple-100 to-purple-50 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg border-4 border-white">
+                            <i class="fas fa-cat text-purple-600 text-6xl nama-hewan-icon"></i>
+                        </div>
+                        <div class="absolute bottom-2 right-1/2 transform translate-x-16 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
                     </div>
-                    <h4 class="font-bold text-gray-900 text-xl nama-hewan"></h4>
-                    <p class="text-purple-600 font-medium jenis-hewan">Kucing Persia</p>
+                    <h4 class="font-bold text-gray-900 text-xl nama-hewan">Memuat...</h4>
+                    <p class="text-purple-600 font-medium jenis-hewan">Memuat...</p>
                 </div>
+
                 <!-- Data Hewan -->
-                <div class="space-y-3 mb-6">
-                    <h5 class="font-bold text-purple-900 mb-3 flex items-center gap-2">
-                        <i class="fas fa-clipboard-list text-purple-600"></i>
-                        Data Hewan
-                    </h5>
-                        <div
-                            class="bg-white border-2 border-purple-100 rounded-2xl p-3 hover:border-purple-300 transition-colors duration-200 text-center">
-                            <p class="text-xs text-purple-600 font-semibold mb-1">Usia</p>
-                            <p id="usia" class="font-bold text-gray-900">2 tahun</p>
-                        </div>
-                    <div
-                        class="bg-white border-2 border-purple-100 rounded-2xl p-3 hover:border-purple-300 transition-colors duration-200 text-center">
-                        <p class="text-xs text-purple-600 font-semibold mb-1">Deskripsi Keluhan</p>
-                        <div id="deskripsi" class="font-bold text-gray-900">
-                            Putih
+                <div class="space-y-4">
+                    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-100">
+                        <h5 class="font-bold text-purple-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-clipboard-list text-purple-600"></i>
+                            Data Hewan
+                        </h5>
+
+                        <div class="space-y-3">
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-purple-50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-birthday-cake text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-purple-600 font-semibold">Usia</p>
+                                        <p id="usia" class="font-bold text-gray-900">Memuat...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-purple-50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-purple-600 font-semibold mb-2">Deskripsi Keluhan</p>
+                                        <div id="deskripsi" class="text-sm text-gray-700 leading-relaxed">
+                                            Memuat...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>
@@ -375,6 +435,54 @@ $dokter = $_SESSION['dokter'];
                 console.error("Gagal memuat data chat", err);
                 chatNamaHewan.textContent = "Error memuat data";
             });
+
+        // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleDesktop = document.getElementById('sidebar-toggle-desktop');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const patientSidebar = document.getElementById('patient-sidebar');
+
+        function toggleSidebar() {
+            if (window.innerWidth < 768) {
+                // Mobile: show/hide with overlay
+                patientSidebar.classList.toggle('hidden');
+                if (!patientSidebar.classList.contains('hidden')) {
+                    patientSidebar.classList.add('fixed', 'inset-0', 'z-50', 'md:relative', 'md:inset-auto');
+                } else {
+                    patientSidebar.classList.remove('fixed', 'inset-0', 'z-50', 'md:relative', 'md:inset-auto');
+                }
+            } else {
+                // Desktop: show/hide normally
+                patientSidebar.classList.toggle('hidden');
+            }
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarToggleDesktop) {
+            sidebarToggleDesktop.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', () => {
+                patientSidebar.classList.add('hidden');
+                patientSidebar.classList.remove('fixed', 'inset-0', 'z-50', 'md:relative', 'md:inset-auto');
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 &&
+                !patientSidebar.contains(e.target) &&
+                !sidebarToggle.contains(e.target) &&
+                !sidebarToggleDesktop.contains(e.target) &&
+                !patientSidebar.classList.contains('hidden')) {
+                patientSidebar.classList.add('hidden');
+                patientSidebar.classList.remove('fixed', 'inset-0', 'z-50', 'md:relative', 'md:inset-auto');
+            }
+        });
 
         window.addEventListener('beforeunload', () => {
             if (pollingInterval) clearInterval(pollingInterval);
