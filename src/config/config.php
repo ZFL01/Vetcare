@@ -332,7 +332,7 @@ define('SALT_HASH', 'iniSaltHashKlinikH');
 define('HASH_LENGTH', 8);
 
 
-define('ACTIVITY_LOG_FILE', __DIR__ . '/../VetCare logs/activity.log');
+define('ACTIVITY_LOG_FILE', __DIR__ . '/../Vetcare logs/activity.log');
 define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
 define('ROUTING_LOG_FILE', __DIR__ . '/../Vetcare logs/routing.log');
 

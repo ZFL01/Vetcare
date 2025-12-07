@@ -375,6 +375,8 @@ function renderDokters(dokters) {
     }
 
     const harga = formatRupiah(dokter.harga);
+    sessionStorage.setItem('status', dokter.status_text);
+
 
     // --- 4. HTML STRUCTURE ---
     return `

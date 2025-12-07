@@ -33,7 +33,7 @@
                 <div class="relative">
                     <img id="fotoProfilDokter" src="public/placeholder.svg" alt="Dokter"
                         class="w-10 h-10 rounded-full object-cover border border-gray-100">
-                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
+                    <div id="status-color" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
                     </div>
                 </div>
                 <div>
@@ -46,7 +46,7 @@
 
         <!-- Status -->
         <div class="flex items-center">
-            <span
+            <span id="chat-status"
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 Online
             </span>
@@ -133,6 +133,21 @@
 </style>
 
 <script>
+    const statusElement = document.getElementById('chat-status');
+    const statusColor = document.getElementById('status-color');
+    const chatStatus = sessionStorage.getItem('status');
+    statusElement.textContent = chatStatus;
+    if (chatStatus === 'Online') {
+        statusElement.classList.remove('bg-gray-100');
+        statusElement.classList.add('bg-green-100');
+        statusColor.classList.remove('bg-red-500');
+        statusColor.classList.add('bg-green-500');
+    } else {
+        statusElement.classList.remove('bg-green-100');
+        statusElement.classList.add('bg-gray-100');
+        statusColor.classList.remove('bg-green-500');
+        statusColor.classList.add('bg-gray-500');
+    }
 
     window.lastMessageTime = 0;
     let pollingInterval;
