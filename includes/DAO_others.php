@@ -186,8 +186,7 @@ class DAO_chat
                 ) T2 ON T1.user_id = T2.user_id AND T1.paid_at = T2.waktu_terbaru
                 LEFT JOIN log_rating L ON T1.id_tr = L.idChat
                 JOIN m_pengguna U ON T1.user_id = U.id_pengguna
-                WHERE T1.dokter_id = ? and T1.paid_at >= date(now() - interval 7 day)
-                and T1.paid_at < date(now())
+                WHERE T1.dokter_id = ? 
                 ORDER BY waktu_mulai_terbaru DESC;";
                 $param = [$idDokter, $idDokter];
             } else {
@@ -219,20 +218,20 @@ class DAO_chat
             if (empty($hasil)) {
                 return [];
             }
-            $idChats = array_column($hasil, 'idChat');
+            $idChats = array_column($hasil, 'id_tr');
             $dto = [];
             foreach ($hasil as $dat) {
                 if ($idUser) {
                     $obj = new DTO_chat(
-                        $dat['idChat'],
+                        $dat['id_tr'],
                         namaDokter: $dat['nama_dokter'],
                         waktuSelesai: $dat['waktu_selesai'],
                         waktuMulai: $dat['waktu_mulai_terbaru'],
                     );
                 } else {
                     $obj = new DTO_chat(
-                        $dat['idChat'],
-                        email: $dat['email'],
+                        $dat['id_tr'],
+                        email: $dat['user_email'],
                         waktuSelesai: $dat['waktu_selesai'],
                         waktuMulai: $dat['waktu_mulai_terbaru'],
                     );
@@ -276,6 +275,9 @@ class DAO_chat
 
     static function thisChatRoom($idChat, $idUser, $idDokter = null)
     {
+        if($idDokter !== null) {
+            $idUser = null;
+        }
         $conn = Database::getConnection();
         $sql = 'select d.nama_dokter, d.foto, u.email, t.created, t.status, t.user_id, t.dokter_id from tr_transaksi as t
         inner join m_dokter as d on t.dokter_id=d.id_dokter
@@ -288,10 +290,9 @@ class DAO_chat
                 return null;
             } else {
 
-                if ($hasil['user_id'] != $idUser) {
-                    return null;
-                }
                 if ($idDokter !== null && $hasil['dokter_id'] != $idDokter) {
+                    return null;
+                }elseif ($idUser !== null && $hasil['user_id'] != $idUser) {
                     return null;
                 }
 

@@ -9,77 +9,110 @@ require_once __DIR__ . '/../src/config/config.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 function initChat($idChat, $idDokter, $idUser, $formKonsul)
 {
     if (!$idChat || !$idDokter || !$idUser) {
         return ['success' => false, 'message' => 'ID tidak ditemukan atau tidak valid.'];
     }
-    $chatId = null;
-    $message = '';
-    $ended = false;
-    $exist = DAO_chat::findChatRoom($idDokter, $idUser);
-    $now = time();
-    if ($exist !== null) {
-        $end = $exist->getWaktuSelesai();
 
+    $chatId = $idChat; // Default pakai ID baru
+    $message = '';
+    
+    // Ambil data chat terakhir di SQL
+    $existingChatSQL = DAO_chat::findChatRoom($idDokter, $idUser);
+    custom_log("Cek exist di sql: ", LOG_TYPE::ACTIVITY);
+
+    // Tentukan apakah kita HARUS membuat chat baru?
+    $shouldCreateNew = false;
+    $now = time();
+
+    if ($existingChatSQL === null) {
+        // 1. Belum ada chat sama sekali
+        $shouldCreateNew = true;
+        custom_log("Chat tidak ditemukan, set create new.", LOG_TYPE::ACTIVITY);
+    } else {
+        // 2. Chat ada, cek apakah sudah expired
+        $end = $existingChatSQL->getWaktuSelesai();
         if ($now >= $end) {
-            $ended = true;
+            $shouldCreateNew = true; // Ada tapi expired, buat baru
+            custom_log("Chat expired, set create new.", LOG_TYPE::ACTIVITY);
         } else {
-            $chatId = $exist->getIdChat();
-            $ended = false;
+            // 3. Masih aktif, pakai yang lama
+            $shouldCreateNew = false;
+            $chatId = $existingChatSQL->getIdChat(); // Override $chatId dengan yang lama
+            custom_log("Chat aktif ditemukan: " . $chatId, LOG_TYPE::ACTIVITY);
         }
-    } elseif ($exist === null || $ended) {
+    }
+
+    // --- PROSES PEMBUATAN CHAT BARU (MYSQL & FORM) ---
+    if ($shouldCreateNew) {
         $harga = DAO_dokter::getHarga($idDokter);
         if ($harga === null) {
-            return ['success' => false, 'message' => 'Terjadi kesalahan saat memuat dokter. Silahkan coba kembali'];
+            return ['success' => false, 'message' => 'Gagal memuat harga dokter.'];
         }
-        
+
         $FormatNow = date('Y-m-d H:i:s', $now);
-        $hasil = DAO_chat::registChatRoom($idChat, $idUser, $idDokter, $FormatNow, $harga);
-        $message = 'berjalan di sini sebelum hasil';
+        // Registrasi ke MySQL
+        $hasil = DAO_chat::registChatRoom($chatId, $idUser, $idDokter, $FormatNow, $harga);
+        custom_log("regist chat room sql: " . ($hasil ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
+
         if ($hasil) {
-            $form = DAO_MongoDB_Chat::insertConsultationForm($idChat, $formKonsul);
+            // Simpan Form ke MongoDB
+            $form = DAO_MongoDB_Chat::insertConsultationForm($chatId, $formKonsul);
+            custom_log("insert form di mongodb result: " . ($form === true ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
+
             if ($form === true) {
-                $chatId = $idChat;
                 $message = "Chat room berhasil dibuat dan formulir tersimpan.";
             } else {
-                // Penanganan jika simpan form gagal, tapi chat sudah dibuat di MySQL
-                custom_log("Gagal menyimpan form ke MongoDB: " . $form, LOG_TYPE::ERROR);
+                custom_log("Gagal menyimpan form ke MongoDB", LOG_TYPE::ERROR);
                 return ['success' => false, 'message' => 'Gagal membuat Formulir.'];
             }
-            $chatId = $idChat;
         } else {
-            return ['success' => false, 'message' => 'Gagal membuat Chat Room.'];
+            return ['success' => false, 'message' => 'Gagal membuat Chat Room SQL.'];
         }
     }
 
-    if ($exist) {
-        $existingChat = DAO_MongoDB_Chat::findChatRoom($chatId);
-        if (!$existingChat) {
-            $created = createMongoDB_Chat($chatId);
-            if ($created['success'] == false) {
-                return ['success' => false, 'message' => 'Gagal memuat log chat. ' . $created['message']];
-            }
+    // --- PROSES PENGECEKAN/PEMBUATAN ROOM MONGODB (Log Chat) ---
+    // Logika ini sekarang jalan untuk chat BARU maupun LAMA
+    
+    custom_log("Mulai cek room MongoDB untuk ChatID: " . $chatId, LOG_TYPE::ACTIVITY);
+    
+    $existingMongoChat = DAO_MongoDB_Chat::findChatRoom($chatId);
+    
+    if (!$existingMongoChat) {
+        custom_log("Room MongoDB belum ada, membuat baru...", LOG_TYPE::ACTIVITY);
+        $created = createMongoDB_Chat($chatId);
+        
+        if ($created['success'] == false) {
+             return ['success' => false, 'message' => 'Gagal memuat log chat MongoDB. ' . $created['message']];
         }
+        custom_log("Room MongoDB berhasil dibuat.", LOG_TYPE::ACTIVITY);
+    } else {
+        custom_log("Room MongoDB sudah ada.", LOG_TYPE::ACTIVITY);
     }
+
     return ['success' => true, 'message' => $message, 'chat_id' => $chatId];
 }
 
 function createMongoDB_Chat($chatId)
 {
+    custom_log("masuk fungsi createmongodbchat: ". $chatId, LOG_TYPE::ACTIVITY);
+    
     $mongoChatObjectId = DAO_MongoDB_Chat::createChatRoom($chatId);
-    if (!is_string($mongoChatObjectId || str_starts_with($mongoChatObjectId, 'Gagal'))) {
-        // MongoDB Creation Failed
-        return ['success' => false, 'message' => 'Gagal membuat log chat. ' . $mongoChatObjectId];
+    
+    // Cek apakah hasilnya BUKAN string (berarti error object?) atau string yang diawali 'Gagal'
+    if (!is_string($mongoChatObjectId) || str_starts_with($mongoChatObjectId, 'Gagal')) {
+        return ['success' => false, 'message' => 'Gagal membuat log chat. ' . json_encode($mongoChatObjectId)];
     }
-    return ['success' => true, 'message' => "Log chat MongoDB juga dipastikan/dibuat."];
+    
+    custom_log("Sukses create di mongodb.", LOG_TYPE::ACTIVITY);
+    return ['success' => true, 'message' => "Log chat MongoDB siap."];
 }
-
 
 // --- LOGIKA ROUTING CONTROLLER INI ---
 if (isset($_GET['action'])) {
     if ($_GET['action'] === 'initChat') {
+        custom_log("masuk initchat: ", LOG_TYPE::ACTIVITY);
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
 
@@ -87,10 +120,12 @@ if (isset($_GET['action'])) {
         $dokterId = $data['id_dokter'] ?? null;
         $idChat = $data['id_chat'] ?? null;
         $formKonsul = $data['formKonsul'] ?? null;
+        $response = "";
 
         // Safety check untuk idDokter
         if (empty($dokterId) || $idUser != $data['id_user'] || empty($idChat) || empty($formKonsul)) {
             $response = ['success' => false, 'message' => 'ID tidak valid atau form kosong.'];
+            custom_log("tidak valid atau form kosong: ", LOG_TYPE::ACTIVITY);
             $httpCode = 400;
         } else {
             $idDokter = hashId($dokterId, false);
@@ -123,6 +158,28 @@ if (isset($_GET['action'])) {
         if ($chatSession) {
             $response = [
                 'success' => true,
+                'session' => $chatSession
+            ];
+            header('Content-Type: application/json', true, 200);
+        } else {
+            $response = ['success' => false, 'message' => 'Sesi chat ini tidak ditemukan di kepemilikan Anda.'];
+            header('Content-Type: application/json', true, 404);
+        }
+        echo json_encode($response);
+        exit;
+    }elseif ($_GET['action'] === 'getChatForm') {
+        $chatId = $_GET['chat_id'] ?? null;
+        if (!$chatId) {
+            $response = ['success' => false, 'message' => 'Chat ID tidak ditemukan di URL.'];
+            header('Content-Type: application/json', true, 400);
+            echo json_encode($response);
+            exit;
+        }
+        $chatSession = DAO_MongoDB_Chat::getChatForm($chatId);
+        if ($chatSession) {
+            $response = [
+                'success' => true,
+                'message' => 'Sesi chat ini ditemukan.',
                 'session' => $chatSession
             ];
             header('Content-Type: application/json', true, 200);
