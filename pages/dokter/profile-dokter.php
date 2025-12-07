@@ -14,7 +14,7 @@ requireLogin(true, 'profil');
 $currentDokter = $_SESSION['user'];
 $profil = DAO_dokter::getProfilDokter($currentDokter, false);
 $spesialisasi = $profil->getKategori();
-$msg = DAO_dokter::manageDokter($profil);
+$msg = DAO_dokter::manageDokter(data:$profil);
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
@@ -473,8 +473,7 @@ include 'base.php';
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">SIP</label>
-                            <a href="<?php if ($msg) {
-                                echo SIP_DIR; ?>public/documents/<?php echo $profil->getPathSIP();
+                            <a href="<?php if ($msg) {?>../public/docs/sip/<?php echo $profil->getPathSIP();
                             } ?>" target="_blank"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
                                 📄Nomor SIP : <?php echo $profil->getSIP(); ?>
@@ -483,8 +482,7 @@ include 'base.php';
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">STRV</label>
-                            <a href="<?php if ($msg) {
-                                echo BASE_URL; ?>public/documents/<?php echo $profil->getPathSTRV();
+                            <a href="<?php if ($msg) { ?>../public/docs/strv/<?php echo $profil->getPathSTRV();
                             }
                             ; ?>" target="_blank"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
