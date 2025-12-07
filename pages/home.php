@@ -199,7 +199,8 @@ foreach ($topDokters as $doc) {
                         <span>•</span>
                         <span><?php echo $doc->getPengalaman(); ?>+ Tahun</span>
                     </div>
-                    <button onclick="navigateTo('?route=pilih-dokter')"
+                    <button
+                        onclick="navigateTo('?route=pilih-dokter&search=<?php echo urlencode($doc->getNama()); ?>&open=true')"
                         class="w-full bg-purple-50 text-purple-600 py-2 rounded-xl hover:bg-purple-100 transition-colors font-medium">Lihat
                         Profile</button>
                 </div>

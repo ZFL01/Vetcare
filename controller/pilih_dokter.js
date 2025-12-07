@@ -164,6 +164,21 @@ function initDokters() {
       allDokters = data;
       console.log("Data dokter berhasil di-fetch!", allDokters.length);
       filterAndDisplayDokters();
+
+      // Auto Open Logic
+      const autoOpen = urlParams.get('open');
+      if (autoOpen === 'true' && searchKeyword) {
+        setTimeout(() => {
+          const firstCard = doktersContainer.firstElementChild;
+          if (firstCard) {
+            console.log('[AUTO OPEN] Opening first card:', firstCard);
+             // Scroll smoothly to center
+             firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+             // Trigger click
+             firstCard.click();
+          }
+        }, 500); // Small delay to ensure render
+      }
     })
     .catch(error => {
       console.error('Error fetching dokter data:', error);
@@ -347,7 +362,6 @@ function renderDokters(dokters) {
     const displayRate = rateVal.toFixed(1);
 
     // Lokasi (Ambil dari data yang sudah di-JOIN di DAO)
-    const namaKlinik = escapeHtml(dokter.klinik || dokter.namaKlinik || dokter.nama_klinik || 'Klinik belum diatur');
     const kab = dokter.kabupaten || dokter.kab || '';
     const prov = dokter.provinsi || dokter.prov || '';
     let alamatFull = 'Indonesia';
@@ -441,7 +455,7 @@ function renderDokters(dokters) {
                <div class="flex items-start gap-2">
                  <span class="text-red-400 mt-0.5">📍</span> 
                  <div class="flex flex-col">
-                    <span class="font-bold text-gray-700 text-xs">${namaKlinik}</span>
+                    <span class="font-bold text-gray-700 text-xs">Alamat :</span>
                     <span class="truncate text-gray-400 text-[10px]">${escapeHtml(alamatFull)}</span>
                  </div>
                </div>
