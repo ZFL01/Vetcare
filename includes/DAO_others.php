@@ -322,8 +322,9 @@ class DAO_chat
     static function getRating(int $idDokter)
     {
         $conn = Database::getConnection();
-        $sql = "select count(*) as total, sum(`liked?`) as suka from log_rating
-        where id_dokter=?";
+        $sql = "select count(*) as total, sum(l.`liked?`) as suka from log_rating l
+        join tr_transaksi t on l.idChat = t.id_tr
+        where t.dokter_id=?";
         try {
             $stmt = $conn->prepare($sql);
             $stmt->execute([$idDokter]);
@@ -334,7 +335,7 @@ class DAO_chat
             return [];
         }
     }
-    static function registChatRoom($idChat, $user, $dokter, $created, $biaya, array $liked = ['isLiked'=>false, 'rating'=> true])
+    static function registChatRoom($idChat, $user, $dokter, $created, $biaya, array $liked = ['isLiked' => false, 'rating' => true])
     {
         $start = $created;
         $end = date('Y-m-d H:i:s', strtotime($created . self::sesi_durasi));
@@ -344,10 +345,10 @@ class DAO_chat
         $sql = "insert into tr_transaksi (id_tr, user_id, dokter_id, created, paid_at, biaya) values (?,?,?,?,?,?)";
         $sql2 = "insert into log_rating (idChat, `liked?`, `end`) values (?, ?, now())";
         try {
-            if($liked['isLiked']){
+            if ($liked['isLiked']) {
                 $stmt = $conn->prepare($sql2);
                 $hasil = $stmt->execute([$idChat, $liked['rating']]);
-            }else{
+            } else {
                 $stmt = $conn->prepare($sql);
                 $hasil = $stmt->execute([$idChat, $user, $dokter, $start, $start, $biaya]);
             }
@@ -373,7 +374,8 @@ class DAO_chat
     }
 }
 
-class ringkasanTransaksiDoker {
+class ringkasanTransaksiDoker
+{
     static function getRingkasan(DTO_dokter $dokter, int $tahun)
     {
         $conn = Database::getConnection();
@@ -401,6 +403,107 @@ class ringkasanTransaksiDoker {
             return $hasil;
         } catch (PDOException $e) {
             custom_log("[DAO_others::getRingkasan]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [];
+        }
+    }
+
+    static function getTotalPendapatan(int $dokter)
+    {
+        $conn = Database::getConnection();
+        $sql = "select sum(biaya) as total_pendapatan from tr_transaksi where dokter_id=?";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $hasil['total_pendapatan'] ?? 0;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getTotalPendapatan]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function getTotalKonsultasi(int $dokter)
+    {
+        $conn = Database::getConnection();
+        $sql = "select count(*) as total_konsultasi from tr_transaksi where dokter_id=?";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $hasil['total_konsultasi'] ?? 0;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getTotalKonsultasi]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function getPasienKembali(int $dokter)
+    {
+        $conn = Database::getConnection();
+        $sql = "SELECT COUNT(*) as returning_users FROM (
+            SELECT user_id FROM tr_transaksi
+            WHERE dokter_id = ?
+            GROUP BY user_id
+            HAVING COUNT(*) > 1
+        ) as subquery";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            return $stmt->fetchColumn() ?: 0;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getPasienKembali]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function getTotalPasien(int $dokter)
+    {
+        $conn = Database::getConnection();
+        $sql = "SELECT COUNT(DISTINCT user_id) FROM tr_transaksi WHERE dokter_id = ?";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            return $stmt->fetchColumn() ?: 0;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getTotalPasien]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function getStatistikMingguan(int $dokter)
+    {
+        $conn = Database::getConnection();
+        // 0 = Monday, 6 = Sunday
+        $sql = "SELECT WEEKDAY(created) as hari, COUNT(*) as total 
+                FROM tr_transaksi 
+                WHERE dokter_id = ? 
+                AND YEARWEEK(created, 1) = YEARWEEK(NOW(), 1) 
+                GROUP BY hari";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter]);
+            return $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getStatistikMingguan]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [];
+        }
+    }
+
+    static function getStatistikBulanan(int $dokter, int $tahun)
+    {
+        $conn = Database::getConnection();
+        // 1 = January, 12 = December
+        $sql = "SELECT MONTH(created) as bulan, COUNT(*) as total 
+                FROM tr_transaksi 
+                WHERE dokter_id = ? 
+                AND YEAR(created) = ? 
+                GROUP BY bulan";
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$dokter, $tahun]);
+            return $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getStatistikBulanan]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [];
         }
     }

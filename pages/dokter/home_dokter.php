@@ -2,20 +2,6 @@
 $pageTitle = "Dashboard - VetCare";
 include 'header-dokter.php'; // Header tetap di-include
 
-$origin = true;
-if (isset($_GET['tab'])) {
-    switch ($_GET['tab']) {
-        case 'consultations':
-            include_once 'home-konsultasi.php';
-            break;
-        case 'analytics':
-            include_once 'home-analitik.php';
-            break;
-        case 'overview':
-            break;
-    }
-    exit();
-}
 
 // --- LOGIKA DATA (PHP) ---
 $doctorId = $_SESSION['dokter']->getId();
@@ -69,8 +55,6 @@ $stats = [
     'revenue' => 'Rp ' . number_format(count($consultations) * 75000, 0, ',', '.')
 ];
 
-// Dummy Data Chart
-
 $origin = true;
 if (isset($_GET['tab'])) {
     switch ($_GET['tab']) {
@@ -85,7 +69,6 @@ if (isset($_GET['tab'])) {
     }
     exit();
 }
-
 
 ?>
 
@@ -173,6 +156,7 @@ if (isset($_GET['tab'])) {
 
         <div id="content-overview" class="tab-content fade-in">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Card 1: Konsultasi Minggu Ini (NEW) -->
                 <div
                     class="bg-[#2563EB] rounded-2xl p-6 text-white shadow-md relative overflow-hidden h-32 flex flex-col justify-between group hover:scale-[1.01] transition-transform">
                     <div>
@@ -292,28 +276,48 @@ if (isset($_GET['tab'])) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="dokter-charts.js"></script>
 <script>
     function switchTab(tabName) {
         const tabContent = document.getElementById('tabContent');
         const contentOverview = document.getElementById('content-overview');
 
-        tabContent.innerHTML = `
-            < div id = "content-overview" class="tab-content fade-in" >
-            </div >
-        `;
+        // Update Pill Active State
+        document.querySelectorAll('.pill-item').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === 'tab-' + tabName) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Hide overview if not selected
         if (tabName === 'overview') {
             contentOverview.classList.remove('hidden');
+            tabContent.innerHTML = ''; // Clear tab content
+            return;
         } else {
             contentOverview.classList.add('hidden');
         }
+
+        tabContent.innerHTML = '<div class="text-center p-8"><i class="fas fa-spinner fa-spin text-2xl text-teal-500"></i></div>';
 
         fetch(`?tab=${tabName}`)
             .then(response => response.text())
             .then(html => {
                 tabContent.innerHTML = html;
-                if (typeof initCharts === 'function') {
-                    initCharts();
-                }
+
+                // Execute scripts in the fetched HTML
+                const scripts = tabContent.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                        newScript.async = false; // Execute in order
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
             })
             .catch(error => {
                 tabContent.innerHTML = `<div class="text-center p-8 text-red-600">❌ Error: ${error.message}</div>`;
