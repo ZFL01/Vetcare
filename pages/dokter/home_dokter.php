@@ -286,7 +286,7 @@ if (isset($_GET['tab'])) {
             </div>
         </div>
 </div>
-</div>
+
 
 <div id="tabContent" class="tab-content fade-in">
 </div>
