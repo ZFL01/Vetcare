@@ -1,2 +1,11 @@
 [2025-12-05 14:21:12] ini id chat : C2512051421-U29D107
 [2025-12-07 05:12:37] ini id chat : C2512070512-U110D101
+[2025-12-07 16:35:38] masuk initchat: 
+[2025-12-07 16:35:38] ini id chat : C2512071635-U110D101
+[2025-12-07 16:35:38] Cek exist di sql: 
+[2025-12-07 16:35:38] Chat aktif ditemukan: ff3b2e7756880939efb9bee8d9c660c5
+[2025-12-07 16:35:38] Mulai cek room MongoDB untuk ChatID: ff3b2e7756880939efb9bee8d9c660c5
+[2025-12-07 16:35:38] Room MongoDB belum ada, membuat baru...
+[2025-12-07 16:35:38] masuk fungsi createmongodbchat: ff3b2e7756880939efb9bee8d9c660c5
+[2025-12-07 16:35:39] Sukses create di mongodb.
+[2025-12-07 16:35:39] Room MongoDB berhasil dibuat.

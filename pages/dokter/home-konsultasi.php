@@ -25,7 +25,7 @@ if (!empty($pesan)) {
     }
 }
 ?>
-
+<!-- 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
     <h2 class="text-lg font-bold text-gray-800 mb-6">Semua Riwayat Konsultasi</h2>
     <?php if (empty($semuaKonsultasi)): ?>
@@ -54,7 +54,7 @@ if (!empty($pesan)) {
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-</div>
+</div> -->
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
     <h2 class="text-lg font-bold text-gray-800 mb-6">Semua Riwayat Konsultasi</h2>
     <?php if (empty($allChats)): ?>
