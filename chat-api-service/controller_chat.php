@@ -17,7 +17,7 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
 
     $chatId = $idChat; // Default pakai ID baru
     $message = '';
-    
+
     // Ambil data chat terakhir di SQL
     $existingChatSQL = DAO_chat::findChatRoom($idDokter, $idUser);
     custom_log("Cek exist di sql: ", LOG_TYPE::ACTIVITY);
@@ -74,17 +74,17 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
 
     // --- PROSES PENGECEKAN/PEMBUATAN ROOM MONGODB (Log Chat) ---
     // Logika ini sekarang jalan untuk chat BARU maupun LAMA
-    
+
     custom_log("Mulai cek room MongoDB untuk ChatID: " . $chatId, LOG_TYPE::ACTIVITY);
-    
+
     $existingMongoChat = DAO_MongoDB_Chat::findChatRoom($chatId);
-    
+
     if (!$existingMongoChat) {
         custom_log("Room MongoDB belum ada, membuat baru...", LOG_TYPE::ACTIVITY);
         $created = createMongoDB_Chat($chatId);
-        
+
         if ($created['success'] == false) {
-             return ['success' => false, 'message' => 'Gagal memuat log chat MongoDB. ' . $created['message']];
+            return ['success' => false, 'message' => 'Gagal memuat log chat MongoDB. ' . $created['message']];
         }
         custom_log("Room MongoDB berhasil dibuat.", LOG_TYPE::ACTIVITY);
     } else {
@@ -96,15 +96,15 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
 
 function createMongoDB_Chat($chatId)
 {
-    custom_log("masuk fungsi createmongodbchat: ". $chatId, LOG_TYPE::ACTIVITY);
-    
+    custom_log("masuk fungsi createmongodbchat: " . $chatId, LOG_TYPE::ACTIVITY);
+
     $mongoChatObjectId = DAO_MongoDB_Chat::createChatRoom($chatId);
-    
+
     // Cek apakah hasilnya BUKAN string (berarti error object?) atau string yang diawali 'Gagal'
     if (!is_string($mongoChatObjectId) || str_starts_with($mongoChatObjectId, 'Gagal')) {
         return ['success' => false, 'message' => 'Gagal membuat log chat. ' . json_encode($mongoChatObjectId)];
     }
-    
+
     custom_log("Sukses create di mongodb.", LOG_TYPE::ACTIVITY);
     return ['success' => true, 'message' => "Log chat MongoDB siap."];
 }
@@ -167,7 +167,7 @@ if (isset($_GET['action'])) {
         }
         echo json_encode($response);
         exit;
-    }elseif ($_GET['action'] === 'getChatForm') {
+    } elseif ($_GET['action'] === 'getChatForm') {
         $chatId = $_GET['chat_id'] ?? null;
         if (!$chatId) {
             $response = ['success' => false, 'message' => 'Chat ID tidak ditemukan di URL.'];
@@ -186,6 +186,59 @@ if (isset($_GET['action'])) {
         } else {
             $response = ['success' => false, 'message' => 'Sesi chat ini tidak ditemukan di kepemilikan Anda.'];
             header('Content-Type: application/json', true, 404);
+        }
+        echo json_encode($response);
+        exit;
+
+    } elseif ($_GET['action'] === 'submitRating') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Metode permintaan tidak diizinkan.']);
+            return;
+        }
+
+        $json_data = file_get_contents('php://input');
+
+        $data = json_decode($json_data);
+
+        if ($data === null) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Data JSON tidak valid.']);
+            return;
+        }
+        $chatId = $data->id ?? null;
+        $rating = $data->rating ?? 1;
+        $idDokter = $data->dokterId ?? null;
+
+        if (!$chatId || !$idDokter) {
+            $response = ['success' => false, 'message' => "Chat ID atau rating tidak ditemukan di request. $chatId | $rating | $idDokter"];
+            header('Content-Type: application/json', true, 400);
+            echo json_encode($response);
+            exit;
+        }
+        $result = DAO_chat::registChatRoom($chatId, liked: ['isLiked' => true, 'rating' => $rating]);
+
+        $dokter = hashId($idDokter, false);
+        $nilai = DAO_chat::getRating($dokter);
+        $total = 0;
+        $jumlah = 0;
+        if (!empty($nilai)) {
+            $total = $nilai['total'];
+            $jumlah = $nilai['suka'];
+        }
+        if ($total > 0) {
+            $rating = round($jumlah / $total, 2);
+        }
+        $hasil = DAO_dokter::updateRate($dokter, $rating);
+        if ($result && $hasil[0]) {
+            $response = [
+                'success' => true,
+                'message' => 'Rating berhasil disubmit.',
+            ];
+            header('Content-Type: application/json', true, 200);
+        } else {
+            $response = ['success' => false, 'message' => 'Gagal menyimpan rating.'];
+            header('Content-Type: application/json', true, 500);
         }
         echo json_encode($response);
         exit;

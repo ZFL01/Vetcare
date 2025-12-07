@@ -335,7 +335,7 @@ class DAO_chat
             return [];
         }
     }
-    static function registChatRoom($idChat, $user, $dokter, $created, $biaya, array $liked = ['isLiked' => false, 'rating' => true])
+    static function registChatRoom($idChat, $user = null, $dokter=null, $created=null, $biaya=null, array $liked = ['isLiked' => false, 'rating' => true])
     {
         $start = $created;
         $end = date('Y-m-d H:i:s', strtotime($created . self::sesi_durasi));
