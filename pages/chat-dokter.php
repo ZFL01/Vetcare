@@ -33,7 +33,8 @@
                 <div class="relative">
                     <img id="fotoProfilDokter" src="public/placeholder.svg" alt="Dokter"
                         class="w-10 h-10 rounded-full object-cover border border-gray-100">
-                    <div id="status-color" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
+                    <div id="status-color"
+                        class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
                     </div>
                 </div>
                 <div>
@@ -63,6 +64,32 @@
                 </path>
             </svg>
             <p class="text-sm">Mulai percakapan dengan dokter</p>
+        </div>
+    </div>
+
+    <!-- pesan sesi akhir -->
+    <div id="satisfactionFormContainer" style="display: none;">
+        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-center shadow-lg">
+
+            <p class="font-semibold text-lg text-gray-800 mb-3">Sesi Konsultasi Telah Berakhir</p>
+            <p class="text-sm text-gray-600 mb-4">Bagaimana pengalaman Anda dengan layanan Dokter?</p>
+
+            <div class="flex justify-center gap-4">
+
+                <button id="btnLike"
+                    class="p-3 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors shadow-md"
+                    onclick="submitRating('like')">
+                    👍 Puas
+                </button>
+
+                <button id="btnDislike"
+                    class="p-3 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-md"
+                    onclick="submitRating('dislike')">
+                    👎 Tidak Puas
+                </button>
+
+            </div>
+
         </div>
     </div>
 
@@ -136,6 +163,7 @@
     const statusElement = document.getElementById('chat-status');
     const statusColor = document.getElementById('status-color');
     const chatStatus = sessionStorage.getItem('status');
+
     statusElement.textContent = chatStatus;
     if (chatStatus === 'Online') {
         statusElement.classList.remove('bg-gray-100');
@@ -151,6 +179,68 @@
 
     window.lastMessageTime = 0;
     let pollingInterval;
+    let sessionTimeoutInterval;
+
+    function renderSatisfactionForm() {
+        const container = document.getElementById('satisfactionFormContainer');
+
+        if (container) {
+            container.style.display = 'block';
+            const btnLike = document.getElementById('btnLike');
+            const btnDislike = document.getElementById('btnDislike');
+
+            if (btnLike) btnLike.disabled = false;
+            if (btnDislike) btnDislike.disabled = false;
+
+        } else {
+            console.error("Elemen satisfactionFormContainer tidak ditemukan di DOM.");
+        }
+    }
+
+    function checkSessionTimeout() {
+        // Pastikan data sesi tersedia
+        console.log(window.chatSessionData);
+        if (!window.chatSessionData || !window.chatSessionData.waktuSelesai) {
+            return;
+        }
+        const endTime = new Date(window.chatSessionData.waktuSelesai).getTime();
+        const now = new Date().getTime();
+
+        const messageInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+
+        // Elemen tempat menampilkan form kepuasan (Anda harus mendefinisikannya)
+        const satisfactionFormContainer = document.getElementById('satisfactionFormContainer');
+
+        if (now >= endTime) {
+            console.log(now);
+            console.log(endTime);
+
+            // 1. Hentikan Polling dan Cek Timeout
+            if (pollingInterval) clearInterval(pollingInterval);
+            if (sessionTimeoutInterval) clearInterval(sessionTimeoutInterval);
+
+            // 2. Nonaktifkan Input Pesan
+            if (messageInput) {
+                messageInput.disabled = true;
+                messageInput.placeholder = "Sesi chat telah berakhir.";
+            }
+            if (sendButton) sendButton.disabled = true;
+
+            // 3. Tampilkan Form Kepuasan
+            if (satisfactionFormContainer) {
+                // Asumsikan Anda punya fungsi untuk me-render form rating
+                renderSatisfactionForm();
+                satisfactionFormContainer.style.display = 'block';
+            }
+
+        } else {
+            // Sesi masih aktif
+            if (messageInput) messageInput.disabled = false;
+            if (sendButton) sendButton.disabled = false;
+            if (satisfactionFormContainer) satisfactionFormContainer.style.display = 'none';
+        }
+    }
 
     // Helper: Escape HTML
     function escapeHtml(text) {
@@ -388,7 +478,6 @@
                 const placeholder = chatMessages.querySelector('.flex.flex-col.items-center');
                 if (placeholder) placeholder.remove();
             }
-
             const urlParams = new URLSearchParams(window.location.search);
             const chatId = urlParams.get('chat_id');
             if (!chatId) {
@@ -411,6 +500,8 @@
 
                         window.chatSessionData = session;
 
+                        checkSessionTimeout();
+
                         chatDoctorName.textContent = session.namaDokter;
 
                         // Use foto from API response
@@ -426,9 +517,14 @@
                         loadChatHistory(chatId);
 
                         if (pollingInterval) clearInterval(pollingInterval);
+                        if (sessionTimeoutInterval) clearInterval(sessionTimeoutInterval);
                         pollingInterval = setInterval(() => {
                             loadChatHistory(chatId);
                         }, 5000);
+
+                        sessionTimeoutInterval = setInterval(() => {
+                            checkSessionTimeout();
+                        }, 3000)
 
                     } else {
                         console.error('data sesi chat tidak ditemukan', data.message);
@@ -445,4 +541,34 @@
             if (pollingInterval) clearInterval(pollingInterval);
         });
     });
+
+    function submitRating(rating) {
+        suka = rating === "like" ? 1 : 0;
+        const chatId = window.currentChatId;
+
+        document.getElementById('btnLike').disabled = true;
+        document.getElementById('btnDislike').disabled = true;
+
+        fetch('/chat-api-service/controller_chat.php?action=submitRating', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: chatId, rating: suka, dokterId: window.chatSessionData.idDokter })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Terima kasih atas penilaian Anda!');
+                    // Sembunyikan form setelah sukses
+                    document.getElementById('satisfactionFormContainer').style.display = 'none';
+                    window.location.href = '?route=pilih-dokter';
+                } else {
+                    alert('Gagal mengirim rating. Coba lagi.');
+                }
+            })
+            .catch(error => {
+                console.error('Error mengirim rating:', error);
+                alert('Terjadi kesalahan koneksi.');
+            });
+    }
+
 </script>

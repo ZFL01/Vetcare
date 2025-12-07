@@ -846,11 +846,11 @@ class DAO_dokter
         $sql = "update m_doc_dokter set path_sip=?, path_strv=? where id_dokter=?";
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([
+            return [$stmt->execute([
                 $data->getSIP(),
                 $data->getSTRV(),
                 $data->getId()
-            ]);
+            ])];
         } catch (PDOException $e) {
             custom_log("DAO_dokter::updateDocument: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [false, $e->getMessage()];
@@ -866,17 +866,17 @@ class DAO_dokter
         try {
             if ($admin) {
                 $stmt = $conn->prepare($sqlAdmin);
-                return $stmt->execute([
+                return [$stmt->execute([
                     $data->getSTRV(),
                     $data->getExp_STRV(),
                     $data->getSIP(),
                     $data->getExp_SIP(),
                     $status,
                     $idDokter
-                ]);
+                ])];
             } else {
                 $stmt = $conn->prepare($sqlDokter);
-                return $stmt->execute([
+                return [$stmt->execute([
                     $data->getNama(),
                     date('Y-m-d', strtotime($data->getTTL())),
                     $data->getPengalaman(),
@@ -884,7 +884,7 @@ class DAO_dokter
                     $data->getProv(),
                     $data->getHarga(),
                     $idDokter
-                ]);
+                ])];
             }
         } catch (PDOException $e) {
             custom_log("DAO_dokter::updateDokter {admin = $admin}: " . $e->getMessage(), LOG_TYPE::ERROR);
@@ -898,10 +898,10 @@ class DAO_dokter
         $sql = "update m_dokter set rate=? where id_dokter=?";
         try {
             $stmt = $conn->prepare($sql);
-            return $stmt->execute([
+            return [$stmt->execute([
                 $rate,
                 $idDokter
-            ]);
+            ])];
         } catch (PDOException $e) {
             custom_log("DAO_dokter::updateRate: " . $e->getMessage(), LOG_TYPE::ERROR);
             return [false, $e->getMessage()];

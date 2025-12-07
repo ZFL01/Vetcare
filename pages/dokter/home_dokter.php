@@ -36,7 +36,7 @@ $totalTransaksi = DAO_chat::getRating($doctorId);
 if (!empty($totalTransaksi)) {
     if ($totalTransaksi['total'] > 0) {
         $WeekTr = $totalTransaksi['total'];
-        $rating = (round($totalTransaksi['total'] / $totalTransaksi['suka'], 2) * 5);
+        $rating = (round($totalTransaksi['suka'] / $totalTransaksi['total'], 2) * 5);
     } else {
         $WeekTr = 0;
         $rating = 0;
