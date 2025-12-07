@@ -481,8 +481,9 @@ class DAO_dokter
         }
     }
 
-    static function manageDokter($id)
+    static function manageDokter(?int $idD = null, ?DTO_dokter $data = null)
     {
+        $id = $data?->getId() ?? $idD;
         $conn = Database::getConnection();
         try {
             $sql = 'select * from m_doc_dokter where id_dokter = ?';
@@ -491,8 +492,14 @@ class DAO_dokter
             $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($hasil == null) {
                 return null;
+            } else {
+                if ($data == null) {
+                    return $hasil;
+                } else {
+                    $data->setDocPath($hasil['path_sip'], $hasil['path_strv']);
+                    return true;
+                }
             }
-            return $hasil;
         } catch (PDOException $e) {
             custom_log("[DAO_dokter::manageDokter] : " . $e->getMessage(), LOG_TYPE::ERROR);
             return false;
@@ -662,7 +669,8 @@ class DAO_dokter
         }
     }
 
-    static function getHarga(int $idDokter){
+    static function getHarga(int $idDokter)
+    {
         $conn = Database::getConnection();
         try {
             $sql = "select harga from m_dokter where id_dokter=?";
@@ -679,7 +687,7 @@ class DAO_dokter
         }
     }
 
-//logika insert
+    //logika insert
 
     static function insertDokter(DTO_dokter $data, array $datKateg)
     { //register kedua dokter
@@ -884,7 +892,8 @@ class DAO_dokter
         }
     }
 
-    static function updateRate(int $idDokter, $rate){
+    static function updateRate(int $idDokter, $rate)
+    {
         $conn = Database::getConnection();
         $sql = "update m_dokter set rate=? where id_dokter=?";
         try {
