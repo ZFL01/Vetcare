@@ -112,7 +112,6 @@ $dokter = $_SESSION['dokter'];
                     <h4 class="font-bold text-gray-900 text-xl nama-hewan"></h4>
                     <p class="text-purple-600 font-medium jenis-hewan">Kucing Persia</p>
                 </div>
-
                 <!-- Data Hewan -->
                 <div class="space-y-3 mb-6">
                     <h5 class="font-bold text-purple-900 mb-3 flex items-center gap-2">
