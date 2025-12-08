@@ -292,14 +292,15 @@ if (isset($_GET['action'])) {
         $nilai = DAO_chat::getRating($dokter);
         $total = 0;
         $jumlah = 0;
+        $hasil = [true, ''];
         if (!empty($nilai)) {
             $total = $nilai['total'];
             $jumlah = $nilai['suka'];
         }
-        if ($total > 0) {
+        if ($total > 9) {
             $rating = round($jumlah / $total, 2);
+            $hasil = DAO_dokter::updateRate($dokter, $rating);
         }
-        $hasil = DAO_dokter::updateRate($dokter, $rating);
         if ($result && $hasil[0]) {
             $response = [
                 'success' => true,
