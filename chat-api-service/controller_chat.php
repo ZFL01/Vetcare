@@ -32,7 +32,8 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
         custom_log("Chat tidak ditemukan, set create new.", LOG_TYPE::ACTIVITY);
     } else {
         // 2. Chat ada, cek apakah sudah expired
-        $end = $existingChatSQL->getWaktuSelesai();
+        $endString = $existingChatSQL->getWaktuSelesai();
+        $end = strtotime($endString);
         if ($now >= $end) {
             $shouldCreateNew = true; // Ada tapi expired, buat baru
             custom_log("Chat expired, set create new.", LOG_TYPE::ACTIVITY);
@@ -58,7 +59,7 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
 
         if ($hasil) {
             // Simpan Form ke MongoDB
-            $form = DAO_MongoDB_Chat::insertConsultationForm($chatId, $formKonsul);
+            $form = DAO_MongoDB_Chat::updateConsultationForm($chatId, $formKonsul);
             custom_log("insert form di mongodb result: " . ($form === true ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
 
             if ($form === true) {
@@ -70,6 +71,10 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
         } else {
             return ['success' => false, 'message' => 'Gagal membuat Chat Room SQL.'];
         }
+    } else {
+        $chatId = $existingChatSQL->getIdChat();
+        $form2 = DAO_MongoDB_Chat::updateConsultationForm($chatId, $formKonsul);
+        custom_log("update form di mongodb result: " . ($form2 === true ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
     }
 
     // --- PROSES PENGECEKAN/PEMBUATAN ROOM MONGODB (Log Chat) ---

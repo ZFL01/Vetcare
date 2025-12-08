@@ -78,13 +78,13 @@ if ($action) {
             $prov = $data['prov'] ?? '';
             $koor = $lat . ', ' . $long;
             error_log("halo?");
-            if(empty($kota) || empty($prov)){
+            if (empty($kota) || empty($prov)) {
                 $kotprov = apiControl::getCityProvince($lat, $long);
                 if (!$kotprov[0]) {
                     $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
                     $httpCode = 400;
                     break;
-                }else{
+                } else {
                     $kota = $kotprov[0];
                     $prov = $kotprov[1];
                 }
@@ -187,14 +187,13 @@ switch ($route) {
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
         $contentFile = 'pages/dokter/home_dokter.php';
-        header('Location: '. $contentFile);
-        custom_log("Route {". $route. "} accessed on root :". ROOT_DIR. '/'. $contentFile, LOG_TYPE::ROUTING);
+        header('Location: ' . $contentFile);
         exit();
     case 'logout':
         session_unset();
         session_destroy();
         header('Location: ?route=');
-        custom_log("Route {". $route. "} :", LOG_TYPE::ROUTING);
+        custom_log("Route {" . $route . "} :", LOG_TYPE::ROUTING);
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
@@ -209,9 +208,6 @@ switch ($route) {
         $contentFile = 'pages/pilih-dokter.php';
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
-    case 'admin':
-        header('Location: ' . BASE_URL . 'admin/');
-        exit();
     case 'tanya-jawab':
         requireLogin(false);
         dokterAllowed(false);
@@ -229,6 +225,7 @@ switch ($route) {
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'profil':
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         requireLogin(true);
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
@@ -236,7 +233,6 @@ switch ($route) {
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
         $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
-        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -251,6 +247,9 @@ switch ($route) {
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // ...
+    case 'admin':
+        custom_log("Route {" . $route . "} want to access", LOG_TYPE::ROUTING);
+    //ini biarkan kosong, gak boleh akses lewat route index
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';
         $pageDescription = 'Halaman yang Anda cari tidak ditemukan';
