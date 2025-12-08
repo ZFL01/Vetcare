@@ -114,6 +114,24 @@ if ($action) {
                     $data['content']
                 );
                 if ($result === true) {
+                    $participants = DAO_chat::getParticipantsByChatId($data['chat_id']);
+                    if ($participants) {
+                        $receiverId = $data['sender_role'] === 'user' ? $participants['dokter_id'] : $participants['user_id'];
+                        $recipientEmail = DAO_pengguna::getEmailById($receiverId);
+                        if ($recipientEmail) {
+                            $subject = $data['sender_role'] === 'user' ? 'Konsultasi baru dari Member' : 'Anda mendapat balasan dari Dokter';
+                            $body = '<h3>Notifikasi Chat Vetcare</h3><p>' . htmlspecialchars($data['content']) . '</p>';
+                            $mailRes = emailService::sendCustomEmail($recipientEmail, $subject, $body);
+                            if (is_array($mailRes) && $mailRes[0] === true) {
+                                custom_log("Email notifikasi dikirim ke: $recipientEmail | chat: {$data['chat_id']}", LOG_TYPE::ACTIVITY);
+                            } else {
+                                $err = is_array($mailRes) && isset($mailRes[1]) ? $mailRes[1] : 'unknown error';
+                                custom_log("Gagal mengirim email ke: $recipientEmail | chat: {$data['chat_id']} | reason: $err", LOG_TYPE::ERROR);
+                            }
+                        } else {
+                            custom_log("Email penerima tidak ditemukan untuk ID: $receiverId", LOG_TYPE::ERROR);
+                        }
+                    }
                     $response = ['success' => true, 'message' => 'Pesan terkirim.'];
                     $httpCode = 200;
                 } else {

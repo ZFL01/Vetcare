@@ -3,6 +3,7 @@ require_once __DIR__ . '/dao_chat.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
+require_once __DIR__ . '/../includes/userService.php';
 require_once __DIR__ . '/../src/config/config.php';
 
 // Start session
@@ -140,6 +141,70 @@ if (isset($_GET['action'])) {
         // Output JSON
         header('Content-Type: application/json');
         http_response_code($httpCode);
+        echo json_encode($response);
+        exit;
+    } elseif ($_GET['action'] === 'sendMessage') {
+        // --- LOGIKA BARU UNTUK MENGIRIM PESAN & EMAIL ---
+
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        // Validasi input minimal
+        $idChat = $data['id_chat'] ?? null;
+        $senderId = $data['sender_id'] ?? null;
+        $receiverId = $data['receiver_id'] ?? null;
+        $messageContent = $data['content'] ?? ($data['message'] ?? '');
+        $senderName = $data['sender_name'] ?? 'Seseorang';
+        $senderRole = $data['sender_role'] ?? (isset($_SESSION['dokter']) ? 'dokter' : 'user');
+
+        if (!$idChat || !$senderId || !$receiverId || empty($messageContent)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Data pesan tidak lengkap.']);
+            exit;
+        }
+
+        $mongoResult = DAO_MongoDB_Chat::insertMessage($idChat, $senderId, $senderRole, $messageContent);
+
+        if ($mongoResult === true) {
+
+            // 2. LOGIKA EMAIL NOTIFICATION
+            // Ambil email penerima
+            if (!$receiverId) {
+                $parts = DAO_chat::getParticipantsByChatId($idChat);
+                if ($parts) {
+                    $receiverId = $senderRole === 'user' ? $parts['dokter_id'] : $parts['user_id'];
+                }
+            }
+            $recipientEmail = $receiverId ? DAO_pengguna::getEmailById($receiverId) : null;
+
+            if ($recipientEmail) {
+                $subject = $senderRole === 'user' ? 'Konsultasi baru dari Member' : 'Anda mendapat balasan dari Dokter';
+                $body = "
+                    <h3>Anda memiliki pesan baru di Vetcare</h3>
+                    <p><strong>Dari:</strong> {$senderName}</p>
+                    <p><strong>Pesan:</strong></p>
+                    <blockquote style='background: #f9f9f9; border-left: 10px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px;'>
+                        " . htmlspecialchars($messageContent) . "
+                    </blockquote>
+                    <p>Silakan login ke aplikasi untuk membalas.</p>
+                ";
+
+                // Kirim Email (Fire and Forget - jangan biarkan gagal email menghentikan chat)
+                // Gunakan function baru sendCustomEmail
+                emailService::sendCustomEmail($recipientEmail, $subject, $body);
+                custom_log("Email notifikasi dikirim ke: $recipientEmail", LOG_TYPE::ACTIVITY);
+            } else {
+                custom_log("Email penerima tidak ditemukan untuk ID: $receiverId", LOG_TYPE::ERROR);
+            }
+
+            $response = ['success' => true, 'message' => 'Pesan terkirim'];
+            http_response_code(200);
+        } else {
+            $response = ['success' => false, 'message' => 'Gagal menyimpan pesan ke database.'];
+            http_response_code(500);
+        }
+
+        header('Content-Type: application/json');
         echo json_encode($response);
         exit;
     } elseif ($_GET['action'] === 'getChatSession') {

@@ -25,12 +25,7 @@ class DAO_MongoDB_Chat
         }
     }
 
-    static function insertMessage(
-        string $chatId,
-        string $senderId,
-        string $senderRole,
-        string $content
-    ) {
+    static function insertMessage(string $chatId, string $senderId, string $senderRole, string $content) {
         $db = self::getDb();
         if ($db === null) {
             return 'Koneksi gagal';

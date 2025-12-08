@@ -26,3 +26,121 @@
 [2025-12-07 16:53:12] masuk fungsi createmongodbchat: 0fa6c4119c7960e86fd259cd06e01e71
 [2025-12-07 16:53:12] Sukses create di mongodb.
 [2025-12-07 16:53:12] Room MongoDB berhasil dibuat.
+[2025-12-08 20:20:06] masuk initchat: 
+[2025-12-08 20:20:06] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:06] Cek exist di sql: 
+[2025-12-08 20:20:06] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:06] regist chat room sql: sukses
+[2025-12-08 20:20:09] insert form di mongodb result: sukses
+[2025-12-08 20:20:09] Mulai cek room MongoDB untuk ChatID: cef002708777cb223ac2d12e16e7d6be
+[2025-12-08 20:20:09] Room MongoDB belum ada, membuat baru...
+[2025-12-08 20:20:09] masuk fungsi createmongodbchat: cef002708777cb223ac2d12e16e7d6be
+[2025-12-08 20:20:10] Sukses create di mongodb.
+[2025-12-08 20:20:10] Room MongoDB berhasil dibuat.
+[2025-12-08 20:20:10] masuk initchat: 
+[2025-12-08 20:20:10] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:10] Cek exist di sql: 
+[2025-12-08 20:20:10] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:10] regist chat room sql: gagal
+[2025-12-08 20:20:13] masuk initchat: 
+[2025-12-08 20:20:13] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:13] Cek exist di sql: 
+[2025-12-08 20:20:13] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:13] regist chat room sql: gagal
+[2025-12-08 20:20:13] masuk initchat: 
+[2025-12-08 20:20:13] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:13] Cek exist di sql: 
+[2025-12-08 20:20:13] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:13] regist chat room sql: gagal
+[2025-12-08 20:20:14] masuk initchat: 
+[2025-12-08 20:20:14] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:14] Cek exist di sql: 
+[2025-12-08 20:20:14] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:14] regist chat room sql: gagal
+[2025-12-08 20:20:15] masuk initchat: 
+[2025-12-08 20:20:15] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:15] Cek exist di sql: 
+[2025-12-08 20:20:15] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:15] regist chat room sql: gagal
+[2025-12-08 20:20:15] masuk initchat: 
+[2025-12-08 20:20:15] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:15] Cek exist di sql: 
+[2025-12-08 20:20:15] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:15] regist chat room sql: gagal
+[2025-12-08 20:20:16] masuk initchat: 
+[2025-12-08 20:20:16] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:16] Cek exist di sql: 
+[2025-12-08 20:20:16] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:16] regist chat room sql: gagal
+[2025-12-08 20:20:16] masuk initchat: 
+[2025-12-08 20:20:16] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:16] Cek exist di sql: 
+[2025-12-08 20:20:16] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:16] regist chat room sql: gagal
+[2025-12-08 20:20:17] masuk initchat: 
+[2025-12-08 20:20:17] ini id chat : C2512082017-U221D224
+[2025-12-08 20:20:17] Cek exist di sql: 
+[2025-12-08 20:20:17] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:17] regist chat room sql: gagal
+[2025-12-08 20:20:17] masuk initchat: 
+[2025-12-08 20:20:17] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:17] Cek exist di sql: 
+[2025-12-08 20:20:17] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:17] regist chat room sql: sukses
+[2025-12-08 20:20:17] insert form di mongodb result: sukses
+[2025-12-08 20:20:17] Mulai cek room MongoDB untuk ChatID: fc2e448fa09cce8009f0cc0a3a36f502
+[2025-12-08 20:20:17] Room MongoDB belum ada, membuat baru...
+[2025-12-08 20:20:17] masuk fungsi createmongodbchat: fc2e448fa09cce8009f0cc0a3a36f502
+[2025-12-08 20:20:18] Sukses create di mongodb.
+[2025-12-08 20:20:18] Room MongoDB berhasil dibuat.
+[2025-12-08 20:20:18] masuk initchat: 
+[2025-12-08 20:20:18] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:18] Cek exist di sql: 
+[2025-12-08 20:20:18] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:18] regist chat room sql: gagal
+[2025-12-08 20:20:18] masuk initchat: 
+[2025-12-08 20:20:18] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:18] Cek exist di sql: 
+[2025-12-08 20:20:18] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:18] regist chat room sql: gagal
+[2025-12-08 20:20:18] masuk initchat: 
+[2025-12-08 20:20:18] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:18] Cek exist di sql: 
+[2025-12-08 20:20:18] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:18] regist chat room sql: gagal
+[2025-12-08 20:20:18] masuk initchat: 
+[2025-12-08 20:20:18] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:18] Cek exist di sql: 
+[2025-12-08 20:20:18] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:18] regist chat room sql: gagal
+[2025-12-08 20:20:19] masuk initchat: 
+[2025-12-08 20:20:19] ini id chat : C2512082018-U221D224
+[2025-12-08 20:20:19] Cek exist di sql: 
+[2025-12-08 20:20:19] Chat tidak ditemukan, set create new.
+[2025-12-08 20:20:19] regist chat room sql: gagal
+[2025-12-08 20:32:46] masuk initchat: 
+[2025-12-08 20:32:46] ini id chat : C2512082029-U221D224
+[2025-12-08 20:32:46] Cek exist di sql: 
+[2025-12-08 20:32:46] Chat tidak ditemukan, set create new.
+[2025-12-08 20:32:46] regist chat room sql: sukses
+[2025-12-08 20:32:48] insert form di mongodb result: sukses
+[2025-12-08 20:32:48] Mulai cek room MongoDB untuk ChatID: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 20:32:48] Room MongoDB belum ada, membuat baru...
+[2025-12-08 20:32:48] masuk fungsi createmongodbchat: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 20:32:48] Sukses create di mongodb.
+[2025-12-08 20:32:48] Room MongoDB berhasil dibuat.
+[2025-12-08 22:46:59] Email notifikasi dikirim ke: teguh.thewaifu.kun@gmail.com | chat: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 22:47:08] Email notifikasi dikirim ke: teguh.thewaifu.kun@gmail.com | chat: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 22:53:32] Email notifikasi dikirim ke: teguh.thewaifu.kun@gmail.com | chat: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 22:54:58] Email notifikasi dikirim ke: teguh.thewaifu.kun@gmail.com | chat: ae0a31161eb8921fc04ca9962283e917
+[2025-12-08 23:07:28] masuk initchat: 
+[2025-12-08 23:07:28] ini id chat : C2512082307-U221D224
+[2025-12-08 23:07:28] Cek exist di sql: 
+[2025-12-08 23:07:28] Chat tidak ditemukan, set create new.
+[2025-12-08 23:07:28] regist chat room sql: sukses
+[2025-12-08 23:07:28] insert form di mongodb result: sukses
+[2025-12-08 23:07:28] Mulai cek room MongoDB untuk ChatID: cb36f691d30ae41044575487d04e817b
+[2025-12-08 23:07:28] Room MongoDB belum ada, membuat baru...
+[2025-12-08 23:07:28] masuk fungsi createmongodbchat: cb36f691d30ae41044575487d04e817b
+[2025-12-08 23:07:28] Sukses create di mongodb.
+[2025-12-08 23:07:28] Room MongoDB berhasil dibuat.

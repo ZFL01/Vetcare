@@ -227,7 +227,7 @@ function timeAgo($datetime)
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory, $prefix)
+function uploadImage($file, $directory, $prefix, $customId = null)
 {
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
@@ -247,9 +247,20 @@ function uploadImage($file, $directory, $prefix)
         return ['success' => false, 'message' => 'Ukuran file terlalu besar (max 5MB)'];
     }
 
+    // --- LOGIC ID FIX ---
+    $id = $customId;
+    if ($id === null) {
+        if (isset($_SESSION['user']) && is_object($_SESSION['user'])) {
+            $id = $_SESSION['user']->getIdUser();
+        } else {
+            $id = time(); // Fallback safe ID agar tidak crash
+        }
+    }
+    // --------------------
+
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
+    $filename = $prefix . $id . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
 
     // Move file
@@ -272,7 +283,7 @@ function deleteImage($filename, $directory)
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix)
+function uploadDocument($file, $target_dir, $prefix, $customId = null)
 {
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
@@ -307,9 +318,20 @@ function uploadDocument($file, $target_dir, $prefix)
         return $result;
     }
 
+    // --- LOGIC ID FIX ---
+    $id = $customId;
+    if ($id === null) {
+        if (isset($_SESSION['user']) && is_object($_SESSION['user'])) {
+            $id = $_SESSION['user']->getIdUser();
+        } else {
+            $id = time(); // Fallback safe ID agar tidak crash
+        }
+    }
+    // --------------------
+
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $file_extension;
+    $new_filename = $prefix . $id . date('ymdHis') . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists
@@ -359,5 +381,13 @@ function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR)
 
     error_log($log_entry, 3, $dest);
 }
+
+define('MAIL_HOST', 'smtp.gmail.com');
+define('MAIL_PORT', 587);
+define('MAIL_USERNAME', '');
+define('MAIL_PASSWORD', '');
+define('MAIL_ENCRYPTION', 'tls');
+define('MAIL_FROM_ADDRESS', 'noreply@eaude-vetcare.mif.myhost.id');
+define('MAIL_FROM_NAME', 'VetCare');
 
 ?>

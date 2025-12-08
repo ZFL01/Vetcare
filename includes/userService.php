@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';require_once __DIR__ . '/../vendor/autoload.php';
 require_once 'DAO_user.php';
 require_once 'database.php';
 use PHPMailer\PHPMailer\PHPMailer;
@@ -63,7 +64,7 @@ enum index_email
 function censorEmail(string $email)
 {
     $atpos = strpos($email, '@');
-    if ($atpos <= 2){
+    if ($atpos <= 2) {
         return $email;
     }
 
@@ -80,13 +81,13 @@ function censorEmail(string $email)
     $mask = $uNameLength - $vis - 2;
     if ($mask < 1) {
         $mask = 1;
-    }else{
+    } else {
         $mask = 5;
     }
 
     $masked = str_repeat('*', $mask);
 
-    if($atpos <= 4){
+    if ($atpos <= 4) {
         return substr($uName, 0, 2) . '*' . $domain;
     }
     return $start . $masked . $end . $domain;
@@ -197,10 +198,16 @@ class emailService
         return str_pad(rand(101010, 999999), 6);
     }
 
+    // --- FUNGSI BARU PUBLIC UNTUK CUSTOM EMAIL ---
+    static function sendCustomEmail(string $to, string $subject, string $body)
+    {
+        return self::sendHtmlEmail($to, $subject, $body);
+    }
+
     static function sendEmail(DTO_pengguna $data, array $indexEmail)
     {
         $email = $data->getEmail();
-        if($indexEmail['subject'] !== 'Complaint'){
+        if ($indexEmail['subject'] !== 'Complaint') {
             $cek = DAO_pengguna::getUserEmail($email);
             if (!$cek[0]) {
                 return $cek;
@@ -208,6 +215,8 @@ class emailService
         }
 
         $token = '';
+        $body = $indexEmail['body']; // Ambil template body
+
         if ($indexEmail['subject'] === 'Forgot Password') {
             $token = self::generateToken();
             $expTime = date('Y-m-d H:i:s', time() + (5 * 60 + 15));
@@ -216,55 +225,75 @@ class emailService
             if (!$update[0]) {
                 return $update;
             }
-        }elseif ($indexEmail['subject'] === 'Complaint') {
+            // Replace token di sini sebelum dikirim ke core function
+            $body = str_replace('{{token}}', $token, $body);
+
+        } elseif ($indexEmail['subject'] === 'Complaint') {
             $email = 'svenhikari@gmail.com';
+        } else {
+            // Bersihkan placeholder token jika ada tapi tidak dipakai
+            $body = str_replace('{{token}}', '', $body);
         }
-        return self::sendEmailverify($email, $token, $indexEmail);
+
+        // Panggil fungsi core baru
+        return self::sendHtmlEmail($email, $indexEmail['subject'], $body);
     }
 
-    private static function sendEmailverify(string $recipientEmail, string $token = '', array $data = [])
+    /**
+     * Core function: Hanya fokus mengirim email via PHPMailer
+     * Refactored from sendEmailverify
+     */
+    private static function sendHtmlEmail(string $recipientEmail, string $subject, string $htmlBody)
     {
         $mail = new PHPMailer(true);
         try {
-            $mail->SMTPDebug = 2;
+            $mail->SMTPDebug = 0;
             $mail->Debugoutput = function ($str, $level) {
-                custom_log("SMTP Debug: $str"); // Masukkan ke log kamu
+                custom_log("SMTP Debug: $str");
             };
-            $mail->isSMTP();
-            $mail->Host = 'localhost';
-            $mail->SMTPAuth = false;
-            $mail->SMTPAutoTLS = false;
-            $mail->Port = 25;
-            $mail->SMTPOptions = array(
-                'ssl' => array(
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                )
-            );
 
-            $mail->setFrom('noreply@eaude-vetcare.mif.myhost.id', $data['subject']);
-            $mail->addAddress($recipientEmail);
-            $mail->Subject = $data['subject'];
-            $mail->isHTML(true);
-            $body = $data['body'];
+            $host = defined('MAIL_HOST') ? MAIL_HOST : '';
+            $port = defined('MAIL_PORT') ? MAIL_PORT : 0;
+            $username = defined('MAIL_USERNAME') ? MAIL_USERNAME : '';
+            $password = defined('MAIL_PASSWORD') ? MAIL_PASSWORD : '';
+            $encryption = defined('MAIL_ENCRYPTION') ? MAIL_ENCRYPTION : '';
+            $fromAddr = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'noreply@vetcare.local';
+            $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'VetCare';
 
-            $placeholders = ['{{token}}'];
-            $replacements = [$token];
-
-            if (!empty($token)) {
-                $mail->Body = str_replace($placeholders, $replacements, $body);
+            if (!empty($host) && $host !== 'localhost') {
+                $mail->isSMTP();
+                $mail->Host = $host;
+                $mail->Port = $port ?: 587;
+                $mail->SMTPAuth = !empty($username);
+                if (!empty($username)) {
+                    $mail->Username = $username;
+                    $mail->Password = $password;
+                }
+                if (!empty($encryption)) {
+                    $mail->SMTPSecure = $encryption;
+                } else {
+                    $mail->SMTPAutoTLS = true;
+                }
             } else {
-                $mail->Body = str_replace($placeholders, '', $body);
+                $mail->isMail();
             }
+
+            $fromFinal = (!empty($username)) ? $username : $fromAddr;
+            $mail->setFrom($fromFinal, $fromName);
+
+            $mail->addAddress($recipientEmail);
+            $mail->Subject = $subject;
+            $mail->isHTML(true);
+            $mail->Body = $htmlBody;
+
             if ($mail->send()) {
                 return [true];
             } else {
-                return [false, "Gagal"];
+                return [false, "Gagal mengirim email"];
             }
         } catch (Exception $e) {
-            custom_log("userService::verifyEmail" . $e->getMessage(), LOG_TYPE::ERROR);
-            return [false, 'Gagal mengirim email token! ' . DAO_pengguna::$pesan];
+            custom_log("emailService::sendHtmlEmail Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return [false, 'Gagal mengirim email! ' . DAO_pengguna::$pesan];
         }
     }
 }
