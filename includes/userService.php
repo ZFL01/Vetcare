@@ -1,7 +1,9 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once 'DAO_user.php';
 require_once 'database.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -19,7 +21,7 @@ enum index_email
             self::FORGOT => [
                 'subject' => 'Forgot Password',
                 'body' =>
-                    "<h3 style='text-align: center'>Kode OTP mu adalah : <h3> <br><br>" .
+                "<h3 style='text-align: center'>Kode OTP mu adalah : <h3> <br><br>" .
                     "<br><div style='text-align: center'><h1><b>{{token}} </b></h1></div><br><br>" .
                     "<br>Kode ini hanya berlaku selama 15 menit. <br>Jika Anda tidak merasa melakukan ini, silahkan hubungi Admin"
 
@@ -27,28 +29,28 @@ enum index_email
             self::CHANGE_PASS => [
                 'subject' => 'Change Password',
                 'body' =>
-                    "<h3 style='text-align: center'>Kami mendeteksi perubahan password akun Anda<h3> <br><br>" .
+                "<h3 style='text-align: center'>Kami mendeteksi perubahan password akun Anda<h3> <br><br>" .
                     "<br><br>Jika Anda tidak merasa melakukan ini, silahkan hubungi Admin"
 
             ],
             self::VERIFY => [
                 'subject' => 'Verify Account',
                 'body' =>
-                    "<h3 style='text-align: center'>Kami mendeteksi pendaftaran akun Anda<h3> <br><br>" .
+                "<h3 style='text-align: center'>Kami mendeteksi pendaftaran akun Anda<h3> <br><br>" .
                     "<br><br>Jika Anda tidak merasa melakukan ini, silahkan hubungi Admin"
 
             ],
             self::ACC_DOCTOR_REGIST => [
                 'subject' => 'Accept Doctor Registration',
                 'body' =>
-                    "<h3 style='text-align: center'>Selamat bergabung dengan kami, sebagai mitra dokter<h3> <br><br>" .
+                "<h3 style='text-align: center'>Selamat bergabung dengan kami, sebagai mitra dokter<h3> <br><br>" .
                     "<br><br>Anda dapat melakukan login melalui laman login mana saja pada website.<br>Silahkan lanjutkan penyelesaian profil Anda"
 
             ],
             self::REJECT_DOCTOR_REGIST => [
                 'subject' => 'Reject Doctor Registration',
                 'body' =>
-                    "<h3 style='text-align: center'>Maaf, kami sangat menghargai antusiasme Anda untuk bergabung dengan kami<h3> <br><br>" .
+                "<h3 style='text-align: center'>Maaf, kami sangat menghargai antusiasme Anda untuk bergabung dengan kami<h3> <br><br>" .
                     "<br><br>Namun, permintaan Anda tidak dapat kami terima dengan alasan" . $reason . "<br><br>" .
                     "<br><br>Jika Anda memiliki pertanyaan, silahkan hubungi Admin"
 
@@ -227,7 +229,6 @@ class emailService
             }
             // Replace token di sini sebelum dikirim ke core function
             $body = str_replace('{{token}}', $token, $body);
-
         } elseif ($indexEmail['subject'] === 'Complaint') {
             $email = 'svenhikari@gmail.com';
         } else {
@@ -243,44 +244,66 @@ class emailService
      * Core function: Hanya fokus mengirim email via PHPMailer
      * Refactored from sendEmailverify
      */
+    /**
+     * Core function: Hanya fokus mengirim email via PHPMailer
+     */
+    /**
+     * Core function: Hanya fokus mengirim email via PHPMailer
+     */
     private static function sendHtmlEmail(string $recipientEmail, string $subject, string $htmlBody)
     {
         $mail = new PHPMailer(true);
         try {
-            $mail->SMTPDebug = 0;
+            // Debugging
+            $mail->SMTPDebug = 0; 
             $mail->Debugoutput = function ($str, $level) {
                 custom_log("SMTP Debug: $str");
             };
 
             $host = defined('MAIL_HOST') ? MAIL_HOST : '';
-            $port = defined('MAIL_PORT') ? MAIL_PORT : 0;
+            $port = defined('MAIL_PORT') ? MAIL_PORT : 587;
             $username = defined('MAIL_USERNAME') ? MAIL_USERNAME : '';
             $password = defined('MAIL_PASSWORD') ? MAIL_PASSWORD : '';
             $encryption = defined('MAIL_ENCRYPTION') ? MAIL_ENCRYPTION : '';
+            
             $fromAddr = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'noreply@vetcare.local';
             $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'VetCare';
 
-            if (!empty($host) && $host !== 'localhost') {
+            // --- LOGIKA BARU ---
+            // Jika host adalah localhost, gunakan isMail() (Bukan SMTP)
+            if ($host === 'localhost' || empty($host)) {
+                $mail->isMail(); 
+            } 
+            // Jika host bukan localhost (misal: smtp.gmail.com), gunakan SMTP
+            else {
                 $mail->isSMTP();
                 $mail->Host = $host;
-                $mail->Port = $port ?: 587;
-                $mail->SMTPAuth = !empty($username);
+                $mail->Port = $port;
+                
                 if (!empty($username)) {
+                    $mail->SMTPAuth = true;
                     $mail->Username = $username;
                     $mail->Password = $password;
-                }
-                if (!empty($encryption)) {
-                    $mail->SMTPSecure = $encryption;
+                    if (!empty($encryption)) {
+                        $mail->SMTPSecure = $encryption;
+                    }
                 } else {
-                    $mail->SMTPAutoTLS = true;
+                    $mail->SMTPAuth = false;
+                    $mail->SMTPAutoTLS = false;
+                    $mail->SMTPSecure = '';
                 }
-            } else {
-                $mail->isMail();
+
+                $mail->SMTPOptions = array(
+                    'ssl' => array(
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    )
+                );
             }
+            // -------------------
 
-            $fromFinal = (!empty($username)) ? $username : $fromAddr;
-            $mail->setFrom($fromFinal, $fromName);
-
+            $mail->setFrom($fromAddr, $fromName);
             $mail->addAddress($recipientEmail);
             $mail->Subject = $subject;
             $mail->isHTML(true);
@@ -297,5 +320,3 @@ class emailService
         }
     }
 }
-
-?>

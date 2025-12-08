@@ -388,11 +388,11 @@ function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR)
     error_log($log_entry, 3, $dest);
 }
 
-define('MAIL_HOST', 'smtp.gmail.com');
-define('MAIL_PORT', 587);
+define('MAIL_HOST', 'localhost');
+define('MAIL_PORT', 25);
 define('MAIL_USERNAME', '');
 define('MAIL_PASSWORD', '');
-define('MAIL_ENCRYPTION', 'tls');
+define('MAIL_ENCRYPTION', '');
 define('MAIL_FROM_ADDRESS', 'noreply@eaude-vetcare.mif.myhost.id');
 define('MAIL_FROM_NAME', 'VetCare');
 
