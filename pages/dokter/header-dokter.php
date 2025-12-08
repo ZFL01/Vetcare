@@ -280,6 +280,7 @@ $color = 'purple'; // Keep theme purple
         });
 
     </script>
+    <script src="/public/js/notification.js"></script>
 </body>
 
 </html>

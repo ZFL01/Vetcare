@@ -7,6 +7,10 @@
 // Include database class
 require_once __DIR__ . '/../../includes/database.php';
 
+// Session Configuration (1 Week Lifetime)
+ini_set('session.gc_maxlifetime', 604800);
+session_set_cookie_params(604800);
+
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
 
@@ -336,13 +340,15 @@ define('ACTIVITY_LOG_FILE', __DIR__ . '/../Vetcare logs/activity.log');
 define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
 define('ROUTING_LOG_FILE', __DIR__ . '/../Vetcare logs/routing.log');
 
-enum LOG_TYPE{
+enum LOG_TYPE
+{
     case ACTIVITY;
     case ERROR;
     case ROUTING;
 }
 
-function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR) {
+function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR)
+{
     $timestamp = date('Y-m-d H:i:s');
     $log_entry = "[{$timestamp}] {$message}\n"; // Format + newline
     $dest = match ($type) {

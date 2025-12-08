@@ -110,3 +110,5 @@
 [2025-12-08 17:10:55] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php
 [2025-12-08 17:11:03] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php
 [2025-12-08 17:12:26] Route {pilih-dokter} accessed on root :Z:\laragon\www\Vetcare/pages/pilih-dokter.php
+[2025-12-08 17:52:25] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php
+[2025-12-08 17:52:36] Route {auth} accessed on root :Z:\laragon\www\Vetcare/pages/auth.php

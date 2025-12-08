@@ -50,9 +50,13 @@ if ($loggedIn) {
                         <div class="px-3 py-2 border-b border-gray-100 mb-2">
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Layanan Kami</h4>
                         </div>
-                        <a href="?route=pilih-dokter"
-                            class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
-                            <span class="text-lg">🩺</span>
+                        <a href="?route=konsultasi-dokter"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2 relative">
+                            <span class="text-lg relative">
+                                🩺
+                                <span
+                                    class="notification-badge hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center border-2 border-white shadow-sm z-10"></span>
+                            </span>
                             <div>
                                 <div class="font-medium">Konsultasi Dokter</div>
                                 <div class="text-xs text-gray-500">Pilih dan chat dengan Dokter</div>
@@ -185,8 +189,11 @@ if ($loggedIn) {
                     </button>
                     <div id="mobile-layanan" class="hidden mt-2 space-y-2 pl-4 border-l-2 border-purple-100 ml-1">
                         <a href="?route=konsultasi-dokter" onclick="toggleMobileMenu()"
-                            class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">🩺
-                            Konsultasi Dokter</a>
+                            class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors relative">
+                            🩺 Konsultasi Dokter
+                            <span
+                                class="notification-badge hidden ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center"></span>
+                        </a>
                         <a href="?route=tanya-dokter" onclick="toggleMobileMenu()"
                             class="block text-left text-sm text-gray-600 hover:text-purple-600 transition-colors">❓
                             Tanya Dokter</a>
@@ -456,21 +463,21 @@ if ($loggedIn) {
 </script>
 
 <script>
-// Ensure the page content sits below the fixed header by applying
-// an equivalent padding-top to <body> equal to the header height.
-// This keeps layout correct across screen sizes and when header height
-// changes (mobile vs desktop).
-function adjustBodyPaddingForHeader() {
-    try {
-        var hdr = document.querySelector('header');
-        if (!hdr) return;
-        var height = hdr.offsetHeight || 0;
-        document.body.style.paddingTop = height + 'px'; 
-    } catch (e) {
-        // fail silently
-        console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+    // Ensure the page content sits below the fixed header by applying
+    // an equivalent padding-top to <body> equal to the header height.
+    // This keeps layout correct across screen sizes and when header height
+    // changes (mobile vs desktop).
+    function adjustBodyPaddingForHeader() {
+        try {
+            var hdr = document.querySelector('header');
+            if (!hdr) return;
+            var height = hdr.offsetHeight || 0;
+            document.body.style.paddingTop = height + 'px';
+        } catch (e) {
+            // fail silently
+            console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+        }
     }
-}
 
     // Debounce helper for resize
     var _resizeTimer;
