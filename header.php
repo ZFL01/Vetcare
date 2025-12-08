@@ -7,7 +7,7 @@ require_once __DIR__ . '/src/config/config.php';
 require_once __DIR__ . '/includes/userService.php';
 
 
-$userRole = $_SESSION['user']->getRole();
+$userRole = isset($_SESSION['user']) ? $_SESSION['user']->getRole() : null;
 $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
 $fotoProfile = null;
 
