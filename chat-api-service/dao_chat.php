@@ -265,5 +265,79 @@ class DAO_MongoDB_Chat
         }
     }
 
+    //endpoint buat notification 
+    static function getUnreadCount(array $chatIds, string $userRole)
+    {
+        $db = self::getDb();
+        if ($db === null || empty($chatIds)) {
+            return 0;
+        }
+
+        try {
+            $chatsCollection = $db->selectCollection('chats');
+
+            // Logic: Count messages where chatID is in our list AND senderRole is NOT us AND status is 'sent'
+            // $userRole is 'user' or 'dokter'. If I am 'user', I want to count messages from 'dokter'.
+            // So we filter where senderRole != $userRole.
+
+            $pipeline = [
+                ['$match' => ['_id' => ['$in' => $chatIds]]],
+                ['$unwind' => '$messages'],
+                [
+                    '$match' => [
+                        'messages.senderRole' => ['$ne' => $userRole],
+                        'messages.status' => 'sent'
+                    ]
+                ],
+                ['$count' => 'unread_count']
+            ];
+
+            $cursor = $chatsCollection->aggregate($pipeline);
+            $result = $cursor->toArray();
+
+            if (!empty($result)) {
+                return $result[0]['unread_count'];
+            }
+            return 0;
+
+        } catch (Exception $e) {
+            custom_log("MongoDB Unread Count Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function markMessagesAsRead(string $chatId, string $userRole)
+    {
+        $db = self::getDb();
+        if ($db === null) {
+            return false;
+        }
+
+        try {
+            $chatsCollection = $db->selectCollection('chats');
+
+            // Update all messages in this chat where senderRole != myRole AND status = 'sent'
+            // to status = 'read'.
+
+            // Note: MongoDB array filters are needed to update specific elements in an array
+            $filter = ['_id' => $chatId];
+            $update = ['$set' => ['messages.$[elem].status' => 'read']];
+            $options = [
+                'arrayFilters' => [
+                    [
+                        'elem.senderRole' => ['$ne' => $userRole],
+                        'elem.status' => 'sent'
+                    ]
+                ]
+            ];
+
+            $result = $chatsCollection->updateOne($filter, $update, $options);
+            return $result->getModifiedCount();
+
+        } catch (Exception $e) {
+            custom_log("MongoDB Mark Read Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return false;
+        }
+    }
 }
 ?>
