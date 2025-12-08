@@ -1,10 +1,4 @@
 <?php
-// Ensure all required classes are loaded
-require_once __DIR__ . '/../includes/database.php';
-require_once __DIR__ . '/../includes/DAO_user.php';
-require_once __DIR__ . '/../includes/DAO_dokter.php';
-require_once __DIR__ . '/../src/config/config.php';
-
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

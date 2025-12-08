@@ -1,10 +1,4 @@
 <?php
-require_once __DIR__ . '/../includes/DAO_dokter.php';
-require_once __DIR__ . '/../includes/DAO_user.php';
-require_once __DIR__ . '/../includes/database.php';
-
-session_start();
-
 header('Content-Type: application/json');
 // Check if admin is logged in
 if (!isset($_SESSION['user']) || $_SESSION['user']->getRole() !== 'Admin') {

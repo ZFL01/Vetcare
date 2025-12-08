@@ -9,12 +9,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$route = isset($_GET['access']) ? $_GET['access'] : '';
+$route = '';
 
-if (isset($_SESSION['user']) && $_SESSION['user']->getRole() === 'Admin') {
+if ($route === '' && isset($_SESSION['user']) && $_SESSION['user']->getRole() === 'Admin') {
     $route = 'dashboard';
 } else {
-    $route = 'auth';
+    $route = isset($_GET['access']) ? $_GET['access'] : 'auth';
 }
 
 $isValid = true;
@@ -24,16 +24,22 @@ switch ($route) {
     case 'auth':
         $content = 'login.php';
         break;
-    case 'register':
-        $content = 'register.php';
+    case 'yogakbolehlahadminituregister':
+        if (isset($_GET['enakAja'])) {
+            $get = $_GET['enakAja'];
+            if ($get === 'yaKan?') {
+                $content = 'register.php';
+                break;
+            }else{
+                $isValid = false;
+            }
+        } else {
+            $isValid = false;
+        }
         break;
     case 'dashboard':
         $content = 'admin_direct.php';
         break;
-    case 'logout':
-        session_destroy();
-        header('Location: ../');
-        exit;
     default:
         $isValid = false;
         break;

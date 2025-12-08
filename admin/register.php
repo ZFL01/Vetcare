@@ -1,7 +1,4 @@
 <?php
-session_start();
-require_once 'includes/db.php';
-
 // Jika user sudah login, arahkan ke dashboard
 if (isset($_SESSION['user']) && $_SESSION['user']->getRole() === 'Admin') {
     header('Location: admin_direct.php');
@@ -28,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-register'])) {
         $hasil = userService::register($obj);
         if($hasil[0]){
             $message = 'Registrasi berhasil! Akun Admin telah dibuat.';
-            header('Location: '.BASE_URL.'/admin/login.php');
+            header('Location: ?access=auth');
         } else {
             $error = $hasil[1];
         }
@@ -66,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-register'])) {
         <?php if ($message): ?>
             <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm">
                 <?= htmlspecialchars($message) ?> <br>
-                <a href="login.php" class="font-bold underline">Klik disini untuk Login</a>
+                <a href="?access=auth" class="font-bold underline">Klik disini untuk Login</a>
             </div>
         <?php endif; ?>
         
@@ -93,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin-register'])) {
 
         <div class="text-center mt-6">
             <p class="text-sm text-gray-600">Sudah punya akun? 
-                <a href="login.php" class="text-purple-600 hover:text-purple-800 font-medium">Login disini</a>
+                <a href="?access=auth" class="text-purple-600 hover:text-purple-800 font-medium">Login disini</a>
             </p>
         </div>
     </div>
