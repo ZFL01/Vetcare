@@ -321,6 +321,24 @@ class DAO_chat
         }
     }
 
+    static function getParticipantsByChatId(string $idChat)
+    {
+        $conn = Database::getConnection();
+        $sql = 'select user_id, dokter_id from tr_transaksi where id_tr = ?';
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$idChat]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (empty($hasil)) {
+                return null;
+            }
+            return $hasil;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getParticipantsByChatId]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return null;
+        }
+    }
+
     static function getRating(int $idDokter)
     {
         $conn = Database::getConnection();
