@@ -20,7 +20,7 @@ $action = isset($_GET['aksi']) ? $_GET['aksi'] : ''; //permintaan ajax (JS)
 $pageTitle = '';
 $divNotFound = '<div class="pt-32 pb-20 text-center"><h1 class="text-4xl font-bold text-gray-800">Page not found</h1></div>';
 $pageDescription = '';
-$ajaxLoad = false;
+$ajaxLoad = isset($_GET['action']) ? true : false;
 $response = ['success' => false, 'messages' => [], 'message' => 'Data tidak lengkap.'];
 $httpCode = 200;
 $data = null;
@@ -249,7 +249,6 @@ switch ($route) {
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'profil':
-        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         requireLogin(true);
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
@@ -257,6 +256,7 @@ switch ($route) {
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
         $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':

@@ -14,7 +14,7 @@ requireLogin(true, 'profil');
 $currentDokter = $_SESSION['user'];
 $profil = DAO_dokter::getProfilDokter($currentDokter, false);
 $spesialisasi = $profil->getKategori();
-$msg = DAO_dokter::manageDokter(data:$profil);
+$msg = DAO_dokter::manageDokter(data: $profil);
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
@@ -411,7 +411,8 @@ include 'base.php';
 
                 <!-- Change Password Button -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <button onclick="cekPass()"class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-colors">
+                    <button onclick="cekPass()"
+                        class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-colors">
                         🔒 Ubah Password
                     </button>
                 </div>
@@ -473,7 +474,7 @@ include 'base.php';
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">SIP</label>
-                            <a href="<?php if ($msg) {?>../public/docs/sip/<?php echo $profil->getPathSIP();
+                            <a href="<?php if ($msg) { ?>../public/docs/sip/<?php echo $profil->getPathSIP();
                             } ?>" target="_blank"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
                                 📄Nomor SIP : <?php echo $profil->getSIP(); ?>
@@ -983,6 +984,9 @@ include_once 'footer-dokter.php';
         });
     });
 
+    // Di bagian bawah profile-dokter.php
+
+    // Fungsi Submit Handler
     function handleSubmitSchedule(e) {
         e.preventDefault();
 
@@ -992,12 +996,13 @@ include_once 'footer-dokter.php';
         // 1. Kumpulkan Data Formulir
         const formData = new FormData(form);
 
-        // 2. Tampilkan Loading dan Nonaktifkan Tombol
+        // 2. Tampilkan Loading
         submitBtn.disabled = true;
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Menyimpan Jadwal...';
 
         // 3. Konfigurasi Fetch Request
+        // Pastikan path ini benar sesuai struktur folder Anda
         fetch('?route=profil&action=update_full_schedule', {
             method: 'POST',
             body: formData,
@@ -1006,7 +1011,6 @@ include_once 'footer-dokter.php';
             }
         })
             .then(response => {
-                // Cek status code (terutama 200 OK atau error)
                 if (!response.ok) {
                     throw new Error('Network response was not ok: ' + response.statusText);
                 }
@@ -1019,7 +1023,6 @@ include_once 'footer-dokter.php';
 
                 if (data.success) {
                     alert(data.message || 'Jadwal berhasil diperbarui!');
-                    location.reload();
                 } else {
                     alert('Gagal menyimpan jadwal: ' + (data.message || 'Terjadi kesalahan server.'));
                 }
@@ -1029,12 +1032,15 @@ include_once 'footer-dokter.php';
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
                 console.error('Error saat submit jadwal:', error);
-                alert('Terjadi kesalahan koneksi atau server: ' + error.message);
             });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('scheduleForm').addEventListener('submit', handleSubmitSchedule);
+    // Event Delegation: Pasang listener di document (Global)
+    document.addEventListener('submit', function (e) {
+        // Cek apakah yang di-submit adalah form jadwal
+        if (e.target && e.target.id === 'scheduleForm') {
+            handleSubmitSchedule(e);
+        }
     });
 
     //inisialisasi map
