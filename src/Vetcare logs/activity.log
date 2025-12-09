@@ -22,3 +22,20 @@
 [2025-12-09 00:53:13] teguh.thewaifu.kun@gmail.com update form di mongodb result: gagal
 [2025-12-09 00:53:13] teguh.thewaifu.kun@gmail.com Mulai cek room MongoDB untuk ChatID: eeebcc6b575d3542d3e2e0853cd7e5fb
 [2025-12-09 00:53:14] teguh.thewaifu.kun@gmail.com Room MongoDB sudah ada.
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com masuk initchat: 
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com ini id chat : C2512090113-U221D25
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com Cek exist di sql: 
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com Chat tidak ditemukan, set create new.
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com regist chat room sql: sukses
+[2025-12-09 01:13:30] teguh.thewaifu.kun@gmail.com insert form di mongodb result: gagal
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com masuk initchat: 
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com ini id chat : C2512090113-U221D25
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com Cek exist di sql: 
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com Chat aktif ditemukan: 33f526b3146c8877ee5982283f7a079f
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com update form di mongodb result: gagal
+[2025-12-09 01:13:36] teguh.thewaifu.kun@gmail.com Mulai cek room MongoDB untuk ChatID: 33f526b3146c8877ee5982283f7a079f
+[2025-12-09 01:13:37] teguh.thewaifu.kun@gmail.com Room MongoDB belum ada, membuat baru...
+[2025-12-09 01:13:37] teguh.thewaifu.kun@gmail.com masuk fungsi createmongodbchat: 33f526b3146c8877ee5982283f7a079f
+[2025-12-09 01:13:37] teguh.thewaifu.kun@gmail.com Sukses create di mongodb.
+[2025-12-09 01:13:37] teguh.thewaifu.kun@gmail.com Room MongoDB berhasil dibuat.
+[2025-12-09 01:13:41] teguh.thewaifu.kun@gmail.com Email notifikasi dikirim ke: akunbbersama@gmail.com | chat: 33f526b3146c8877ee5982283f7a079f

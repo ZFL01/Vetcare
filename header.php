@@ -5,6 +5,7 @@ $currentPage = isset($_GET['route']) ? $_GET['route'] : '';
 // Include config to get GOOGLE_MAPS_API_KEY and other constants
 require_once __DIR__ . '/src/config/config.php';
 require_once __DIR__ . '/includes/userService.php';
+require_once __DIR__ . '/includes/DAO_others.php';
 
 
 $userRole = isset($_SESSION['user']) ? $_SESSION['user']->getRole() : null;
@@ -158,8 +159,13 @@ if ($isDokter) {
                         </button>
 
                         <!-- Dropdown Menu -->
-                        <div class="absolute top-full right-0 mt-2 w-48 bg-white backdrop-blur-xl border border-gray-200 rounded-xl shadow-hero py-2 z-[100] hidden opacity-0 transform scale-95 transition-all duration-300"
+                        <div class="absolute top-full right-0 mt-2 w-64 bg-white backdrop-blur-xl border border-gray-200 rounded-xl shadow-hero py-2 z-[100] hidden opacity-0 transform scale-95 transition-all duration-300"
                             id="user-menu">
+                            <a href="?route=riwayat-chat"
+                                class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                                <span>💬</span>
+                                Riwayat Chat
+                            </a>
                             <?php if ($isDokter): ?>
                                 <a href="?route=profil"
                                     class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
@@ -289,6 +295,11 @@ if ($isDokter) {
                                 Profil Saya
                             </button>
                         <?php endif; ?>
+                        <button onclick="navigateTo('?route=riwayat-chat'); toggleMobileMenu()"
+                            class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <span class="mr-2">💬</span>
+                            Riwayat Chat
+                        </button>
                         <button onclick="logout(); toggleMobileMenu()"
                             class="w-full font-display font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-glow">
                             <span class="mr-2">🚪</span>

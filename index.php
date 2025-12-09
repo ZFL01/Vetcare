@@ -252,6 +252,17 @@ switch ($route) {
         $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
         break;
+    case 'riwayat-chat':
+        if ($dokter) {
+            requireLogin(true, 'riwayat-chat');
+        } else {
+            requireLogin(false, 'riwayat-chat');
+        }
+        $pageTitle = 'Riwayat Chat - VetCare';
+        $pageDescription = 'Daftar semua riwayat konsultasi Anda dengan dokter';
+        $contentFile = 'pages/riwayat-chat.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
+        break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
     case '/':

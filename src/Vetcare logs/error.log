@@ -75,3 +75,4 @@ specifications. 98e67ed59e1d1-34912d27040sm9508100a91.5 - gsmtp
 [2025-12-09 00:44:16]  Gagal mengirim email ke: enemyteguh@gmail.com | chat: eeebcc6b575d3542d3e2e0853cd7e5fb | reason: Gagal mengirim email! Hubungi admin untuk masalah ini.
 [2025-12-09 00:53:22]  emailService::sendHtmlEmail Error: SMTP Error: Could not connect to SMTP host. Failed to connect to server
 [2025-12-09 00:53:22]  Gagal mengirim email ke: enemyteguh@gmail.com | chat: eeebcc6b575d3542d3e2e0853cd7e5fb | reason: Gagal mengirim email! Hubungi admin untuk masalah ini.
+[2025-12-09 01:13:30]  Gagal menyimpan form ke MongoDB
