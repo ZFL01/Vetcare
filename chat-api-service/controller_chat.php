@@ -3,6 +3,7 @@ require_once __DIR__ . '/dao_chat.php';
 require_once __DIR__ . '/../includes/DAO_user.php';
 require_once __DIR__ . '/../includes/DAO_dokter.php';
 require_once __DIR__ . '/../includes/DAO_others.php';
+require_once __DIR__ . '/../includes/userService.php';
 require_once __DIR__ . '/../src/config/config.php';
 
 // Start session
@@ -32,7 +33,8 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
         custom_log("Chat tidak ditemukan, set create new.", LOG_TYPE::ACTIVITY);
     } else {
         // 2. Chat ada, cek apakah sudah expired
-        $end = $existingChatSQL->getWaktuSelesai();
+        $endString = $existingChatSQL->getWaktuSelesai();
+        $end = strtotime($endString);
         if ($now >= $end) {
             $shouldCreateNew = true; // Ada tapi expired, buat baru
             custom_log("Chat expired, set create new.", LOG_TYPE::ACTIVITY);
@@ -58,7 +60,7 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
 
         if ($hasil) {
             // Simpan Form ke MongoDB
-            $form = DAO_MongoDB_Chat::insertConsultationForm($chatId, $formKonsul);
+            $form = DAO_MongoDB_Chat::updateConsultationForm($chatId, $formKonsul);
             custom_log("insert form di mongodb result: " . ($form === true ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
 
             if ($form === true) {
@@ -70,6 +72,10 @@ function initChat($idChat, $idDokter, $idUser, $formKonsul)
         } else {
             return ['success' => false, 'message' => 'Gagal membuat Chat Room SQL.'];
         }
+    } else {
+        $chatId = $existingChatSQL->getIdChat();
+        $form2 = DAO_MongoDB_Chat::updateConsultationForm($chatId, $formKonsul);
+        custom_log("update form di mongodb result: " . ($form2 === true ? 'sukses' : 'gagal'), LOG_TYPE::ACTIVITY);
     }
 
     // --- PROSES PENGECEKAN/PEMBUATAN ROOM MONGODB (Log Chat) ---
@@ -140,6 +146,70 @@ if (isset($_GET['action'])) {
         // Output JSON
         header('Content-Type: application/json');
         http_response_code($httpCode);
+        echo json_encode($response);
+        exit;
+    } elseif ($_GET['action'] === 'sendMessage') {
+        // --- LOGIKA BARU UNTUK MENGIRIM PESAN & EMAIL ---
+
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        // Validasi input minimal
+        $idChat = $data['id_chat'] ?? null;
+        $senderId = $data['sender_id'] ?? null;
+        $receiverId = $data['receiver_id'] ?? null;
+        $messageContent = $data['content'] ?? ($data['message'] ?? '');
+        $senderName = $data['sender_name'] ?? 'Seseorang';
+        $senderRole = $data['sender_role'] ?? (isset($_SESSION['dokter']) ? 'dokter' : 'user');
+
+        if (!$idChat || !$senderId || !$receiverId || empty($messageContent)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Data pesan tidak lengkap.']);
+            exit;
+        }
+
+        $mongoResult = DAO_MongoDB_Chat::insertMessage($idChat, $senderId, $senderRole, $messageContent);
+
+        if ($mongoResult === true) {
+
+            // 2. LOGIKA EMAIL NOTIFICATION
+            // Ambil email penerima
+            if (!$receiverId) {
+                $parts = DAO_chat::getParticipantsByChatId($idChat);
+                if ($parts) {
+                    $receiverId = $senderRole === 'user' ? $parts['dokter_id'] : $parts['user_id'];
+                }
+            }
+            $recipientEmail = $receiverId ? DAO_pengguna::getEmailById($receiverId) : null;
+
+            if ($recipientEmail) {
+                $subject = $senderRole === 'user' ? 'Konsultasi baru dari Member' : 'Anda mendapat balasan dari Dokter';
+                $body = "
+                    <h3>Anda memiliki pesan baru di Vetcare</h3>
+                    <p><strong>Dari:</strong> {$senderName}</p>
+                    <p><strong>Pesan:</strong></p>
+                    <blockquote style='background: #f9f9f9; border-left: 10px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px;'>
+                        " . htmlspecialchars($messageContent) . "
+                    </blockquote>
+                    <p>Silakan login ke aplikasi untuk membalas.</p>
+                ";
+
+                // Kirim Email (Fire and Forget - jangan biarkan gagal email menghentikan chat)
+                // Gunakan function baru sendCustomEmail
+                emailService::sendCustomEmail($recipientEmail, $subject, $body);
+                custom_log("Email notifikasi dikirim ke: $recipientEmail", LOG_TYPE::ACTIVITY);
+            } else {
+                custom_log("Email penerima tidak ditemukan untuk ID: $receiverId", LOG_TYPE::ERROR);
+            }
+
+            $response = ['success' => true, 'message' => 'Pesan terkirim'];
+            http_response_code(200);
+        } else {
+            $response = ['success' => false, 'message' => 'Gagal menyimpan pesan ke database.'];
+            http_response_code(500);
+        }
+
+        header('Content-Type: application/json');
         echo json_encode($response);
         exit;
     } elseif ($_GET['action'] === 'getChatSession') {
@@ -222,14 +292,15 @@ if (isset($_GET['action'])) {
         $nilai = DAO_chat::getRating($dokter);
         $total = 0;
         $jumlah = 0;
+        $hasil = [true, ''];
         if (!empty($nilai)) {
             $total = $nilai['total'];
             $jumlah = $nilai['suka'];
         }
-        if ($total > 0) {
+        if ($total > 9) {
             $rating = round($jumlah / $total, 2);
+            $hasil = DAO_dokter::updateRate($dokter, $rating);
         }
-        $hasil = DAO_dokter::updateRate($dokter, $rating);
         if ($result && $hasil[0]) {
             $response = [
                 'success' => true,

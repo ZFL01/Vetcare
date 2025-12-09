@@ -25,12 +25,7 @@ class DAO_MongoDB_Chat
         }
     }
 
-    static function insertMessage(
-        string $chatId,
-        string $senderId,
-        string $senderRole,
-        string $content
-    ) {
+    static function insertMessage(string $chatId, string $senderId, string $senderRole, string $content) {
         $db = self::getDb();
         if ($db === null) {
             return 'Koneksi gagal';
@@ -178,12 +173,12 @@ class DAO_MongoDB_Chat
             return 'Koneksi gagal';
         }
         try {
-            $formsCollection = $db->selectCollection('Konsultasi_forms');
+            $formsCollection = $db->selectCollection('konsultasi_forms');
             $document = [
                 '_id' => $chatId,
                 'chatId' => $chatId,
                 'timestamp' => new MongoDB\BSON\UTCDateTime(),
-                'formData' => $formData,
+                'formData' => [$formData],
             ];
             $result = $formsCollection->insertOne($document);
             if ($result->getInsertedCount() === 1) {
@@ -197,6 +192,38 @@ class DAO_MongoDB_Chat
         }
     }
 
+    static function updateConsultationForm(string $chatId, array $formData)
+    {
+        $db = self::getDb();
+        if ($db === null) {
+            return 'Koneksi gagal';
+        }
+        $formData['timestamp'] = new MongoDB\BSON\UTCDateTime();
+        try {
+            $chatsCollection = $db->selectCollection('konsultasi_forms');
+
+            $updateRes = $chatsCollection->updateOne(
+                ['_id' => $chatId],
+                [
+                    '$push' => ['formData' => $formData],
+                    '$set' => ['chatId' => $chatId],
+                    '$setOnInsert' => ['timestamp' => new MongoDB\BSON\UTCDateTime()]
+                ],
+                ['upsert' => true]
+            );
+            if ($updateRes->getMatchedCount() > 0 || $updateRes->getUpsertedCount() > 0) {
+                return 'Room chat tidak ditemukan';
+            }
+            return true;
+        } catch (\MongoDB\Driver\Exception\Exception $e) {
+            custom_log('MongoDB insert error: ' . $e->getMessage(), LOG_TYPE::ERROR);
+            return 'Gagal menyimpan pesan: ' . $e->getMessage();
+        } catch (Exception $e) {
+            custom_log("General Chat Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return "Terjadi kesalahan umum: " . $e->getMessage();
+        }
+    }
+
     static function getConsultationForm(array $chatId)
     {
         $db = self::getDb();
@@ -205,16 +232,47 @@ class DAO_MongoDB_Chat
         }
 
         try {
-            $formsCollection = $db->selectCollection('Konsultasi_forms');
-            $filter = [
-                '_id' => [
-                    '$in' => $chatId
+            $formsCollection = $db->selectCollection('konsultasi_forms');
+
+            $pipeline = [
+                [
+                    '$match' => [
+                        '_id' => [
+                            '$in' => $chatId
+                        ]
+                    ]
+                ],
+                [
+                    '$unwind' => '$formData'
+                ],
+                [
+                    '$sort' => [
+                        'formData.timestamp' => -1
+                    ]
+                ],
+                [
+                    '$group' => [
+                        // Kelompokkan berdasarkan _id (ID Sesi Chat)
+                        '_id' => '$_id',
+                        'latestForm' => [
+                            '$first' => '$formData'
+                        ],
+                    ]
                 ]
             ];
-            $cursor = $formsCollection->find($filter);
-            $documents = $cursor->toArray();
 
-            return self::processedForms($documents);
+            $cursor = $formsCollection->aggregate($pipeline);
+            $result = $cursor->toArray();
+
+            $processedDocuments = [];
+            foreach ($result as $doc) {
+                $processedDocuments[] = [
+                    'chatId' => $doc['_id'],
+                    'formData' => $doc['latestForm']
+                ];
+            }
+
+            return self::processedForms($processedDocuments);
         } catch (\Exception $e) {
             custom_log("MongoDB Form getConsultationForm Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Gagal mengambil formulir: " . $e->getMessage();
@@ -242,28 +300,119 @@ class DAO_MongoDB_Chat
         if ($db === null) {
             return 'Koneksi gagal';
         }
-        try {
-            $formsCollection = $db->selectCollection('Konsultasi_forms');
-            $options = [
-                'typeMap' => [
-                    'root' => 'array',
-                    'document' => 'array',
-                    'array' => 'array',
+        $pipeline = [
+            ['$match' => ['_id' => $chatId]],
+            ['$unwind' => '$formData'],
+            ['$sort' => ['formData.timestamp' => -1]],
+            [
+                '$group' => [
+                    '_id' => '$_id',
+                    'latestForm' => [
+                        '$first' => '$formData'
+                    ],
+                    'createdAt' => [
+                        '$first' => '$timestamp'
+                    ],
                 ]
-            ];
-            $document = $formsCollection->findOne(['_id' => $chatId], $options);
+            ],
+        ];
+
+        try {
+            $formsCollection = $db->selectCollection('konsultasi_forms');
+            $cursor = $formsCollection->aggregate($pipeline);
+            $result = $cursor->toArray();
+
+            $document = $result[0] ?? null;
 
             if ($document && isset($document['timestamp']) && $document['timestamp'] instanceof MongoDB\BSON\UTCDateTime) {
                 $timestampMs = $document['timestamp']->toDateTime()->getTimestamp();
                 $document['timestamp'] = date('Y-m-d H:i:s', $timestampMs);
             }
 
-            return $document;
+            return [
+                'idChat' => $document['_id'],
+                'formData' => $document['latestForm'],
+                'timestamp' => $document['creationTimestamp'] ?? null
+            ];
         } catch (\Exception $e) {
             custom_log("MongoDB Form getChatForm Error: " . $e->getMessage(), LOG_TYPE::ERROR);
             return "Gagal mengambil formulir: " . $e->getMessage();
         }
     }
 
+    //endpoint buat notification 
+    static function getUnreadCount(array $chatIds, string $userRole)
+    {
+        $db = self::getDb();
+        if ($db === null || empty($chatIds)) {
+            return 0;
+        }
+
+        try {
+            $chatsCollection = $db->selectCollection('chats');
+
+            // Logic: Count messages where chatID is in our list AND senderRole is NOT us AND status is 'sent'
+            // $userRole is 'user' or 'dokter'. If I am 'user', I want to count messages from 'dokter'.
+            // So we filter where senderRole != $userRole.
+
+            $pipeline = [
+                ['$match' => ['_id' => ['$in' => $chatIds]]],
+                ['$unwind' => '$messages'],
+                [
+                    '$match' => [
+                        'messages.senderRole' => ['$ne' => $userRole],
+                        'messages.status' => 'sent'
+                    ]
+                ],
+                ['$count' => 'unread_count']
+            ];
+
+            $cursor = $chatsCollection->aggregate($pipeline);
+            $result = $cursor->toArray();
+
+            if (!empty($result)) {
+                return $result[0]['unread_count'];
+            }
+            return 0;
+
+        } catch (Exception $e) {
+            custom_log("MongoDB Unread Count Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return 0;
+        }
+    }
+
+    static function markMessagesAsRead(string $chatId, string $userRole)
+    {
+        $db = self::getDb();
+        if ($db === null) {
+            return false;
+        }
+
+        try {
+            $chatsCollection = $db->selectCollection('chats');
+
+            // Update all messages in this chat where senderRole != myRole AND status = 'sent'
+            // to status = 'read'.
+
+            // Note: MongoDB array filters are needed to update specific elements in an array
+            $filter = ['_id' => $chatId];
+            $update = ['$set' => ['messages.$[elem].status' => 'read']];
+            $options = [
+                'arrayFilters' => [
+                    [
+                        'elem.senderRole' => ['$ne' => $userRole],
+                        'elem.status' => 'sent'
+                    ]
+                ]
+            ];
+
+            $result = $chatsCollection->updateOne($filter, $update, $options);
+            return $result->getModifiedCount();
+
+        } catch (Exception $e) {
+            custom_log("MongoDB Mark Read Error: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return false;
+        }
+    }
 }
 ?>

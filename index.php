@@ -77,14 +77,13 @@ if ($action) {
             $kota = $data['kota'] ?? '';
             $prov = $data['prov'] ?? '';
             $koor = $lat . ', ' . $long;
-            error_log("halo?");
-            if(empty($kota) || empty($prov)){
+            if (empty($kota) || empty($prov)) {
                 $kotprov = apiControl::getCityProvince($lat, $long);
                 if (!$kotprov[0]) {
                     $response = ['success' => false, 'message' => 'Gagal mengambil data tempat'];
                     $httpCode = 400;
                     break;
-                }else{
+                } else {
                     $kota = $kotprov[0];
                     $prov = $kotprov[1];
                 }
@@ -114,6 +113,24 @@ if ($action) {
                     $data['content']
                 );
                 if ($result === true) {
+                    $participants = DAO_chat::getParticipantsByChatId($data['chat_id']);
+                    if ($participants) {
+                        $receiverId = $data['sender_role'] === 'user' ? $participants['dokter_id'] : $participants['user_id'];
+                        $recipientEmail = DAO_pengguna::getEmailById($receiverId);
+                        if ($recipientEmail) {
+                            $subject = $data['sender_role'] === 'user' ? 'Konsultasi baru dari Member' : 'Anda mendapat balasan dari Dokter';
+                            $body = '<h3>Notifikasi Chat Vetcare</h3><p>' . htmlspecialchars($data['content']) . '</p>';
+                            $mailRes = emailService::sendCustomEmail($recipientEmail, $subject, $body);
+                            if (is_array($mailRes) && $mailRes[0] === true) {
+                                custom_log("Email notifikasi dikirim ke: $recipientEmail | chat: {$data['chat_id']}", LOG_TYPE::ACTIVITY);
+                            } else {
+                                $err = is_array($mailRes) && isset($mailRes[1]) ? $mailRes[1] : 'unknown error';
+                                custom_log("Gagal mengirim email ke: $recipientEmail | chat: {$data['chat_id']} | reason: $err", LOG_TYPE::ERROR);
+                            }
+                        } else {
+                            custom_log("Email penerima tidak ditemukan untuk ID: $receiverId", LOG_TYPE::ERROR);
+                        }
+                    }
                     $response = ['success' => true, 'message' => 'Pesan terkirim.'];
                     $httpCode = 200;
                 } else {
@@ -187,14 +204,13 @@ switch ($route) {
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
         $contentFile = 'pages/dokter/home_dokter.php';
-        header('Location: '. $contentFile);
-        custom_log("Route {". $route. "} accessed on root :". ROOT_DIR. '/'. $contentFile, LOG_TYPE::ROUTING);
+        header('Location: ' . $contentFile);
         exit();
     case 'logout':
         session_unset();
         session_destroy();
         header('Location: ?route=');
-        custom_log("Route {". $route. "} :", LOG_TYPE::ROUTING);
+        custom_log("Route {" . $route . "} :", LOG_TYPE::ROUTING);
         exit;
     // --- Route Dashboard Baru ---
     case 'dashboard_member':
@@ -209,9 +225,6 @@ switch ($route) {
         $contentFile = 'pages/pilih-dokter.php';
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
-    case 'admin':
-        header('Location: ' . BASE_URL . 'admin/');
-        exit();
     case 'tanya-jawab':
         requireLogin(false);
         dokterAllowed(false);
@@ -228,7 +241,15 @@ switch ($route) {
         $contentFile = 'pages/chat-dokter.php';
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
+    case 'riwayat-chat':
+        requireLogin(false);
+        $pageTitle = 'Riwayat Chat - VetCare';
+        $pageDescription = 'Lihat riwayat konsultasi dengan dokter hewan';
+        $contentFile = 'pages/riwayat-chat.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
+        break;
     case 'profil':
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         requireLogin(true);
         dokterAllowed(true);
         $_SESSION['prev_page'] = $route;
@@ -236,7 +257,6 @@ switch ($route) {
         $pageDescription = 'Lihat dan perbarui informasi profil Anda';
         $noHeaderFooter = true;
         $contentFile = 'pages/dokter/profile-dokter.php';
-        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // --- Route Lainnya: Hanya setting variabel ---
     case '':
@@ -251,6 +271,9 @@ switch ($route) {
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     // ...
+    case 'admin':
+        custom_log("Route {" . $route . "} want to access", LOG_TYPE::ROUTING);
+    //ini biarkan kosong, gak boleh akses lewat route index
     default:
         $pageTitle = 'Halaman Tidak Ditemukan - VetCare';
         $pageDescription = 'Halaman yang Anda cari tidak ditemukan';

@@ -409,10 +409,64 @@ function renderDokters(dokters) {
 
 
     // --- 4. HTML STRUCTURE ---
-    return `
+    // --- 4. HTML STRUCTURE ---
+    // A. MOBILE VIEW (Compact List) - md:hidden
+    const mobileView = `
       <div 
         onclick="showModal('${idForModal}')"
-        class="bg-white rounded-2xl p-6 shadow-card hover:shadow-xl transition-all duration-300 group cursor-pointer relative flex flex-col h-full border border-gray-100">
+        class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex gap-4 md:hidden cursor-pointer hover:bg-gray-50 transition-colors relative">
+        
+        <!-- Avatar Section -->
+        <div class="flex-shrink-0 relative">
+          <div class="w-16 h-16 rounded-full overflow-hidden border border-gray-100">
+             ${imgHtml}
+          </div>
+          <!-- Status Badge Overlay -->
+          <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+             ${isAvailable 
+               ? '<div class="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>' 
+               : '<div class="w-3 h-3 bg-gray-300 rounded-full border-2 border-white"></div>'
+             }
+          </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="flex-1 min-w-0 flex flex-col justify-center">
+           <div class="flex justify-between items-start">
+              <div>
+                  <h3 class="font-bold text-gray-900 text-sm leading-tight mb-0.5 line-clamp-1">
+                    ${nama}
+                  </h3>
+                  <p class="text-xs text-purple-600 font-medium line-clamp-1 mb-1.5">${kategoriList}</p>
+              </div>
+           </div>
+
+           <div class="flex items-center gap-2 mb-2">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                ⭐ ${displayRate}
+              </span>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                💼 ${teksPengalaman}
+              </span>
+           </div>
+
+           <div class="flex items-center justify-between mt-auto">
+              <span class="text-sm font-bold text-purple-700">Rp ${harga}</span>
+              <button 
+                  onclick="event.stopPropagation(); window.currentDokterId='${idForModal}'; openKonsultasiModal()"
+                  class="bg-purple-600 active:bg-purple-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm">
+                  Chat
+              </button>
+           </div>
+        </div>
+      </div>
+    `;
+
+    // B. DESKTOP VIEW (Original Card) - hidden md:flex
+    const desktopView = `
+      <div 
+        onclick="showModal('${idForModal}')"
+        class="bg-white rounded-2xl p-6 shadow-card hover:shadow-xl transition-all duration-300 group cursor-pointer relative flex-col h-full border border-gray-100 hidden md:flex">
         
         <div class="flex gap-6 mb-4">
           <div class="flex-shrink-0">
@@ -475,6 +529,8 @@ function renderDokters(dokters) {
         </div>
       </div>
     `;
+
+    return mobileView + desktopView;
   }).join('');
 
   doktersContainer.innerHTML = html;

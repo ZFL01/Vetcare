@@ -151,7 +151,7 @@ class DAO_location
 
 class DAO_chat
 {
-    private const sesi_durasi = '+12 hours';
+    private const sesi_durasi = '+2 hours';
     static function getAllChats(?int $idUser = null, ?int $idDokter = null, ?bool $now = false)
     {
         $conn = Database::getConnection();
@@ -248,10 +248,8 @@ class DAO_chat
     static function findChatRoom($idDokter, $idUser): DTO_chat|null
     {
         $conn = Database::getConnection();
-        $sql = 'select t.id_tr, t.user_id, t.dokter_id, l.end from tr_transaksi t inner join
-        log_rating l on l.idChat=t.id_tr where t.user_id=? and t.dokter_id=? and
-        (t.status !="expired" OR t.status !="failed")
-        order by t.id_tr desc';
+        $sql = 'select id_tr, user_id, dokter_id, created from tr_transaksi where user_id=? and dokter_id=?
+        order BY created desc';
         try {
             $stmt = $conn->prepare($sql);
             $stmt->execute([$idUser, $idDokter]);
@@ -259,11 +257,15 @@ class DAO_chat
             if (empty($hasil)) {
                 return null;
             } else {
+                $start = $hasil['created'];
+                $selesai = strtotime($start . self::sesi_durasi);
+                $end = date('Y-m-d H:i:s', $selesai);
+
                 $obj = new DTO_chat(
                     $hasil['id_tr'],
                     $hasil['user_id'],
                     $hasil['dokter_id'],
-                    waktuSelesai: $hasil['end']
+                    waktuSelesai: $end
                 );
             }
             return $obj;
@@ -315,6 +317,24 @@ class DAO_chat
             return $obj;
         } catch (PDOException $e) {
             custom_log("[DAO_others::thisChatRoom]: " . $e->getMessage(), LOG_TYPE::ERROR);
+            return null;
+        }
+    }
+
+    static function getParticipantsByChatId(string $idChat)
+    {
+        $conn = Database::getConnection();
+        $sql = 'select user_id, dokter_id from tr_transaksi where id_tr = ?';
+        try {
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$idChat]);
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (empty($hasil)) {
+                return null;
+            }
+            return $hasil;
+        } catch (PDOException $e) {
+            custom_log("[DAO_others::getParticipantsByChatId]: " . $e->getMessage(), LOG_TYPE::ERROR);
             return null;
         }
     }

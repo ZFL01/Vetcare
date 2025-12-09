@@ -7,6 +7,10 @@
 // Include database class
 require_once __DIR__ . '/../../includes/database.php';
 
+// Session Configuration (1 Week Lifetime)
+ini_set('session.gc_maxlifetime', 604800);
+session_set_cookie_params(604800);
+
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
 
@@ -223,7 +227,7 @@ function timeAgo($datetime)
 /**
  * Upload image helper
  */
-function uploadImage($file, $directory, $prefix)
+function uploadImage($file, $directory, $prefix, $customId = null)
 {
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return ['success' => false, 'message' => 'Tidak ada file yang diupload'];
@@ -243,9 +247,20 @@ function uploadImage($file, $directory, $prefix)
         return ['success' => false, 'message' => 'Ukuran file terlalu besar (max 5MB)'];
     }
 
+    // --- LOGIC ID FIX ---
+    $id = $customId;
+    if ($id === null) {
+        if (isset($_SESSION['user']) && is_object($_SESSION['user'])) {
+            $id = $_SESSION['user']->getIdUser();
+        } else {
+            $id = time(); // Fallback safe ID agar tidak crash
+        }
+    }
+    // --------------------
+
     // Generate unique filename
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = $prefix . $_SESSION['user']->getIdUser() . date('ymd') . '.' . $extension;
+    $filename = $prefix . $id . date('ymd') . '.' . $extension;
     $filepath = $directory . $filename;
 
     // Move file
@@ -268,7 +283,7 @@ function deleteImage($filename, $directory)
     return false;
 }
 
-function uploadDocument($file, $target_dir, $prefix)
+function uploadDocument($file, $target_dir, $prefix, $customId = null)
 {
     $result = ['success' => false, 'filename' => '', 'error' => ''];
 
@@ -303,9 +318,20 @@ function uploadDocument($file, $target_dir, $prefix)
         return $result;
     }
 
+    // --- LOGIC ID FIX ---
+    $id = $customId;
+    if ($id === null) {
+        if (isset($_SESSION['user']) && is_object($_SESSION['user'])) {
+            $id = $_SESSION['user']->getIdUser();
+        } else {
+            $id = time(); // Fallback safe ID agar tidak crash
+        }
+    }
+    // --------------------
+
     // Generate unique filename
     $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $new_filename = $prefix . $_SESSION['user']->getIdUser() . date('ymdHis') . '.' . $file_extension;
+    $new_filename = $prefix . $id . date('ymdHis') . '.' . $file_extension;
     $target_path = $target_dir . $new_filename;
 
     // Create directory if not exists
@@ -336,22 +362,38 @@ define('ACTIVITY_LOG_FILE', __DIR__ . '/../Vetcare logs/activity.log');
 define('ERROR_LOG_FILE', __DIR__ . '/../Vetcare logs/error.log');
 define('ROUTING_LOG_FILE', __DIR__ . '/../Vetcare logs/routing.log');
 
-enum LOG_TYPE{
+enum LOG_TYPE
+{
     case ACTIVITY;
     case ERROR;
     case ROUTING;
+
+    function getLogTypeString()
+    {
+        return match ($this) {
+            self::ACTIVITY => [ACTIVITY_LOG_FILE, isset($_SESSION['user']) ? $_SESSION['user']->getEmail() : 'guest'],
+            self::ERROR => [ERROR_LOG_FILE, ''],
+            self::ROUTING => [ROUTING_LOG_FILE, isset($_SESSION['user']) ? censorEmail($_SESSION['user']->getEmail()) . '(' . $_SESSION['user']->getRole() . ')' : 'guest'],
+        };
+    }
 }
 
-function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR) {
+function custom_log($message, LOG_TYPE $type = LOG_TYPE::ERROR)
+{
+    $user = $type->getLogTypeString()[1];
     $timestamp = date('Y-m-d H:i:s');
-    $log_entry = "[{$timestamp}] {$message}\n"; // Format + newline
-    $dest = match ($type) {
-        LOG_TYPE::ACTIVITY => ACTIVITY_LOG_FILE,
-        LOG_TYPE::ERROR => ERROR_LOG_FILE,
-        LOG_TYPE::ROUTING => ROUTING_LOG_FILE,
-    };
+    $log_entry = "[{$timestamp}] {$user} {$message}\n"; // Format + newline
+    $dest = $type->getLogTypeString()[0];
 
     error_log($log_entry, 3, $dest);
 }
+
+define('MAIL_HOST', 'smtp.gmail.com');
+define('MAIL_PORT', 587);
+define('MAIL_USERNAME', '');
+define('MAIL_PASSWORD', '');
+define('MAIL_ENCRYPTION', 'tls');
+define('MAIL_FROM_ADDRESS', 'noreply@eaude-vetcare.mif.myhost.id');
+define('MAIL_FROM_NAME', 'VetCare');
 
 ?>

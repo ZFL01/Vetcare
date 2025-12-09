@@ -126,15 +126,6 @@
                 <textarea id="chat-input" rows="1" placeholder="Ketik pesan Anda..."
                     class="flex-1 bg-transparent border-0 focus:ring-0 resize-none text-sm py-3 px-2 max-h-32"
                     style="min-height: 44px;"></textarea>
-
-                <button class="p-2 text-gray-400 hover:text-purple-600 transition-colors self-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                        </path>
-                    </svg>
-                </button>
-
                 <button id="send-button"
                     class="p-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all shadow-md shadow-purple-200 self-end">
                     <svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,12 +1,20 @@
 <?php
-$loggedIn = isset($_SESSION['user']);
-$userRole = '';
-$isDokter = false;
+// Header component converted to PHP
+$currentPage = isset($_GET['route']) ? $_GET['route'] : '';
+
+// Include config to get GOOGLE_MAPS_API_KEY and other constants
+require_once __DIR__ . '/src/config/config.php';
+require_once __DIR__ . '/includes/userService.php';
+
+
+$userRole = isset($_SESSION['user']) ? $_SESSION['user']->getRole() : null;
+$isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
 $fotoProfile = null;
-if ($loggedIn) {
-    $userRole = $_SESSION['user']->getRole();
-    $isDokter = $userRole === 'Dokter' && isset($_SESSION['dokter']);
-    $fotoProfile = ($isDokter) ? $_SESSION['dokter']->getFoto() : null;
+
+if ($isDokter) {
+    // Fetch fresh profile to ensure photo is up to date
+    $freshProfil = DAO_dokter::getProfilDokter($_SESSION['user'], true);
+    $fotoProfile = $freshProfil ? $freshProfil->getFoto() : null;
 }
 
 ?>
@@ -50,12 +58,20 @@ if ($loggedIn) {
                         <div class="px-3 py-2 border-b border-gray-100 mb-2">
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Layanan Kami</h4>
                         </div>
-                        <a href="?route=pilih-dokter"
+                        <a href="?route=konsultasi-dokter"
                             class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
                             <span class="text-lg">🩺</span>
                             <div>
                                 <div class="font-medium">Konsultasi Dokter</div>
-                                <div class="text-xs text-gray-500">Pilih dan chat dengan Dokter</div>
+                                <div class="text-xs text-gray-500">Chat & Video Call</div>
+                            </div>
+                        </a>
+                        <a href="?route=tanya-dokter"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
+                            <span class="text-lg">❓</span>
+                            <div>
+                                <div class="font-medium">Tanya Dokter</div>
+                                <div class="text-xs text-gray-500">Konsultasi Tertulis</div>
                             </div>
                         </a>
                         <a href="?route=klinik-terdekat"
@@ -64,6 +80,22 @@ if ($loggedIn) {
                             <div>
                                 <div class="font-medium">Klinik Terdekat</div>
                                 <div class="text-xs text-gray-500">Temukan Lokasi</div>
+                            </div>
+                        </a>
+                        <a href="?route=dokter-ternak"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
+                            <span class="text-lg">🐄</span>
+                            <div>
+                                <div class="font-medium">Dokter Ternak</div>
+                                <div class="text-xs text-gray-500">Hewan Produktif</div>
+                            </div>
+                        </a>
+                        <a href="?route=dokter-hewan-kecil"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all duration-200 rounded-lg mx-2">
+                            <span class="text-lg">🐱</span>
+                            <div>
+                                <div class="font-medium">Dokter Hewan Kecil</div>
+                                <div class="text-xs text-gray-500">Kucing, Anjing & Hewan Peliharaan</div>
                             </div>
                         </a>
                     </div>
@@ -75,7 +107,6 @@ if ($loggedIn) {
                         class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 group-hover:w-full transition-all duration-300">
                     </div>
                 </button>
-
                 <button onclick="scrollToSection('kontak')"
                     class="relative text-gray-700 hover:text-purple-600 font-medium transition-all duration-300 group">
                     <span>Kontak</span>
@@ -84,12 +115,14 @@ if ($loggedIn) {
                     </div>
                 </button>
             </nav>
+
             <div class="flex items-center gap-3 md:gap-4">
-                <?php if ($loggedIn): ?>
+                <?php if (isset($_SESSION['user'])): ?>
                     <div class="relative hidden md:block" id="user-menu-container">
                         <button
                             class="flex items-center gap-2 hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors group"
                             onclick="toggleUserMenu()">
+
                             <?php if ($isDokter): ?>
                                 <?php if ($fotoProfile): ?>
                                     <img src="<?php echo URL_FOTO . 'dokter-profil/' . $fotoProfile; ?>" alt="Profile"
@@ -206,14 +239,16 @@ if ($loggedIn) {
                     class="text-left text-gray-700 hover:text-purple-600 font-medium transition-colors px-4">
                     Cara Kerja
                 </button>
-
                 <button onclick="scrollToSection('kontak'); toggleMobileMenu()"
                     class="text-left text-gray-700 hover:text-purple-600 font-medium transition-colors px-4">
                     Kontak
                 </button>
 
                 <div class="px-4 pt-4 border-t border-purple-200 space-y-3">
-                    <?php if ($loggedIn) {
+                    <?php if (isset($_SESSION['user'])) {
+                        if ($isDokter) {
+                            $fotoProfile = $_SESSION['dokter']->getFoto();
+                        }
                         ?>
                         <div class="flex items-center gap-3 mb-4">
                             <?php if ($isDokter): ?>
@@ -247,7 +282,7 @@ if ($loggedIn) {
                             </div>
                         </div>
 
-                        <?php if ($_SESSION['user']->getRole() === 'Dokter'): ?>
+                        <?php if ($isDokter): ?>
                             <button onclick="navigateTo('?route=profil'); toggleMobileMenu()"
                                 class="w-full justify-start hover:bg-purple-50 font-medium px-4 py-2 rounded-lg transition-colors flex items-center">
                                 <span class="mr-2">👨‍⚕️</span>
@@ -456,21 +491,21 @@ if ($loggedIn) {
 </script>
 
 <script>
-// Ensure the page content sits below the fixed header by applying
-// an equivalent padding-top to <body> equal to the header height.
-// This keeps layout correct across screen sizes and when header height
-// changes (mobile vs desktop).
-function adjustBodyPaddingForHeader() {
-    try {
-        var hdr = document.querySelector('header');
-        if (!hdr) return;
-        var height = hdr.offsetHeight || 0;
-        document.body.style.paddingTop = height + 'px'; 
-    } catch (e) {
-        // fail silently
-        console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+    // Ensure the page content sits below the fixed header by applying
+    // an equivalent padding-top to <body> equal to the header height.
+    // This keeps layout correct across screen sizes and when header height
+    // changes (mobile vs desktop).
+    function adjustBodyPaddingForHeader() {
+        try {
+            var hdr = document.querySelector('header');
+            if (!hdr) return;
+            var height = hdr.offsetHeight || 0;
+            document.body.style.paddingTop = height + 'px';
+        } catch (e) {
+            // fail silently
+            console && console.warn && console.warn('adjustBodyPaddingForHeader error', e);
+        }
     }
-}
 
     // Debounce helper for resize
     var _resizeTimer;

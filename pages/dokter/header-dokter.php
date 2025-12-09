@@ -63,6 +63,9 @@ $pageTitle = $pageTitle ?? 'VetCare - Dashboard Dokter';
             border-radius: 0.75rem !important;
         }
     </style>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/public/cat.ico" sizes="16x16 32x32">
+    <link rel="shortcut icon" type="image/x-icon" href="/public/cat.ico">
 </head>
 <?php
 $current_page = basename($_SERVER['SCRIPT_NAME']);
@@ -277,6 +280,7 @@ $color = 'purple'; // Keep theme purple
         });
 
     </script>
+    <script src="/public/js/notification.js"></script>
 </body>
 
 </html>
