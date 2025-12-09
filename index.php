@@ -77,7 +77,6 @@ if ($action) {
             $kota = $data['kota'] ?? '';
             $prov = $data['prov'] ?? '';
             $koor = $lat . ', ' . $long;
-            error_log("halo?");
             if (empty($kota) || empty($prov)) {
                 $kotprov = apiControl::getCityProvince($lat, $long);
                 if (!$kotprov[0]) {
@@ -240,6 +239,13 @@ switch ($route) {
         $pageTitle = 'Chat dengan Dokter - VetCare';
         $pageDescription = 'Mulai konsultasi online dengan dokter hewan terpercaya';
         $contentFile = 'pages/chat-dokter.php';
+        custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
+        break;
+    case 'riwayat-chat':
+        requireLogin(false);
+        $pageTitle = 'Riwayat Chat - VetCare';
+        $pageDescription = 'Lihat riwayat konsultasi dengan dokter hewan';
+        $contentFile = 'pages/riwayat-chat.php';
         custom_log("Route {" . $route . "} accessed on root :" . ROOT_DIR . '/' . $contentFile, LOG_TYPE::ROUTING);
         break;
     case 'profil':
