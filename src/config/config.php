@@ -350,7 +350,7 @@ function uploadDocument($file, $target_dir, $prefix, $customId = null)
     return $result;
 }
 
-define('LOCATIONIQ_API', 'pk.f36f3d13ab6674ab62602323da859b26');
+define('LOCATIONIQ_API', '');
 define('MONGODB_URI', "mongodb+srv://klinikH:QZ6Bqc8HAH5LPa7g@cluster0.rgxz9ub.mongodb.net/?appName=Cluster0");
 define('MONGODB_DBNAME', 'klinikH');
 

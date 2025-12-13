@@ -563,7 +563,7 @@ class DAO_dokter
             $stmt->execute([$id]);
             $profil = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($profil == null) {
-                return false;
+                return null;
             }
 
             $dokter = new DTO_dokter($profil['id_dokter'], $profil['nama_dokter'], $profil['foto'], rate: $profil['rate']);
